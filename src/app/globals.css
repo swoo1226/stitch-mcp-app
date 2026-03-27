@@ -1,0 +1,127 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+:root {
+  /* Atmospheric Sanctuary Palette */
+  --surface: #f0fcfb;
+  --surface-container-low: #eaf6f5;
+  --surface-container: #e4f0ef;
+  --surface-container-high: #dfebea;
+  --surface-container-highest: #d9e5e4;
+  --surface-lowest: #ffffff;
+  
+  --on-surface: #131d1d;
+  --on-surface-variant: #3f4848;
+  
+  --primary: #2b6867;
+  --on-primary: #ffffff;
+  --primary-container: #b1eeec;
+  
+  --secondary: #3f6565;
+  --secondary-container: #c1eaea;
+  
+  --tertiary: #871f21;
+  --tertiary-container: #a83736;
+  
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  
+  --glass-bg: rgba(240, 252, 251, 0.7);
+  --glass-blur: blur(20px);
+  
+  --shadow-ambient: 0 20px 40px rgba(19, 29, 29, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Manrope', sans-serif;
+  background-color: var(--surface);
+  color: var(--on-surface);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, .headline {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Glassmorphism - Following "No-Line" Rule */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  /* Rule: strictly prohibit 1px solid borders for sectioning */
+  border: none;
+  box-shadow: var(--shadow-ambient);
+}
+
+/* Tonal Layering Utilities */
+.bg-surface { background-color: var(--surface); }
+.bg-surface-low { background-color: var(--surface-container-low); }
+.bg-surface-container { background-color: var(--surface-container); }
+.bg-surface-high { background-color: var(--surface-container-high); }
+.bg-surface-highest { background-color: var(--surface-container-highest); }
+.bg-white-sanctuary { background-color: var(--surface-lowest); }
+
+/* Logo Styling */
+.logo-text {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  color: var(--primary);
+}
+/* Atmospheric State Utilities from Service Spec */
+.foggy-state {
+  filter: blur(8px) saturate(0.5);
+}
+
+.sunny-state {
+  filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4));
+}
+
+.logo-text span {
+  opacity: 0.4;
+}
+
+/* Hide scrollbar */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@layer components {
+  .btn-sanctuary {
+    @apply py-4 rounded-[1.5rem] font-bold transition-all active:scale-95 inline-flex items-center justify-center gap-2 relative;
+    padding-left: 5rem;
+    padding-right: 5rem;
+    background: var(--primary);
+    color: var(--on-primary);
+    box-shadow: 0 12px 32px rgba(32, 54, 55, 0.1);
+  }
+
+  .btn-sanctuary-secondary {
+    @apply py-4 rounded-[1.5rem] font-bold transition-all active:scale-95 inline-flex items-center justify-center gap-2 relative;
+    padding-left: 5rem;
+    padding-right: 5rem;
+    background: var(--surface-container-highest);
+    color: var(--secondary);
+  }
+
+  .headline-sanctuary {
+    @apply text-4xl lg:text-5xl font-extrabold tracking-tight;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    line-height: 1.1;
+    color: var(--on-surface);
+  }
+
+  .card-sanctuary {
+    @apply p-8 rounded-[3.5rem] transition-all relative;
+    background-color: var(--surface-lowest);
+    box-shadow: var(--shadow-ambient);
+    border: none;
+  }
+}
