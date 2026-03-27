@@ -34,7 +34,7 @@ export default function AlertsPage() {
         animate={{ filter: "blur(0px)", opacity: 1 }}
         transition={{ duration: 1 }}
       >
-        <p className="text-[10px] font-bold tracking-[0.2em] uppercase opacity-40 mb-4 text-primary">Risk Center</p>
+        <p className="text-[10px] font-bold tracking-[0.2em] uppercase opacity-40 mb-4 text-tertiary">Risk Center</p>
         <h1 className="headline-sanctuary mb-12">Find out how <br /> the team is doing.</h1>
 
         <div className="grid gap-8">
@@ -57,8 +57,8 @@ export default function AlertsPage() {
                 {alert.team} Team: {alert.desc}
               </p>
               <div className="flex gap-4">
-                <ClimaButton className="text-sm py-4 px-10">Intervene</ClimaButton>
-                <ClimaButton variant="secondary" className="text-sm py-4 px-10">Dismiss</ClimaButton>
+                <ClimaButton variant="secondary" className="text-sm py-4 px-10">Intervene</ClimaButton>
+                <ClimaButton variant="tertiary" className="text-sm py-4 px-10">Dismiss</ClimaButton>
               </div>
             </motion.div>
           ))}

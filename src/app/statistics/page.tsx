@@ -22,13 +22,13 @@ export default function StatisticsPage() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8 }}
       >
-        <p className="text-[10px] font-bold tracking-[0.2em] uppercase opacity-40 mb-4 text-primary">Team Analytics</p>
+        <p className="text-[10px] font-bold tracking-[0.2em] uppercase opacity-40 mb-4 text-secondary">Team Analytics</p>
         <h1 className="headline-sanctuary mb-16 underline-offset-8 decoration-primary/20">Team Climate Analysis.</h1>
 
         <section className="mb-20">
             <div className="flex justify-between items-end mb-8 px-2">
                 <h2 className="text-xl font-extrabold font-[Plus Jakarta Sans]">Clima Wave Summary</h2>
-                <span className="text-sm font-bold text-primary/60">▲ 12% Improved</span>
+                <span className="text-sm font-bold text-secondary/70">▲ 12% Improved</span>
             </div>
             <ClimaWave score={82} />
             <div className="flex justify-between mt-6 px-4 text-[10px] font-extrabold tracking-widest uppercase opacity-30">
@@ -38,15 +38,15 @@ export default function StatisticsPage() {
         </section>
 
         <section className="grid lg:grid-cols-2 gap-8">
-            <div className="bg-surface-high p-10 rounded-[3.5rem] shadow-ambient">
+            <div className="bg-secondary-container/30 p-10 rounded-[3.5rem] shadow-ambient">
                 <h3 className="text-[10px] font-black tracking-widest opacity-40 uppercase mb-6 text-secondary">Mood Humidity</h3>
-                <div className="text-5xl font-black font-[Plus Jakarta Sans] mb-4">18%</div>
+                <div className="text-5xl font-black font-[Plus Jakarta Sans] mb-4 text-secondary">18%</div>
                 <p className="text-sm opacity-60 leading-relaxed font-medium">Very dry and focused. Ideal for deep work sprints and architectural discussions.</p>
             </div>
 
-            <div className="card-sanctuary p-10">
-                <h3 className="text-[10px] font-black tracking-widest opacity-40 uppercase mb-6 text-primary">Atmosphere Pressure</h3>
-                <div className="text-5xl font-black font-[Plus Jakarta Sans] mb-4">42 <span className="text-xl font-bold opacity-30">km/h</span></div>
+            <div className="card-sanctuary p-10 bg-tertiary-container/20">
+                <h3 className="text-[10px] font-black tracking-widest opacity-40 uppercase mb-6 text-tertiary">Atmosphere Pressure</h3>
+                <div className="text-5xl font-black font-[Plus Jakarta Sans] mb-4 text-tertiary">42 <span className="text-xl font-bold opacity-30 text-on-surface">km/h</span></div>
                 <p className="text-sm opacity-60 leading-relaxed font-medium">Sprint velocity is high. High productive pressure detected across all squads.</p>
             </div>
         </section>

@@ -38,14 +38,14 @@ export default function DetailsPage() {
       <section className="bg-surface-container text-on-surface rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden mb-8 shadow-ambient">
         <div className="flex justify-between items-center mb-12">
             <div>
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2">Current State</p>
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2 text-secondary">Current State</p>
                 <h2 className="text-3xl font-extrabold font-[Plus Jakarta Sans]">안개 (Foggy)</h2>
             </div>
             <span className="text-6xl opacity-20">🌫️</span>
         </div>
         <p className="text-sm font-medium opacity-60">일부 구성원들의 업무 로드 균형이 무너져 있으며,<br />목표 지점이 다소 불분명한 상태입니다.</p>
-        <div className="mt-6 flex gap-2 items-center bg-white p-3 rounded-2xl border border-black/5">
-            <span className="text-[var(--primary-container)]">💡</span>
+        <div className="mt-6 flex gap-2 items-center bg-tertiary-container/45 p-3 rounded-2xl">
+            <span className="text-tertiary">💡</span>
             <span className="text-xs font-bold">상황 판단 2건 진행 중</span>
         </div>
       </section>
@@ -54,17 +54,17 @@ export default function DetailsPage() {
         <div className="relative inline-flex items-center justify-center w-40 h-40">
             <svg className="absolute inset-0 w-full h-full -rotate-90">
                 <circle cx="80" cy="80" r="70" stroke="var(--surface-container-highest)" strokeWidth="15" fill="transparent" />
-                <circle cx="80" cy="80" r="70" stroke="var(--primary)" strokeWidth="15" fill="transparent" strokeDasharray="439.8" strokeDashoffset="110" strokeLinecap="round" />
+                <circle cx="80" cy="80" r="70" stroke="var(--secondary)" strokeWidth="15" fill="transparent" strokeDasharray="439.8" strokeDashoffset="110" strokeLinecap="round" />
             </svg>
             <div className="flex flex-col items-center">
-                <span className="text-4xl font-extrabold font-[Plus Jakarta Sans] text-primary">12</span>
+                <span className="text-4xl font-extrabold font-[Plus Jakarta Sans] text-secondary">12</span>
                 <span className="text-[10px] uppercase font-black tracking-widest opacity-40 mt-1">Members</span>
             </div>
         </div>
       </section>
 
       <div className="mb-12 pb-12">
-        <p className="text-[10px] font-black mb-4 uppercase tracking-[0.2em] opacity-40 text-primary">구성원 인사이트</p>
+        <p className="text-[10px] font-black mb-4 uppercase tracking-[0.2em] opacity-40 text-tertiary">구성원 인사이트</p>
         <div className="flex flex-col gap-4">
             {insights.map((insight, i) => (
                 <div key={i} className="card-sanctuary py-6 flex flex-col md:flex-row gap-4 items-start md:items-center">
@@ -75,8 +75,14 @@ export default function DetailsPage() {
                         <h3 className="text-sm font-extrabold mb-1 tracking-tight">{insight.name}</h3>
                         <p className="text-xs font-medium opacity-60 mb-3 md:mb-0 leading-relaxed max-w-sm">{insight.desc}</p>
                     </div>
-                    <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-${insight.color}-container text-${insight.color} shrink-0`}>
-                        {insight.tag}
+                    <span
+                      className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shrink-0 ${
+                        insight.color === "error"
+                          ? "bg-error-container text-error"
+                          : "bg-secondary-container text-secondary"
+                      }`}
+                    >
+                      {insight.tag}
                     </span>
                 </div>
             ))}

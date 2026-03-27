@@ -40,46 +40,46 @@ const CELEBRATION_CONFIG: Record<string, {
   subtitle: string;
 }> = {
   Stormy: {
-    overlayClass: "bg-on-surface/20 backdrop-blur-xl",
-    cardShadow: "0 28px 72px -24px rgba(51,65,85,0.28)",
+    overlayClass: "backdrop-blur-md",
+    cardShadow: "0 30px 100px -20px rgba(51,65,85,0.3)",
     btnGradient: "linear-gradient(135deg, #FFD600 0%, #FFA000 100%)",
-    btnShadow: "0 8px 32px -8px rgba(255,160,0,0.5)",
+    btnShadow: "0 0 20px rgba(255,160,0,0.4)",
     glowColor: "rgba(251,191,36,0.25)",
     title: "오늘의 마음 관측 완료!",
     subtitle: "폭풍도 지나가면 맑아져요 ⚡",
   },
   Rainy: {
-    overlayClass: "bg-on-surface/18 backdrop-blur-xl",
-    cardShadow: "0 28px 72px -24px rgba(59,130,246,0.18)",
+    overlayClass: "backdrop-blur-md",
+    cardShadow: "0 30px 100px -20px rgba(59,130,246,0.2)",
     btnGradient: "linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)",
-    btnShadow: "0 8px 32px -8px rgba(59,130,246,0.45)",
+    btnShadow: "0 0 20px rgba(59,130,246,0.4)",
     glowColor: "rgba(59,130,246,0.2)",
     title: "오늘의 마음 관측 완료!",
     subtitle: "빗소리에 마음을 맡겨봐요 🌧️",
   },
   Foggy: {
-    overlayClass: "bg-on-surface/18 backdrop-blur-xl",
-    cardShadow: "0 28px 72px -24px rgba(45,212,191,0.18)",
+    overlayClass: "backdrop-blur-md",
+    cardShadow: "0 30px 100px -20px rgba(45,212,191,0.2)",
     btnGradient: "linear-gradient(135deg, #2DD4BF 0%, #22D3EE 100%)",
-    btnShadow: "0 8px 32px -8px rgba(45,212,191,0.45)",
+    btnShadow: "0 0 20px rgba(45,212,191,0.4)",
     glowColor: "rgba(148,163,184,0.25)",
     title: "오늘의 마음 관측 완료!",
     subtitle: "안개는 곧 걷혀 나아갈 거예요 🌫️",
   },
   Sunny: {
-    overlayClass: "bg-on-surface/18 backdrop-blur-xl",
-    cardShadow: "0 28px 72px -24px rgba(255,153,102,0.18)",
+    overlayClass: "backdrop-blur-md",
+    cardShadow: "0 30px 100px -20px rgba(255,153,102,0.2)",
     btnGradient: "linear-gradient(135deg, #FF9966 0%, #FF5E62 100%)",
-    btnShadow: "0 8px 32px -8px rgba(255,153,102,0.5)",
+    btnShadow: "0 0 20px rgba(255,153,102,0.4)",
     glowColor: "rgba(251,191,36,0.2)",
     title: "오늘의 마음은 맑음!",
     subtitle: "따스한 햇살이 기록되었어요 ☀️",
   },
   Radiant: {
-    overlayClass: "bg-on-surface/18 backdrop-blur-xl",
-    cardShadow: "0 28px 72px -24px rgba(255,153,102,0.22)",
+    overlayClass: "backdrop-blur-md",
+    cardShadow: "0 30px 100px -20px rgba(255,153,102,0.25)",
     btnGradient: "linear-gradient(135deg, #FFD600 0%, #FF9966 100%)",
-    btnShadow: "0 8px 32px -8px rgba(255,200,0,0.5)",
+    btnShadow: "0 0 20px rgba(255,200,0,0.4)",
     glowColor: "rgba(255,209,102,0.3)",
     title: "오늘의 마음은 쨍함!",
     subtitle: "눈부신 에너지가 기록되었어요 🌟",
@@ -324,124 +324,66 @@ export default function ClimaInput() {
   );
 }
 
-// 날씨별 CSS 아이콘 조형물
-function WeatherIconSculpture({ label }: { label: string }) {
+// 모달용 아이콘 — 타일과 동일한 SVG에 애니메이션만 추가
+function ModalWeatherIcon({ label }: { label: string }) {
+  const Icon = WEATHER_ICON_MAP[label];
+
   if (label === "Sunny") {
     return (
-      <div className="relative w-40 h-40 flex items-center justify-center">
-        {/* glow */}
-        <div className="absolute inset-0 rounded-full" style={{ background: "rgba(251,191,36,0.25)", filter: "blur(32px)", transform: "scale(1.5)" }} />
-        {/* 광선 — 12초 회전 */}
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0 flex items-center justify-center"
-        >
-          {[0,45,90,135,180,225,270,315].map((deg) => (
-            <div key={deg} className="absolute" style={{ transform: `rotate(${deg}deg) translateY(-52px)`, width: 6, height: 18, borderRadius: 9999, background: "linear-gradient(to bottom, #FFD600, transparent)" }} />
-          ))}
-        </motion.div>
-        {/* 본체 */}
-        <div className="relative w-24 h-24 rounded-full flex items-center justify-center" style={{ background: "radial-gradient(circle at 30% 30%, #fff176 0%, #ffb300 100%)", boxShadow: "inset 0 -6px 16px rgba(0,0,0,0.1), 0 12px 40px -8px rgba(255,153,0,0.4)" }}>
-          <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} className="w-8 h-8 rounded-full" style={{ background: "rgba(255,255,255,0.3)" }} />
-        </div>
-        {/* 작은 파티클 */}
-        <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 1.5, repeat: Infinity }} className="absolute top-4 right-6 w-3 h-3 rounded-full" style={{ background: "#FFD600" }} />
-        <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity, delay: 0.7 }} className="absolute bottom-6 left-5 w-5 h-5 rounded-full" style={{ background: "rgba(255,200,80,0.4)" }} />
-      </div>
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+      >
+        <Icon size={96} />
+      </motion.div>
     );
   }
 
   if (label === "Radiant") {
     return (
-      <div className="relative w-40 h-40 flex items-center justify-center">
-        <div className="absolute inset-0 rounded-full" style={{ background: "rgba(255,209,102,0.35)", filter: "blur(32px)", transform: "scale(1.5)" }} />
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0 flex items-center justify-center"
-        >
-          {[0,36,72,108,144,180,216,252,288,324].map((deg) => (
-            <div key={deg} className="absolute" style={{ transform: `rotate(${deg}deg) translateY(-54px)`, width: 5, height: 20, borderRadius: 9999, background: "linear-gradient(to bottom, #FFE066, transparent)" }} />
-          ))}
-        </motion.div>
-        <div className="relative w-24 h-24 rounded-full flex items-center justify-center" style={{ background: "radial-gradient(circle at 30% 30%, #FFE599 0%, #F5A623 100%)", boxShadow: "inset 0 -6px 16px rgba(0,0,0,0.08), 0 12px 48px -8px rgba(255,160,0,0.5)" }}>
-          <motion.div animate={{ scale: [1, 1.08, 1] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }} className="w-8 h-8 rounded-full" style={{ background: "rgba(255,255,255,0.35)" }} />
-        </div>
-        <motion.div animate={{ opacity: [0.6, 1, 0.6], y: [0, -3, 0] }} transition={{ duration: 1.8, repeat: Infinity }} className="absolute top-3 right-5 w-4 h-4 rounded-full" style={{ background: "#FFD166" }} />
-        <motion.div animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 2.2, repeat: Infinity, delay: 0.5 }} className="absolute bottom-5 left-4 w-6 h-6 rounded-full" style={{ background: "rgba(255,220,80,0.35)" }} />
-      </div>
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
+      >
+        <Icon size={96} />
+      </motion.div>
     );
   }
 
   if (label === "Stormy") {
     return (
-      <div className="relative w-40 h-40 flex items-center justify-center">
-        <div className="absolute inset-0 rounded-full" style={{ background: "rgba(251,191,36,0.2)", filter: "blur(32px)", transform: "scale(1.5)" }} />
-        {/* CSS 구름 적층 */}
-        <div className="relative flex items-end justify-center">
-          <div className="w-14 h-14 rounded-full -mr-4" style={{ background: "radial-gradient(circle at 30% 30%, #64748b 0%, #334155 100%)" }} />
-          <div className="w-20 h-20 rounded-full z-10" style={{ background: "radial-gradient(circle at 30% 30%, #64748b 0%, #334155 100%)" }} />
-          <div className="w-16 h-16 rounded-full -ml-6" style={{ background: "radial-gradient(circle at 30% 30%, #64748b 0%, #334155 100%)" }} />
-        </div>
-        {/* 번개 */}
-        <motion.div
-          animate={{ opacity: [1, 0.4, 1, 0.4, 1], filter: ["drop-shadow(0 0 6px #FFD600)", "drop-shadow(0 0 2px #FFD600)", "drop-shadow(0 0 8px #FFD600)", "drop-shadow(0 0 2px #FFD600)", "drop-shadow(0 0 6px #FFD600)"] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          className="absolute"
-          style={{ bottom: "14px", left: "50%", transform: "translateX(-50%)" }}
-        >
-          <svg width="28" height="36" viewBox="0 0 28 36" fill="none">
-            <path d="M18 2 L8 18 H15 L10 34 L26 14 H19 Z" fill="#FFD600" />
-          </svg>
-        </motion.div>
-      </div>
-    );
-  }
-
-  if (label === "Foggy") {
-    return (
-      <div className="relative w-40 h-40 flex items-center justify-center">
-        <div className="absolute inset-0 rounded-full" style={{ background: "rgba(148,163,184,0.2)", filter: "blur(32px)", transform: "scale(1.5)" }} />
-        {/* 수평 원형 3개 */}
-        <div className="relative flex items-center -space-x-4">
-          <div className="w-16 h-16 rounded-full opacity-80" style={{ background: "radial-gradient(circle at 30% 30%, #ffffff 0%, #e2e8f0 100%)" }} />
-          <div className="w-20 h-20 rounded-full z-10" style={{ background: "radial-gradient(circle at 30% 30%, #ffffff 0%, #f1f5f9 100%)" }} />
-          <div className="w-16 h-16 rounded-full opacity-70" style={{ background: "radial-gradient(circle at 30% 30%, #ffffff 0%, #e2e8f0 100%)" }} />
-        </div>
-        {/* 안개 줄기 */}
-        <div className="absolute" style={{ bottom: "22px", left: "50%", transform: "translateX(-50%)", width: "9rem", height: "14px", borderRadius: 9999, background: "rgba(255,255,255,0.6)", filter: "blur(10px)" }} />
-        <div className="absolute" style={{ bottom: "10px", left: "50%", transform: "translateX(-50%)", width: "11rem", height: "18px", borderRadius: 9999, background: "rgba(255,255,255,0.4)", filter: "blur(12px)" }} />
-      </div>
+      <motion.div
+        animate={{ x: [-2, 2, -2] }}
+        transition={{ duration: 0.15, repeat: Infinity, ease: "linear" }}
+      >
+        <Icon size={96} />
+      </motion.div>
     );
   }
 
   if (label === "Rainy") {
     return (
-      <div className="relative w-40 h-40 flex items-center justify-center">
-        <div className="absolute inset-0 rounded-full" style={{ background: "rgba(59,130,246,0.15)", filter: "blur(32px)", transform: "scale(1.5)" }} />
-        {/* 구름 적층 */}
-        <div className="relative flex items-end justify-center">
-          <div className="w-14 h-14 rounded-full -mr-4" style={{ background: "radial-gradient(circle at 30% 30%, #e0f2fe 0%, #cbd5e1 100%)" }} />
-          <div className="w-20 h-20 rounded-full z-10" style={{ background: "radial-gradient(circle at 30% 30%, #e0f2fe 0%, #cbd5e1 100%)" }} />
-          <div className="w-16 h-16 rounded-full -ml-6" style={{ background: "radial-gradient(circle at 30% 30%, #e0f2fe 0%, #cbd5e1 100%)" }} />
-        </div>
-        {/* 빗방울 */}
-        {[{ left: "34%", delay: 0.2 }, { left: "46%", delay: 0.5 }, { left: "58%", delay: 0.8 }, { left: "42%", delay: 0.1 }].map(({ left, delay }, i) => (
-          <motion.div
-            key={i}
-            animate={{ y: [-8, 36], opacity: [0, 1, 1, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, delay, ease: "linear" }}
-            className="absolute"
-            style={{ bottom: "14px", left, width: 3, height: 12, borderRadius: 9999, background: "linear-gradient(to bottom, rgba(59,130,246,0.7), transparent)" }}
-          />
-        ))}
-      </div>
+      <motion.div
+        animate={{ y: [0, -4, 0] }}
+        transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Icon size={96} />
+      </motion.div>
     );
   }
 
-  // fallback
-  return <div className="w-24 h-24 rounded-full" style={{ background: "var(--primary-container)" }} />;
+  if (label === "Foggy") {
+    return (
+      <motion.div
+        animate={{ opacity: [0.7, 1, 0.7] }}
+        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Icon size={96} />
+      </motion.div>
+    );
+  }
+
+  return <Icon size={96} />;
 }
 
 // 축하 모달 컴포넌트
@@ -461,6 +403,7 @@ function CelebrationModal({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
       className={`fixed inset-0 z-50 flex items-center justify-center p-6 ${config.overlayClass}`}
+      style={{ background: "rgba(255,255,255,0.10)" }}
     >
       {/* 모달 카드 — glassmorphism */}
       <motion.div
@@ -470,24 +413,25 @@ function CelebrationModal({
         transition={HEAVY_SPRING}
         className="relative w-full flex flex-col items-center text-center"
         style={{
-          maxWidth: "27rem",
+          maxWidth: "26rem",
           borderRadius: "2.5rem",
-          padding: "2.75rem 2.25rem 2rem",
-          background: "rgba(255,255,255,0.72)",
-          backdropFilter: "blur(18px)",
-          WebkitBackdropFilter: "blur(18px)",
-          border: "1px solid rgba(255,255,255,0.5)",
+          padding: "2.5rem 2rem",
+          background: "rgba(255,255,255,0.45)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          border: "1px solid rgba(255,255,255,0.6)",
           boxShadow: config.cardShadow,
         }}
       >
-        {/* 아이콘 조형물 */}
+        {/* 아이콘 — 타일과 동일한 SVG, 애니메이션만 추가 */}
         <motion.div
           initial={{ scale: 0.6, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1, ...HEAVY_SPRING }}
-          className="mb-7"
+          className="mb-7 relative"
+          style={{ filter: `drop-shadow(0 12px 24px ${config.glowColor})` }}
         >
-          <WeatherIconSculpture label={metaphor.label} />
+          <ModalWeatherIcon label={metaphor.label} />
         </motion.div>
 
         {/* 텍스트 */}
@@ -497,10 +441,10 @@ function CelebrationModal({
           transition={{ delay: 0.25, ...STANDARD_SPRING }}
           className="space-y-3 mb-8 px-2"
         >
-          <h2 className="font-extrabold tracking-tight leading-tight" style={{ fontSize: "30px", color: "#1a2e2a" }}>
+          <h2 className="font-extrabold tracking-tight leading-tight" style={{ fontSize: "28px", color: "#2e1f1a" }}>
             {config.title}
           </h2>
-          <p className="text-[15px] md:text-base font-medium leading-relaxed" style={{ color: "#516b67", maxWidth: "22ch", marginInline: "auto" }}>
+          <p className="text-base font-medium leading-relaxed" style={{ color: "#6b5551", maxWidth: "22ch", marginInline: "auto" }}>
             {config.subtitle}
           </p>
         </motion.div>
@@ -515,15 +459,13 @@ function CelebrationModal({
           {/* 날씨별 네온 CTA */}
           <Link
             href="/personal"
-            className="flex items-center justify-center gap-2 font-extrabold text-white transition-transform active:scale-95"
+            className="flex items-center justify-center gap-2 font-bold text-white transition-all active:scale-95 w-full"
             style={{
-              minWidth: "14rem",
-              height: 68,
-              borderRadius: "1.65rem",
+              height: 64,
+              borderRadius: "1.5rem",
               background: config.btnGradient,
               boxShadow: config.btnShadow,
-              fontSize: "16px",
-              paddingInline: "1.75rem",
+              fontSize: "18px",
             }}
           >
             나의 예보 보러가기
@@ -532,8 +474,8 @@ function CelebrationModal({
           {/* 닫기 */}
           <button
             onClick={onClose}
-            className="py-2 text-sm font-bold transition-opacity hover:opacity-70 active:scale-95"
-            style={{ color: "#516b67" }}
+            className="w-full py-4 text-sm font-medium transition-colors hover:opacity-70"
+            style={{ color: "#92817a" }}
           >
             닫기
           </button>

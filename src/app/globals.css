@@ -4,33 +4,33 @@
 
 :root {
   /* Atmospheric Sanctuary Palette */
-  --surface: #f0fcfb;
-  --surface-container-low: #eaf6f5;
-  --surface-container: #e4f0ef;
-  --surface-container-high: #dfebea;
-  --surface-container-highest: #d9e5e4;
+  --surface: #ebfaec;
+  --surface-container-low: #e4f5e5;
+  --surface-container: #dcefe0;
+  --surface-container-high: #d5e8d8;
+  --surface-container-highest: #cde2cf;
   --surface-lowest: #ffffff;
   
-  --on-surface: #131d1d;
-  --on-surface-variant: #3f4848;
+  --on-surface: #253228;
+  --on-surface-variant: #516b67;
   
-  --primary: #2b6867;
+  --primary: #006668;
   --on-primary: #ffffff;
-  --primary-container: #b1eeec;
+  --primary-container: #52f2f5;
   
-  --secondary: #3f6565;
-  --secondary-container: #c1eaea;
+  --secondary: #0058ba;
+  --secondary-container: #bed2ff;
   
-  --tertiary: #871f21;
-  --tertiary-container: #a83736;
+  --tertiary: #9b3d37;
+  --tertiary-container: #ffc3bd;
   
   --error: #ba1a1a;
   --error-container: #ffdad6;
   
-  --glass-bg: rgba(240, 252, 251, 0.7);
+  --glass-bg: rgba(255, 255, 255, 0.7);
   --glass-blur: blur(20px);
   
-  --shadow-ambient: 0 20px 40px rgba(19, 29, 29, 0.06);
+  --shadow-ambient: 0 20px 40px rgba(37, 50, 40, 0.06);
 }
 
 * {
@@ -118,6 +118,20 @@ h1, h2, h3, h4, .headline {
     letter-spacing: -0.01em;
     background: var(--surface-container-highest);
     color: var(--secondary);
+    box-shadow: 0 12px 32px -18px rgba(0, 88, 186, 0.28);
+  }
+
+  .btn-sanctuary-tertiary {
+    @apply rounded-[1.6rem] font-extrabold transition-all active:scale-95 inline-flex items-center justify-center gap-2 relative;
+    min-height: 3.5rem;
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    letter-spacing: -0.01em;
+    background: var(--tertiary-container);
+    color: var(--tertiary);
+    box-shadow: 0 12px 32px -18px rgba(155, 61, 55, 0.28);
   }
 
   .headline-sanctuary {

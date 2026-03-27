@@ -286,7 +286,7 @@ export default function ClimaDashboard() {
               </div>
 
               <div className="shrink-0 pt-4">
-                <ClimaButton className="w-full py-4 md:py-7 text-base md:text-xl tracking-tight">
+                <ClimaButton variant="tertiary" className="w-full py-4 md:py-7 text-base md:text-xl tracking-tight">
                   Send encouragement
                 </ClimaButton>
               </div>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import DynamicBackground from "../components/DynamicBackground";
+import { ClimaButton } from "../components/ui";
 
 export default function PersonalGarden() {
   return (
@@ -39,7 +40,7 @@ export default function PersonalGarden() {
         <div className="grid grid-cols-7 gap-2 md:gap-4 text-center text-[10px] md:text-xs font-bold">
             {['일', '월', '화', '수', '목', '금', '토'].map(d => <span key={d} className="opacity-40 mb-2">{d}</span>)}
             {[...Array(30)].map((_, i) => (
-                <div key={i} className={`h-8 md:h-10 flex items-center justify-center rounded-[1.5rem] ${i === 6 ? "bg-gradient-to-tr from-primary to-primary-container text-white shadow-md shadow-primary/20" : "opacity-60 bg-white/40"}`}>
+                <div key={i} className={`h-8 md:h-10 flex items-center justify-center rounded-[1.5rem] ${i === 6 ? "bg-gradient-to-tr from-secondary to-secondary-container text-white shadow-md shadow-secondary/20" : "opacity-60 bg-white/40"}`}>
                     {i + 1}
                 </div>
             ))}
@@ -47,21 +48,21 @@ export default function PersonalGarden() {
       </section>
 
       <section className="card-sanctuary mb-8">
-        <span className="text-[10px] font-black uppercase tracking-widest bg-primary-container text-primary px-3 py-1 rounded-full inline-block mb-4">Weekly Best</span>
+        <span className="text-[10px] font-black uppercase tracking-widest bg-tertiary-container text-tertiary px-3 py-1 rounded-full inline-block mb-4">Weekly Best</span>
         <h2 className="text-xl font-bold mb-4 font-[Plus Jakarta Sans]">이번 주 목요일은<br /> 가장 맑은 날이었어요</h2>
         <div className="flex items-center gap-3">
             <span className="text-2xl">☀️</span>
-            <span className="text-xs font-bold text-primary">평균 지수보다 24% 높았습니다.</span>
+            <span className="text-xs font-bold text-secondary">평균 지수보다 24% 높았습니다.</span>
         </div>
       </section>
 
       <div className="mb-12 pb-12">
-        <p className="text-[10px] font-black mb-4 uppercase tracking-[0.2em] opacity-40 text-primary">AI 마음 인사이트</p>
+        <p className="text-[10px] font-black mb-4 uppercase tracking-[0.2em] opacity-40 text-tertiary">AI 마음 인사이트</p>
         <div className="card-sanctuary bg-surface-high border-none">
             <p className="text-sm leading-relaxed italic mb-8 opacity-80 font-medium">"수요일의 15분 명상이 목요일의 업무 몰입도를 15% 향상시켰습니다. 마음을 돌보는 시간이 생산성의 비결이 되었네요."</p>
             <div className="flex flex-col md:flex-row gap-3">
-                <button className="btn-sanctuary text-xs py-3.5 px-6">명상 가이드 보기</button>
-                <button className="btn-sanctuary-secondary text-xs py-3.5 px-6 border-none text-secondary bg-surface-container-highest">상세 통계</button>
+                <ClimaButton variant="tertiary" className="text-xs py-3.5 px-6">명상 가이드 보기</ClimaButton>
+                <ClimaButton variant="secondary" className="text-xs py-3.5 px-6">상세 통계</ClimaButton>
             </div>
         </div>
       </div>

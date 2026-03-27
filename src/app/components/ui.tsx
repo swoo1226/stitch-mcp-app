@@ -72,7 +72,7 @@ interface ClimaButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
   href?: string;
-  variant?: "primary" | "secondary" | "icon";
+  variant?: "primary" | "secondary" | "tertiary" | "icon";
   className?: string;
   style?: React.CSSProperties;
   [key: string]: unknown;
@@ -93,7 +93,12 @@ export function ClimaButton({
     return <button onClick={onClick} className={iconClass} {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}>{children}</button>;
   }
 
-  const base = variant === "secondary" ? "btn-sanctuary-secondary" : "btn-sanctuary";
+  const base =
+    variant === "secondary"
+      ? "btn-sanctuary-secondary"
+      : variant === "tertiary"
+        ? "btn-sanctuary-tertiary"
+        : "btn-sanctuary";
   const defaultPadding = { paddingLeft: "1.5rem", paddingRight: "1.5rem" };
 
   const inner = (

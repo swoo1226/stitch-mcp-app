@@ -153,7 +153,7 @@ export default function AdminPage() {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewEmoji(e.target.value)}
               className="input-sanctuary w-20 text-center text-lg"
             />
-            <ClimaButton onClick={addMember} className="py-3 text-sm" style={{ paddingLeft: "1.5rem", paddingRight: "1.5rem" }}>
+            <ClimaButton variant="secondary" onClick={addMember} className="py-3 text-sm" style={{ paddingLeft: "1.5rem", paddingRight: "1.5rem" }}>
               {adding ? "추가 중..." : "추가"}
             </ClimaButton>
           </div>
@@ -272,13 +272,14 @@ export default function AdminPage() {
               <div className="flex gap-3">
                 <ClimaButton
                   onClick={submitMood}
+                  variant="secondary"
                   className="flex-1 py-4 text-sm"
                   style={{ paddingLeft: "1rem", paddingRight: "1rem" }}
                 >
                   {submitting ? "저장 중..." : "저장"}
                 </ClimaButton>
                 <ClimaButton
-                  variant="secondary"
+                  variant="tertiary"
                   onClick={() => setMoodTarget(null)}
                   className="py-4 text-sm"
                   style={{ paddingLeft: "1.5rem", paddingRight: "1.5rem" }}
