@@ -8,10 +8,10 @@ export default function PersonalGarden() {
     <div className="relative min-h-screen flex flex-col items-center overflow-x-hidden">
       <DynamicBackground score={92} />
       <div className="px-4 md:px-8 pt-12 md:pt-16 pb-24 w-full max-w-lg mx-auto relative z-10">
-      
+
       <header className="flex justify-between items-center mb-10 w-full">
-        <div className="w-12 h-12 rounded-2xl bg-surface-high flex items-center justify-center text-xl shadow-ambient">🪴</div>
-        <Link href="/" className="w-12 h-12 rounded-2xl bg-surface-high flex items-center justify-center font-bold shadow-ambient transition-transform active:scale-90">✕</Link>
+        <div className="w-12 h-12 rounded-full bg-surface-high flex items-center justify-center text-xl shadow-ambient">🪴</div>
+        <Link href="/" className="w-12 h-12 rounded-full bg-surface-high flex items-center justify-center font-bold shadow-ambient transition-transform active:scale-90">✕</Link>
       </header>
 
       <div className="mb-10 pt-4">
@@ -21,7 +21,7 @@ export default function PersonalGarden() {
 
       <section className="bg-surface-lowest text-on-surface rounded-[2.5rem] flex flex-col items-center py-12 px-6 shadow-ambient mb-8">
         <p className="text-sm md:text-base font-medium opacity-60 text-center leading-relaxed">오늘 당신의 마음 정원 지수는 대단히 평화롭습니다. <br className="hidden md:block"/> 깊은 호흡으로 수분을 보충해주세요.</p>
-        
+
         <div className="relative w-48 h-48 flex items-center justify-center mt-8 mb-4">
             <svg className="absolute inset-0 w-full h-full -rotate-90 drop-shadow-lg">
                 <circle cx="96" cy="96" r="88" stroke="var(--surface-container-high)" strokeWidth="12" fill="transparent" />
@@ -39,7 +39,7 @@ export default function PersonalGarden() {
         <div className="grid grid-cols-7 gap-2 md:gap-4 text-center text-[10px] md:text-xs font-bold">
             {['일', '월', '화', '수', '목', '금', '토'].map(d => <span key={d} className="opacity-40 mb-2">{d}</span>)}
             {[...Array(30)].map((_, i) => (
-                <div key={i} className={`h-8 md:h-10 flex items-center justify-center rounded-xl ${i === 6 ? "bg-gradient-to-tr from-primary to-primary-container text-white shadow-md shadow-primary/20" : "opacity-60 bg-white/40"}`}>
+                <div key={i} className={`h-8 md:h-10 flex items-center justify-center rounded-[1.5rem] ${i === 6 ? "bg-gradient-to-tr from-primary to-primary-container text-white shadow-md shadow-primary/20" : "opacity-60 bg-white/40"}`}>
                     {i + 1}
                 </div>
             ))}
@@ -61,11 +61,11 @@ export default function PersonalGarden() {
             <p className="text-sm leading-relaxed italic mb-8 opacity-80 font-medium">"수요일의 15분 명상이 목요일의 업무 몰입도를 15% 향상시켰습니다. 마음을 돌보는 시간이 생산성의 비결이 되었네요."</p>
             <div className="flex flex-col md:flex-row gap-3">
                 <button className="btn-sanctuary text-xs py-3.5 px-6">명상 가이드 보기</button>
-                <button className="btn-sanctuary-secondary text-xs py-3.5 px-6 bg-transparent border-primary/20 hover:bg-primary/5">상세 통계</button>
+                <button className="btn-sanctuary-secondary text-xs py-3.5 px-6 border-none text-secondary bg-surface-container-highest">상세 통계</button>
             </div>
         </div>
       </div>
-      
+
       </div>
     </div>
   );

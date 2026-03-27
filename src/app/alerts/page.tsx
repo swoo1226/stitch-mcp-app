@@ -6,8 +6,16 @@ import ClimaLogo from "../components/WetherLogo";
 import { ClimaButton } from "../components/ui";
 import DynamicBackground from "../components/DynamicBackground";
 
+interface Alert {
+  id: number;
+  title: string;
+  team: string;
+  desc: string;
+  level: "High" | "Medium";
+}
+
 export default function AlertsPage() {
-  const alerts = [
+  const alerts: Alert[] = [
     { id: 1, title: "Storm Warning", team: "Marketing", desc: "Burnout risk detected due to high weekend activity.", level: "High" },
     { id: 2, title: "Foggy Outlook", team: "Backend", desc: "Communication bridge seems disconnected.", level: "Medium" },
   ];
@@ -31,7 +39,7 @@ export default function AlertsPage() {
 
         <div className="grid gap-8">
           {alerts.map((alert) => (
-            <motion.div 
+            <motion.div
               key={alert.id}
               whileHover={{ y: -5 }}
               className={`card-sanctuary overflow-hidden ${alert.level === 'High' ? 'bg-error-container/30' : 'bg-surface-container'}`}

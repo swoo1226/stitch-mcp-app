@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800;900&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 @import "tailwindcss";
 
 :root {
@@ -41,14 +42,14 @@
 }
 
 body {
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Pretendard', 'Public Sans', sans-serif;
   background-color: var(--surface);
   color: var(--on-surface);
   overflow-x: hidden;
 }
 
 h1, h2, h3, h4, .headline {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Public Sans', 'Pretendard', sans-serif;
 }
 
 /* Glassmorphism - Following "No-Line" Rule */
@@ -71,7 +72,7 @@ h1, h2, h3, h4, .headline {
 
 /* Logo Styling */
 .logo-text {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Public Sans', 'Pretendard', sans-serif;
   font-weight: 800;
   letter-spacing: -0.05em;
   color: var(--primary);
@@ -95,27 +96,46 @@ h1, h2, h3, h4, .headline {
 
 @layer components {
   .btn-sanctuary {
-    @apply py-4 rounded-[1.5rem] font-bold transition-all active:scale-95 inline-flex items-center justify-center gap-2 relative;
-    padding-left: 5rem;
-    padding-right: 5rem;
-    background: var(--primary);
+    @apply rounded-[1.6rem] font-extrabold transition-all active:scale-95 inline-flex items-center justify-center gap-2 relative;
+    min-height: 3.75rem;
+    padding-top: 0.95rem;
+    padding-bottom: 0.95rem;
+    padding-left: 2.25rem;
+    padding-right: 2.25rem;
+    letter-spacing: -0.01em;
+    background: linear-gradient(135deg, #2b6867 0%, #52f2f5 100%);
     color: var(--on-primary);
-    box-shadow: 0 12px 32px rgba(32, 54, 55, 0.1);
+    box-shadow: 0 16px 44px -14px rgba(43, 104, 103, 0.42);
   }
 
   .btn-sanctuary-secondary {
-    @apply py-4 rounded-[1.5rem] font-bold transition-all active:scale-95 inline-flex items-center justify-center gap-2 relative;
-    padding-left: 5rem;
-    padding-right: 5rem;
+    @apply rounded-[1.6rem] font-extrabold transition-all active:scale-95 inline-flex items-center justify-center gap-2 relative;
+    min-height: 3.5rem;
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    letter-spacing: -0.01em;
     background: var(--surface-container-highest);
     color: var(--secondary);
   }
 
   .headline-sanctuary {
     @apply text-4xl lg:text-5xl font-extrabold tracking-tight;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Public Sans', 'Pretendard', sans-serif;
     line-height: 1.1;
     color: var(--on-surface);
+  }
+
+  .input-sanctuary {
+    @apply w-full rounded-2xl px-5 py-4 text-sm font-medium outline-none transition-all;
+    background: var(--surface-container-low);
+    color: var(--on-surface);
+    border: 1.5px solid transparent;
+  }
+  .input-sanctuary:focus {
+    background: var(--surface-lowest);
+    border-color: rgba(43, 104, 103, 0.15);
   }
 
   .card-sanctuary {

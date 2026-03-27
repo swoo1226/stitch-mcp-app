@@ -2,17 +2,15 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sora } from 'next/font/google';
+import type { Transition } from 'framer-motion';
 
-const sora = Sora({ subsets: ['latin'], weight: ['400', '600', '700'] });
-
-const springConfig = { type: "spring", stiffness: 180, damping: 20 };
+const springConfig: Transition = { type: "spring", stiffness: 180, damping: 20 };
 
 export default function VibrantAtriumSample() {
   return (
-    <div className={`min-h-screen bg-[#ebfaec] text-[#253228] p-8 md:p-16 overflow-hidden ${sora.className}`}>
+    <div className="min-h-screen bg-[#ebfaec] text-[#253228] p-8 md:p-16 overflow-hidden font-['Public_Sans','Pretendard',sans-serif]">
       {/* Glassmorphism Navigation */}
-      <motion.header 
+      <motion.header
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={springConfig}
@@ -32,9 +30,9 @@ export default function VibrantAtriumSample() {
       {/* Hero Section */}
       <main className="max-w-6xl mx-auto pt-32 pb-20">
         <div className="flex flex-col md:flex-row gap-16 items-center">
-          
+
           {/* Text Content - Intentional Asymmetry */}
-          <motion.div 
+          <motion.div
             initial={{ x: -30, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ ...springConfig, delay: 0.1 }}
@@ -50,14 +48,14 @@ export default function VibrantAtriumSample() {
               Where light and color harmonize to create a digital sanctuary. We move past rigid grids into a breathing, empathetic environment.
             </p>
             <div className="flex gap-4">
-              <motion.button 
+              <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="bg-gradient-to-br from-[#006668] to-[#52f2f5] text-[#051109] px-8 py-4 rounded-full font-semibold shadow-[0_12px_24px_rgba(82,242,245,0.3)] transition-shadow"
               >
                 Explore Sanctuary
               </motion.button>
-              <motion.button 
+              <motion.button
                 whileHover={{ backgroundColor: '#c4dac6' }}
                 className="bg-[#cde2cf] text-[#0058ba] px-8 py-4 rounded-full font-semibold transition-colors"
               >
@@ -67,7 +65,7 @@ export default function VibrantAtriumSample() {
           </motion.div>
 
           {/* Glassmorphism Widget Card */}
-          <motion.div 
+          <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ ...springConfig, delay: 0.2 }}
@@ -76,7 +74,7 @@ export default function VibrantAtriumSample() {
             {/* Soft Background Blobs for Chromatic Glow */}
             <div className="absolute top-10 right-10 w-72 h-72 bg-[#FF7F50]/30 rounded-full blur-3xl animate-pulse" />
             <div className="absolute bottom-10 left-10 w-80 h-80 bg-[#00CED1]/30 rounded-full blur-3xl" style={{ animationDelay: '1s' }} />
-            
+
             {/* Card Body - No 1px Borders, Tonal Tiers */}
             <div className="absolute inset-4 md:inset-0 bg-white/50 backdrop-blur-2xl rounded-[3rem] p-8 shadow-[0_40px_80px_rgba(37,50,40,0.06)] flex flex-col justify-between">
                <div className="flex justify-between items-start">
@@ -88,7 +86,7 @@ export default function VibrantAtriumSample() {
                     <span className="text-white font-bold text-xl">☀️</span>
                  </div>
                </div>
-               
+
                <div className="space-y-4">
                  {/* Mid Layer Container */}
                  <div className="bg-[#e4f5e5] p-5 rounded-3xl">
@@ -97,15 +95,15 @@ export default function VibrantAtriumSample() {
                      <span className="text-[#0058ba]">85%</span>
                    </div>
                    <div className="w-full h-3 bg-white/60 rounded-full overflow-hidden">
-                     <motion.div 
+                     <motion.div
                        initial={{ width: 0 }}
                        animate={{ width: '85%' }}
                        transition={{ duration: 1.5, delay: 0.5, type: 'spring' }}
-                       className="h-full bg-gradient-to-r from-[#006668] to-[#00CED1]" 
+                       className="h-full bg-gradient-to-r from-[#006668] to-[#00CED1]"
                      />
                    </div>
                  </div>
-                 
+
                  <div className="bg-[#e4f5e5] p-4 rounded-3xl flex items-center gap-4">
                    <div className="w-12 h-12 rounded-full bg-[#bed2ff] flex items-center justify-center text-[#0058ba] font-bold shadow-inner">
                      4

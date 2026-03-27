@@ -2,12 +2,25 @@
 
 import Link from "next/link";
 import DynamicBackground from "../components/DynamicBackground";
+
+interface InsightItem {
+  name: string;
+  desc: string;
+  tag: string;
+  color: string;
+}
+
 export default function DetailsPage() {
+  const insights: InsightItem[] = [
+    { name: "김지우 선임 (Data Eng)", desc: "3일 연속 컨디션 '번아웃' 위험군 감지", tag: "주의관찰 권고", color: "error" },
+    { name: "이현우 주임 (Backend)", desc: "최근 프로젝트 적응도 및 참여도 하락", tag: "1:1 티타임 권장", color: "secondary" },
+  ];
+
   return (
     <div className="relative min-h-screen flex flex-col items-center overflow-x-hidden">
       <DynamicBackground score={55} />
       <div className="px-4 md:px-8 pt-12 md:pt-16 pb-24 w-full max-w-lg mx-auto relative z-10">
-      
+
       <header className="flex justify-between items-center mb-10 w-full">
         <div className="w-12 h-12 rounded-2xl bg-surface-high flex items-center justify-center text-xl shadow-ambient">🌱</div>
         <Link href="/" className="w-12 h-12 rounded-2xl bg-surface-high flex items-center justify-center font-bold shadow-ambient transition-transform active:scale-90">✕</Link>
@@ -53,10 +66,7 @@ export default function DetailsPage() {
       <div className="mb-12 pb-12">
         <p className="text-[10px] font-black mb-4 uppercase tracking-[0.2em] opacity-40 text-primary">구성원 인사이트</p>
         <div className="flex flex-col gap-4">
-            {[
-                { name: "김지우 선임 (Data Eng)", desc: "3일 연속 컨디션 '번아웃' 위험군 감지", tag: "주의관찰 권고", color: "error" },
-                { name: "이현우 주임 (Backend)", desc: "최근 프로젝트 적응도 및 참여도 하락", tag: "1:1 티타임 권장", color: "secondary" },
-            ].map((insight, i) => (
+            {insights.map((insight, i) => (
                 <div key={i} className="card-sanctuary py-6 flex flex-col md:flex-row gap-4 items-start md:items-center">
                     <div className="w-12 h-12 shrink-0 rounded-[1.5rem] bg-surface-high flex items-center justify-center shadow-inner">
                         <span className="text-xl">👤</span>
@@ -72,7 +82,7 @@ export default function DetailsPage() {
             ))}
         </div>
       </div>
-      
+
       </div>
     </div>
   );

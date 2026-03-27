@@ -43,7 +43,7 @@ export default function StatisticsPage() {
                 <div className="text-5xl font-black font-[Plus Jakarta Sans] mb-4">18%</div>
                 <p className="text-sm opacity-60 leading-relaxed font-medium">Very dry and focused. Ideal for deep work sprints and architectural discussions.</p>
             </div>
-            
+
             <div className="card-sanctuary p-10">
                 <h3 className="text-[10px] font-black tracking-widest opacity-40 uppercase mb-6 text-primary">Atmosphere Pressure</h3>
                 <div className="text-5xl font-black font-[Plus Jakarta Sans] mb-4">42 <span className="text-xl font-bold opacity-30">km/h</span></div>
