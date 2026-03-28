@@ -7,7 +7,7 @@ import ClimaLogo from "../components/WetherLogo";
 import { RESPONSIVE_SPRING, STANDARD_SPRING, HEAVY_SPRING } from "../constants/springs";
 import DynamicBackground from "../components/DynamicBackground";
 import AtmosphericEffects from "../components/AtmosphericEffects";
-import { ClimaButton, WeatherTile, TabToggle } from "../components/ui";
+import { ClimaButton, FAB, WeatherTile, PrimaryTabToggle } from "../components/ui";
 import GlassModal from "../components/GlassModal";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 
@@ -154,7 +154,7 @@ export default function ClimaInput() {
           </div>
 
           {/* 모드 토글 */}
-          <TabToggle
+          <PrimaryTabToggle
             tabs={[
               { value: "tile" as const, label: "Quick" },
               { value: "range" as const, label: "Precise" },
@@ -287,12 +287,12 @@ export default function ClimaInput() {
             transition={STANDARD_SPRING}
             className="fixed bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-30"
           >
-            <ClimaButton
+            <FAB
               onClick={() => setIsSubmitted(true)}
-              className="py-4 md:py-5 text-sm md:text-base tracking-tight shadow-2xl max-w-[calc(100vw-2rem)]"
+              className="text-sm md:text-base tracking-tight max-w-[calc(100vw-2rem)]"
             >
               Clima it
-            </ClimaButton>
+            </FAB>
           </motion.div>
         )}
       </AnimatePresence>

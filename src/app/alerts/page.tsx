@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import ClimaLogo from "../components/WetherLogo";
-import { ClimaButton } from "../components/ui";
+import { Badge, ClimaButton, PageHeadline, SanctuaryCard, SectionLabel } from "../components/ui";
 import DynamicBackground from "../components/DynamicBackground";
 
 interface Alert {
@@ -34,21 +34,19 @@ export default function AlertsPage() {
         animate={{ filter: "blur(0px)", opacity: 1 }}
         transition={{ duration: 1 }}
       >
-        <p className="text-[10px] font-bold tracking-[0.2em] uppercase opacity-40 mb-4 text-tertiary">Risk Center</p>
-        <h1 className="headline-sanctuary mb-12">Find out how <br /> the team is doing.</h1>
+        <SectionLabel color="tertiary" className="mb-4">Risk Center</SectionLabel>
+        <PageHeadline className="mb-12">Find out how <br /> the team is doing.</PageHeadline>
 
         <div className="grid gap-8">
           {alerts.map((alert) => (
-            <motion.div
+            <SanctuaryCard
               key={alert.id}
-              whileHover={{ y: -5 }}
-              className={`card-sanctuary overflow-hidden ${alert.level === 'High' ? 'bg-error-container/30' : 'bg-surface-container'}`}
+              className={`overflow-hidden ${alert.level === 'High' ? 'bg-error-container/30' : 'bg-surface-container'}`}
             >
+              <motion.div whileHover={{ y: -5 }}>
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <span className={`text-[10px] font-bold px-4 py-1.5 rounded-full tracking-widest uppercase ${alert.level === 'High' ? 'bg-error text-white' : 'bg-surface-highest text-secondary'}`}>
-                    {alert.level} RISK
-                  </span>
+                  <Badge variant={alert.level === 'High' ? 'error' : 'surface'}>{alert.level} RISK</Badge>
                   <h2 className="text-2xl font-extrabold font-[Plus Jakarta Sans] mt-6">{alert.title}</h2>
                 </div>
                 <span className="text-5xl opacity-80">{alert.level === 'High' ? '⛈️' : '🌫️'}</span>
@@ -60,7 +58,8 @@ export default function AlertsPage() {
                 <ClimaButton variant="secondary" className="text-sm py-4 px-10">Intervene</ClimaButton>
                 <ClimaButton variant="tertiary" className="text-sm py-4 px-10">Dismiss</ClimaButton>
               </div>
-            </motion.div>
+              </motion.div>
+            </SanctuaryCard>
           ))}
         </div>
       </motion.div>

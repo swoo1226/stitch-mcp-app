@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useState, useEffect } from "react";
 import ClimaLogo from "./components/WetherLogo";
@@ -7,7 +8,7 @@ import { ClimaWave } from "./components/WetherWave";
 import { STANDARD_SPRING, HEAVY_SPRING, RESPONSIVE_SPRING } from "./constants/springs";
 import DynamicBackground from "./components/DynamicBackground";
 import RollingNumber from "./components/RollingNumber";
-import { ClimaButton, Badge, StatCard } from "./components/ui";
+import { ClimaButton, FAB, Badge, StatCard, SectionLabel, PlayfulGeometry, PageHeadline, SanctuaryCard } from "./components/ui";
 import { BottomSheet, BottomSheetOverlay, useBottomSheet } from "./components/BottomSheet";
 import { useMotionPreferences } from "./components/useMotionPreferences";
 import { supabase, DEFAULT_TEAM_ID } from "../lib/supabase";
@@ -90,9 +91,52 @@ export default function ClimaDashboard() {
 
   const selectedMember = members.find(m => m.id === selectedId);
 
+  const NAV_ITEMS = [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Personal", href: "/personal" },
+    { label: "Team", href: "/dashboard" },
+    { label: "Niko-Niko", href: "/niko" },
+    { label: "Alerts", href: "/alerts" },
+  ];
+
   return (
     <div className="relative min-h-screen flex flex-col items-center bg-surface overflow-x-hidden pb-20">
       <DynamicBackground score={selectedMember ? selectedMember.score : averageScore} />
+
+      {/* ── fixed 헤더 ── */}
+      <header className="fixed top-0 left-0 w-full z-50 flex items-center justify-between h-16 px-10 bg-white/70 backdrop-blur-[20px] shadow-[0_40px_40px_-10px_rgba(37,50,40,0.06)]">
+        <div className="flex items-center gap-8">
+          <Link href="/" className="flex shrink-0 items-center">
+            <ClimaLogo />
+          </Link>
+          <nav className="hidden md:flex items-center gap-1">
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="px-3 py-1 text-sm font-semibold tracking-tight transition-colors rounded-full hover:bg-surface-low"
+                style={{ color: "rgba(37,50,40,0.55)" }}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+        <div className="flex items-center gap-2" style={{ color: "rgba(37,50,40,0.7)" }}>
+          <Link href="/alerts" className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M12 4.5a4 4 0 0 0-4 4v2.3c0 .7-.2 1.3-.6 1.8L6 14.5h12l-1.4-1.9a3 3 0 0 1-.6-1.8V8.5a4 4 0 0 0-4-4Z" />
+              <path d="M9.5 17.5a2.5 2.5 0 0 0 5 0" />
+            </svg>
+          </Link>
+          <Link href="/personal" className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <circle cx="12" cy="8" r="3.2" />
+              <path d="M5.5 20a6.5 6.5 0 0 1 13 0" />
+            </svg>
+          </Link>
+        </div>
+      </header>
 
       <motion.div
         animate={{
@@ -104,24 +148,19 @@ export default function ClimaDashboard() {
           rotateX: !shouldLimitMotion && isSunny ? [0, -2, 2, 0] : 0
         }}
         transition={!shouldLimitMotion && isStormy ? { duration: 0.1, repeat: Infinity } : !shouldLimitMotion && isSunny ? { duration: 8, repeat: Infinity, ease: "easeInOut" } : HEAVY_SPRING}
-        className="px-4 md:px-8 pt-12 md:pt-16 pb-40 w-full max-w-lg lg:max-w-4xl mx-auto min-h-screen relative z-10"
+        className="pt-20 px-10 pb-40 w-full max-w-lg lg:max-w-4xl mx-auto min-h-screen relative z-10"
       >
-        <header className="flex justify-between items-center mb-12 md:mb-16 px-2">
-          <ClimaLogo />
-          <div className="flex gap-4 items-center">
-            <ClimaButton variant="icon" href="/statistics">📊</ClimaButton>
-            <ClimaButton variant="icon" href="/alerts">⛈️</ClimaButton>
-          </div>
-        </header>
 
-        <section className="grid lg:grid-cols-2 gap-8 md:gap-12 mb-14 md:mb-20 items-end px-2">
+        <section className="grid lg:grid-cols-2 gap-8 md:gap-12 mb-14 md:mb-20 items-end px-2 relative overflow-hidden">
+          <PlayfulGeometry variant="circle" color="var(--primary)" className="w-64 h-64 -top-20 -right-20 lg:hidden" />
+          <PlayfulGeometry variant="dots" color="var(--secondary)" className="bottom-0 right-0" />
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={STANDARD_SPRING}
           >
-            <p className="text-xs font-bold tracking-[0.16em] uppercase mb-3 md:mb-4 text-primary">The Digital Atrium</p>
-            <h1 className="headline-sanctuary mb-3 md:mb-4 font-black">How is the climate today?</h1>
+            <SectionLabel className="mb-3 md:mb-4">The Digital Atrium</SectionLabel>
+            <PageHeadline className="mb-3 md:mb-4 font-black">How is the climate today?</PageHeadline>
             <p className="text-sm md:text-base opacity-60 max-w-sm mb-6 md:mb-8 leading-relaxed font-medium">A sanctuary for team conditions and psychological safety.</p>
           </motion.div>
 
@@ -157,14 +196,15 @@ export default function ClimaDashboard() {
               className="grid lg:grid-cols-2 gap-6 md:gap-8 lg:gap-x-12 lg:gap-y-16"
             >
               {members.map((member, index) => (
-                <motion.div
+                <SanctuaryCard
                   key={member.id}
+                  as={motion.div}
                   layoutId={member.id}
                   onClick={() => setSelectedId(member.id)}
                   variants={itemVariants}
                   whileHover={isMobileLike ? undefined : { y: -8, scale: 1.02 }}
                   transition={shouldLimitMotion ? STANDARD_SPRING : RESPONSIVE_SPRING}
-                  className={`card-sanctuary group cursor-pointer ${index % 2 === 1 ? "lg:translate-y-16" : ""}`}
+                  className={`group cursor-pointer ${index % 2 === 1 ? "lg:translate-y-16" : ""}`}
                 >
                   <div className="flex items-center gap-4 md:gap-6">
                     <motion.div
@@ -184,7 +224,7 @@ export default function ClimaDashboard() {
                   <div className="mt-6 md:mt-8 flex gap-2">
                     <Badge>{member.status}</Badge>
                   </div>
-                </motion.div>
+                </SanctuaryCard>
               ))}
             </motion.div>
           )}
@@ -192,12 +232,12 @@ export default function ClimaDashboard() {
       </motion.div>
 
       {!selectedId && (
-        <ClimaButton
+        <FAB
           href="/input"
-          className="fixed bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-30 shadow-2xl py-4 md:py-5 whitespace-nowrap text-sm md:text-base tracking-tight max-w-[calc(100vw-2rem)]"
+          className="fixed bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-30 text-sm md:text-base tracking-tight max-w-[calc(100vw-2rem)]"
         >
           Let's Clima
-        </ClimaButton>
+        </FAB>
       )}
 
       <AnimatePresence>

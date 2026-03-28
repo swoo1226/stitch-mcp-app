@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import DynamicBackground from "../components/DynamicBackground";
+import { SanctuaryCard } from "../components/ui";
 
 interface InsightItem {
   name: string;
@@ -31,9 +32,9 @@ export default function DetailsPage() {
         <h1 className="text-4xl md:text-5xl font-black tracking-tight font-[Plus Jakarta Sans]">백엔드 파트 상세 분석</h1>
       </div>
 
-      <div className="card-sanctuary mb-8">
+      <SanctuaryCard className="mb-8">
         <p className="text-sm md:text-base leading-relaxed opacity-70 font-medium">서버 파트 구성원 12명의 정성적/정량적 컨디션을 종합 분석한 결과입니다. 현재 전반적인 분위기는 다소 정체되어 있습니다.</p>
-      </div>
+      </SanctuaryCard>
 
       <section className="bg-surface-container text-on-surface rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden mb-8 shadow-ambient">
         <div className="flex justify-between items-center mb-12">
@@ -67,7 +68,7 @@ export default function DetailsPage() {
         <p className="text-[10px] font-black mb-4 uppercase tracking-[0.2em] opacity-40 text-tertiary">구성원 인사이트</p>
         <div className="flex flex-col gap-4">
             {insights.map((insight, i) => (
-                <div key={i} className="card-sanctuary py-6 flex flex-col md:flex-row gap-4 items-start md:items-center">
+                <SanctuaryCard key={i} className="py-6 flex flex-col md:flex-row gap-4 items-start md:items-center">
                     <div className="w-12 h-12 shrink-0 rounded-[1.5rem] bg-surface-high flex items-center justify-center shadow-inner">
                         <span className="text-xl">👤</span>
                     </div>
@@ -84,7 +85,7 @@ export default function DetailsPage() {
                     >
                       {insight.tag}
                     </span>
-                </div>
+                </SanctuaryCard>
             ))}
         </div>
       </div>

@@ -1,6 +1,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800;900&display=swap');
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 @import "tailwindcss";
+@source "../../";
+
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-high: var(--surface-container-high);
+  --color-surface-highest: var(--surface-container-highest);
+  --color-surface-lowest: var(--surface-lowest);
+  --color-white-sanctuary: var(--surface-lowest);
+
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-on-primary: var(--on-primary);
+
+  --color-primary: var(--primary);
+  --color-primary-container: var(--primary-container);
+  --color-secondary: var(--secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-error: var(--error);
+  --color-error-container: var(--error-container);
+}
+
 
 :root {
   /* Atmospheric Sanctuary Palette */
@@ -33,12 +58,14 @@
   --shadow-ambient: 0 20px 40px rgba(37, 50, 40, 0.06);
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
 body {
@@ -61,14 +88,6 @@ h1, h2, h3, h4, .headline {
   border: none;
   box-shadow: var(--shadow-ambient);
 }
-
-/* Tonal Layering Utilities */
-.bg-surface { background-color: var(--surface); }
-.bg-surface-low { background-color: var(--surface-container-low); }
-.bg-surface-container { background-color: var(--surface-container); }
-.bg-surface-high { background-color: var(--surface-container-high); }
-.bg-surface-highest { background-color: var(--surface-container-highest); }
-.bg-white-sanctuary { background-color: var(--surface-lowest); }
 
 /* Logo Styling */
 .logo-text {
@@ -94,68 +113,6 @@ h1, h2, h3, h4, .headline {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-@layer components {
-  .btn-sanctuary {
-    @apply rounded-[1.6rem] font-extrabold transition-all active:scale-95 inline-flex items-center justify-center gap-2 relative;
-    min-height: 3.75rem;
-    padding-top: 0.95rem;
-    padding-bottom: 0.95rem;
-    padding-left: 2.25rem;
-    padding-right: 2.25rem;
-    letter-spacing: -0.01em;
-    background: linear-gradient(135deg, #2b6867 0%, #52f2f5 100%);
-    color: var(--on-primary);
-    box-shadow: 0 16px 44px -14px rgba(43, 104, 103, 0.42);
-  }
-
-  .btn-sanctuary-secondary {
-    @apply rounded-[1.6rem] font-extrabold transition-all active:scale-95 inline-flex items-center justify-center gap-2 relative;
-    min-height: 3.5rem;
-    padding-top: 0.9rem;
-    padding-bottom: 0.9rem;
-    padding-left: 2rem;
-    padding-right: 2rem;
-    letter-spacing: -0.01em;
-    background: var(--surface-container-highest);
-    color: var(--secondary);
-    box-shadow: 0 12px 32px -18px rgba(0, 88, 186, 0.28);
-  }
-
-  .btn-sanctuary-tertiary {
-    @apply rounded-[1.6rem] font-extrabold transition-all active:scale-95 inline-flex items-center justify-center gap-2 relative;
-    min-height: 3.5rem;
-    padding-top: 0.9rem;
-    padding-bottom: 0.9rem;
-    padding-left: 2rem;
-    padding-right: 2rem;
-    letter-spacing: -0.01em;
-    background: var(--tertiary-container);
-    color: var(--tertiary);
-    box-shadow: 0 12px 32px -18px rgba(155, 61, 55, 0.28);
-  }
-
-  .headline-sanctuary {
-    @apply text-4xl lg:text-5xl font-extrabold tracking-tight;
-    font-family: 'Public Sans', 'Pretendard', sans-serif;
-    line-height: 1.1;
-    color: var(--on-surface);
-  }
-
-  .input-sanctuary {
-    @apply w-full rounded-2xl px-5 py-4 text-sm font-medium outline-none transition-all;
-    background: var(--surface-container-low);
-    color: var(--on-surface);
-    border: 1.5px solid transparent;
-  }
-  .input-sanctuary:focus {
-    background: var(--surface-lowest);
-    border-color: rgba(43, 104, 103, 0.15);
-  }
-
-  .card-sanctuary {
-    @apply p-8 rounded-[3.5rem] transition-all relative;
-    background-color: var(--surface-lowest);
-    box-shadow: var(--shadow-ambient);
-    border: none;
-  }
+.shadow-ambient {
+  box-shadow: var(--shadow-ambient);
 }

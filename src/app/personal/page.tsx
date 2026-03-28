@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import DynamicBackground from "../components/DynamicBackground";
-import { ClimaButton } from "../components/ui";
+import { ClimaButton, PageHeadline, SanctuaryCard } from "../components/ui";
 
 export default function PersonalGarden() {
   return (
@@ -17,7 +17,7 @@ export default function PersonalGarden() {
 
       <div className="mb-10 pt-4">
         <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2 text-primary">The Digital Atrium</p>
-        <h1 className="text-4xl md:text-5xl font-black tracking-tight font-[Plus Jakarta Sans]">나의 비밀 정원</h1>
+        <PageHeadline className="font-black">나의 비밀 정원</PageHeadline>
       </div>
 
       <section className="bg-surface-lowest text-on-surface rounded-[2.5rem] flex flex-col items-center py-12 px-6 shadow-ambient mb-8">
@@ -47,24 +47,24 @@ export default function PersonalGarden() {
         </div>
       </section>
 
-      <section className="card-sanctuary mb-8">
+      <SanctuaryCard as="section" className="mb-8">
         <span className="text-[10px] font-black uppercase tracking-widest bg-tertiary-container text-tertiary px-3 py-1 rounded-full inline-block mb-4">Weekly Best</span>
         <h2 className="text-xl font-bold mb-4 font-[Plus Jakarta Sans]">이번 주 목요일은<br /> 가장 맑은 날이었어요</h2>
         <div className="flex items-center gap-3">
             <span className="text-2xl">☀️</span>
             <span className="text-xs font-bold text-secondary">평균 지수보다 24% 높았습니다.</span>
         </div>
-      </section>
+      </SanctuaryCard>
 
       <div className="mb-12 pb-12">
         <p className="text-[10px] font-black mb-4 uppercase tracking-[0.2em] opacity-40 text-tertiary">AI 마음 인사이트</p>
-        <div className="card-sanctuary bg-surface-high border-none">
+        <SanctuaryCard className="bg-surface-high">
             <p className="text-sm leading-relaxed italic mb-8 opacity-80 font-medium">"수요일의 15분 명상이 목요일의 업무 몰입도를 15% 향상시켰습니다. 마음을 돌보는 시간이 생산성의 비결이 되었네요."</p>
             <div className="flex flex-col md:flex-row gap-3">
                 <ClimaButton variant="tertiary" className="text-xs py-3.5 px-6">명상 가이드 보기</ClimaButton>
                 <ClimaButton variant="secondary" className="text-xs py-3.5 px-6">상세 통계</ClimaButton>
             </div>
-        </div>
+        </SanctuaryCard>
       </div>
 
       </div>

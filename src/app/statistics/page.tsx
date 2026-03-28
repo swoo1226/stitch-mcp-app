@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import ClimaLogo from "../components/WetherLogo";
-import { ClimaButton } from "../components/ui";
+import { ClimaButton, PageHeadline, SanctuaryCard } from "../components/ui";
 import { ClimaWave } from "../components/WetherWave";
 import DynamicBackground from "../components/DynamicBackground";
 
@@ -23,7 +23,7 @@ export default function StatisticsPage() {
         transition={{ duration: 0.8 }}
       >
         <p className="text-[10px] font-bold tracking-[0.2em] uppercase opacity-40 mb-4 text-secondary">Team Analytics</p>
-        <h1 className="headline-sanctuary mb-16 underline-offset-8 decoration-primary/20">Team Climate Analysis.</h1>
+        <PageHeadline className="mb-16 underline-offset-8 decoration-primary/20">Team Climate Analysis.</PageHeadline>
 
         <section className="mb-20">
             <div className="flex justify-between items-end mb-8 px-2">
@@ -44,11 +44,11 @@ export default function StatisticsPage() {
                 <p className="text-sm opacity-60 leading-relaxed font-medium">Very dry and focused. Ideal for deep work sprints and architectural discussions.</p>
             </div>
 
-            <div className="card-sanctuary p-10 bg-tertiary-container/20">
+            <SanctuaryCard className="p-10 bg-tertiary-container/20">
                 <h3 className="text-[10px] font-black tracking-widest opacity-40 uppercase mb-6 text-tertiary">Atmosphere Pressure</h3>
                 <div className="text-5xl font-black font-[Plus Jakarta Sans] mb-4 text-tertiary">42 <span className="text-xl font-bold opacity-30 text-on-surface">km/h</span></div>
                 <p className="text-sm opacity-60 leading-relaxed font-medium">Sprint velocity is high. High productive pressure detected across all squads.</p>
-            </div>
+            </SanctuaryCard>
         </section>
 
         <footer className="mt-20 text-center italic opacity-30 text-xs font-medium tracking-wide">

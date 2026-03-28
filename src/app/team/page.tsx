@@ -1,5 +1,5 @@
-import TeamClimatePage from "../components/TeamClimatePage";
+import { TeamClimateDashboard } from "../dashboard/page";
 
 export default function TeamPage() {
-  return <TeamClimatePage />;
+  return <TeamClimateDashboard />;
 }

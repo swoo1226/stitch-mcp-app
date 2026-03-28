@@ -7,7 +7,7 @@ import { scoreToStatus, statusToEmoji } from "../../lib/mood";
 import { STANDARD_SPRING, RESPONSIVE_SPRING } from "../constants/springs";
 import Link from "next/link";
 import ClimaLogo from "../components/WetherLogo";
-import { ClimaButton } from "../components/ui";
+import { ClimaButton, ClimaInput, ClimaTextarea, SanctuaryCard } from "../components/ui";
 
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 
@@ -98,27 +98,28 @@ export default function AdminPage() {
   if (!authed) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface px-6">
-        <motion.div
+        <SanctuaryCard
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={STANDARD_SPRING}
-          className="card-sanctuary w-full max-w-sm p-10 flex flex-col gap-6"
+          as={motion.div}
+          className="w-full max-w-sm p-10 flex flex-col gap-6"
         >
           <ClimaLogo />
           <h1 className="text-2xl font-black font-[Plus Jakarta Sans] tracking-tight">Admin</h1>
-          <input
+          <ClimaInput
             type="password"
             placeholder="Password"
             value={pwInput}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setPwInput(e.target.value); setPwError(false); }}
             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && (pwInput === ADMIN_PASSWORD ? setAuthed(true) : setPwError(true))}
-            className="input-sanctuary font-bold"
+            className="font-bold"
           />
           {pwError && <p className="text-xs text-red-400 font-bold -mt-2">틀렸어요.</p>}
           <ClimaButton onClick={() => pwInput === ADMIN_PASSWORD ? setAuthed(true) : setPwError(true)} className="w-full py-4">
             Enter
           </ClimaButton>
-        </motion.div>
+        </SanctuaryCard>
       </div>
     );
   }
@@ -135,32 +136,32 @@ export default function AdminPage() {
         </header>
 
         {/* 팀원 추가 */}
-        <section className="card-sanctuary">
+        <SanctuaryCard as="section">
           <h2 className="text-lg font-black font-[Plus Jakarta Sans] mb-6 tracking-tight">팀원 식재 (추가)</h2>
           <div className="flex gap-3 flex-wrap">
-            <input
+            <ClimaInput
               type="text"
               placeholder="멤버 이름"
               value={newName}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewName(e.target.value)}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && addMember()}
-              className="input-sanctuary font-bold flex-1 min-w-0"
+              className="font-bold flex-1 min-w-0"
             />
-            <input
+            <ClimaInput
               type="text"
               placeholder="🙂"
               value={newEmoji}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewEmoji(e.target.value)}
-              className="input-sanctuary w-20 text-center text-2xl"
+              className="w-20 text-center text-2xl"
             />
             <ClimaButton variant="secondary" onClick={addMember} className="py-3 text-sm" style={{ paddingLeft: "1.5rem", paddingRight: "1.5rem" }}>
               {adding ? "추가 중..." : "추가하기"}
             </ClimaButton>
           </div>
-        </section>
+        </SanctuaryCard>
 
         {/* 팀원 목록 */}
-        <section className="card-sanctuary">
+        <SanctuaryCard as="section">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-black font-[Plus Jakarta Sans] tracking-tight">안전망 관리 (목록)</h2>
             {!loading && members.length > 0 && (
@@ -223,10 +224,10 @@ export default function AdminPage() {
               })}
             </div>
           )}
-        </section>
+        </SanctuaryCard>
 
         {/* 입력 링크 안내 */}
-        <section className="card-sanctuary">
+        <SanctuaryCard as="section">
           <h2 className="text-lg font-black font-[Plus Jakarta Sans] mb-2 tracking-tight">프라이빗 접속 패스 (URL)</h2>
           <p className="text-xs opacity-40 font-medium mb-6 leading-relaxed">팀원들에게 개별 링크를 전달하세요. 단말과 무관하게 본인의 정원으로 즉시 접속할 수 있습니다.</p>
           <div className="flex flex-col gap-3">
@@ -243,7 +244,7 @@ export default function AdminPage() {
               </div>
             ))}
           </div>
-        </section>
+        </SanctuaryCard>
       </div>
 
       {/* Mood 입력 모달 */}
@@ -280,12 +281,11 @@ export default function AdminPage() {
                 className="w-full mb-6 accent-primary"
               />
 
-              <textarea
+              <ClimaTextarea
                 placeholder="한마디 (선택)"
                 value={moodMessage}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setMoodMessage(e.target.value)}
-                rows={2}
-                className="input-sanctuary resize-none mb-6"
+                className="mb-6"
               />
 
               <div className="flex gap-3">
