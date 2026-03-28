@@ -124,23 +124,23 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface px-4 md:px-8 py-12">
-      <div className="max-w-2xl mx-auto">
-        <header className="flex justify-between items-center mb-12">
+    <div className="min-h-screen bg-surface px-4 md:px-8 py-16">
+      <div className="max-w-2xl mx-auto flex flex-col gap-8">
+        <header className="flex justify-between items-center">
           <div>
             <ClimaLogo />
-            <p className="text-xs font-bold opacity-40 mt-1 tracking-widest uppercase">Admin</p>
+            <p className="text-xs font-bold opacity-40 mt-2 tracking-widest uppercase">Admin Ops</p>
           </div>
-          <Link href="/" className="text-xs font-bold opacity-40 hover:opacity-70 transition-opacity">← 메인으로</Link>
+          <Link href="/" className="text-xs font-bold opacity-40 hover:opacity-70 transition-opacity">← 메인 가든으로</Link>
         </header>
 
         {/* 팀원 추가 */}
-        <section className="card-sanctuary p-8 mb-8">
-          <h2 className="text-lg font-black font-[Plus Jakarta Sans] mb-6 tracking-tight">팀원 추가</h2>
+        <section className="card-sanctuary">
+          <h2 className="text-lg font-black font-[Plus Jakarta Sans] mb-6 tracking-tight">팀원 식재 (추가)</h2>
           <div className="flex gap-3 flex-wrap">
             <input
               type="text"
-              placeholder="이름"
+              placeholder="멤버 이름"
               value={newName}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewName(e.target.value)}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && addMember()}
@@ -148,41 +148,60 @@ export default function AdminPage() {
             />
             <input
               type="text"
-              placeholder="이모지"
+              placeholder="🙂"
               value={newEmoji}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewEmoji(e.target.value)}
-              className="input-sanctuary w-20 text-center text-lg"
+              className="input-sanctuary w-20 text-center text-2xl"
             />
             <ClimaButton variant="secondary" onClick={addMember} className="py-3 text-sm" style={{ paddingLeft: "1.5rem", paddingRight: "1.5rem" }}>
-              {adding ? "추가 중..." : "추가"}
+              {adding ? "추가 중..." : "추가하기"}
             </ClimaButton>
           </div>
         </section>
 
         {/* 팀원 목록 */}
-        <section className="card-sanctuary p-8 mb-8">
-          <h2 className="text-lg font-black font-[Plus Jakarta Sans] mb-6 tracking-tight">팀원 목록</h2>
+        <section className="card-sanctuary">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-black font-[Plus Jakarta Sans] tracking-tight">안전망 관리 (목록)</h2>
+            {!loading && members.length > 0 && (
+              <span className="text-xs font-bold opacity-40">{members.length}명 활성</span>
+            )}
+          </div>
           {loading ? (
-            <p className="text-sm opacity-40 font-bold">Loading...</p>
+            <p className="text-sm opacity-40 font-bold py-4">Loading...</p>
           ) : members.length === 0 ? (
-            <p className="text-sm opacity-40 font-bold">팀원이 없어요.</p>
+            <p className="text-sm opacity-40 font-bold py-4">팀원이 없어요.</p>
           ) : (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
               {members.map(m => {
                 const latest = m.mood_logs?.[0];
                 const score = latest?.score ?? null;
                 const status = score !== null ? scoreToStatus(score) : null;
+                const relativeTime = latest?.logged_at
+                  ? (() => {
+                      const diff = Math.max(0, Date.now() - new Date(latest.logged_at).getTime());
+                      const mins = Math.floor(diff / 60000);
+                      if (mins < 60) return `${mins}m ago`;
+                      const hrs = Math.floor(mins / 60);
+                      if (hrs < 24) return `${hrs}h ago`;
+                      return `${Math.floor(hrs / 24)}d ago`;
+                    })()
+                  : null;
                 return (
                   <motion.div
                     key={m.id}
                     layout
-                    className="flex items-center gap-4 bg-surface-high rounded-[1.5rem] px-5 py-4"
+                    className="flex items-center gap-4 bg-surface-low rounded-[1.75rem] px-5 py-5"
                   >
-                    <span className="text-2xl">{m.avatar_emoji}</span>
+                    <div className="w-12 h-12 rounded-[1.25rem] bg-surface-container flex items-center justify-center text-2xl shrink-0">
+                      {m.avatar_emoji}
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-sm tracking-tight">{m.name}</p>
-                      <p className="text-xs opacity-40 font-medium truncate">
-                        {score !== null ? `${statusToEmoji(status)} ${status} · ${score}점` : "기록 없음"}
+                      <p className="font-bold text-base tracking-tight">{m.name}</p>
+                      <p className="text-xs opacity-50 font-medium mt-0.5">
+                        {score !== null
+                          ? <><span className="font-black uppercase tracking-wider">{status}</span> &nbsp;Score/ <span className="font-black">{score}</span>{relativeTime ? <>&nbsp;&nbsp;&nbsp;{relativeTime}</> : null}</>
+                          : "기록 없음"}
                       </p>
                     </div>
                     <ClimaButton
@@ -191,11 +210,11 @@ export default function AdminPage() {
                       className="text-xs py-2 shrink-0"
                       style={{ paddingLeft: "1rem", paddingRight: "1rem" }}
                     >
-                      Mood 입력
+                      기록 입력
                     </ClimaButton>
                     <button
                       onClick={() => deleteMember(m.id)}
-                      className="text-xs font-bold opacity-30 hover:opacity-70 transition-opacity shrink-0"
+                      className="text-xs font-bold opacity-25 hover:opacity-60 transition-opacity shrink-0"
                     >
                       삭제
                     </button>
@@ -207,19 +226,19 @@ export default function AdminPage() {
         </section>
 
         {/* 입력 링크 안내 */}
-        <section className="card-sanctuary p-8">
-          <h2 className="text-lg font-black font-[Plus Jakarta Sans] mb-2 tracking-tight">팀원 입력 링크</h2>
-          <p className="text-xs opacity-40 font-medium mb-6">각 팀원에게 아래 링크를 공유하면 본인이 직접 입력할 수 있어요.</p>
+        <section className="card-sanctuary">
+          <h2 className="text-lg font-black font-[Plus Jakarta Sans] mb-2 tracking-tight">프라이빗 접속 패스 (URL)</h2>
+          <p className="text-xs opacity-40 font-medium mb-6 leading-relaxed">팀원들에게 개별 링크를 전달하세요. 단말과 무관하게 본인의 정원으로 즉시 접속할 수 있습니다.</p>
           <div className="flex flex-col gap-3">
             {members.map(m => (
-              <div key={m.id} className="flex items-center gap-3 bg-surface-high rounded-[1.5rem] px-5 py-3">
-                <span className="text-sm font-bold flex-1">{m.name}</span>
-                <code className="text-xs opacity-50 truncate max-w-[200px]">/input?token={m.access_token}</code>
+              <div key={m.id} className="flex items-center gap-4 bg-surface-low rounded-[1.75rem] px-5 py-4">
+                <span className="text-sm font-extrabold w-16 shrink-0">{m.name}</span>
+                <code className="text-xs opacity-40 truncate flex-1">{typeof window !== "undefined" ? window.location.origin : "http://localhost:3000"}/input?token={m.access_token}</code>
                 <button
                   onClick={() => navigator.clipboard.writeText(`${window.location.origin}/input?token=${m.access_token}`)}
-                  className="text-xs font-bold text-primary hover:opacity-70 transition-opacity shrink-0"
+                  className="text-xs font-extrabold text-primary hover:opacity-70 transition-opacity shrink-0"
                 >
-                  복사
+                  Copy Path
                 </button>
               </div>
             ))}

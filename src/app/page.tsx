@@ -1,13 +1,14 @@
 "use client";
 
-import { motion, AnimatePresence, useMotionValue, useTransform, Variants } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useState, useEffect } from "react";
 import ClimaLogo from "./components/WetherLogo";
 import { ClimaWave } from "./components/WetherWave";
 import { STANDARD_SPRING, HEAVY_SPRING, RESPONSIVE_SPRING } from "./constants/springs";
 import DynamicBackground from "./components/DynamicBackground";
 import RollingNumber from "./components/RollingNumber";
-import { ClimaButton } from "./components/ui";
+import { ClimaButton, Badge, StatCard } from "./components/ui";
+import { BottomSheet, BottomSheetOverlay, useBottomSheet } from "./components/BottomSheet";
 import { useMotionPreferences } from "./components/useMotionPreferences";
 import { supabase, DEFAULT_TEAM_ID } from "../lib/supabase";
 import { scoreToStatus, statusToEmoji, WeatherStatus } from "../lib/mood";
@@ -32,7 +33,6 @@ export default function ClimaDashboard() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
-  const dragY = useMotionValue(0);
   const { shouldLimitMotion, isMobileLike } = useMotionPreferences();
 
   useEffect(() => {
@@ -74,10 +74,6 @@ export default function ClimaDashboard() {
 
   const isStormy = averageScore <= 20;
   const isSunny = averageScore >= 60 && averageScore < 80;
-
-  const headerScale = useTransform(dragY, [0, 300], [0.8, 1]);
-  const headerY = useTransform(dragY, [0, 300], [-20, 0]);
-  const iconScale = useTransform(dragY, [0, 300], [0.6, 1]);
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -186,9 +182,7 @@ export default function ClimaDashboard() {
                     <RollingNumber value={member.score} />
                   </div>
                   <div className="mt-6 md:mt-8 flex gap-2">
-                    <span className="px-3 py-1 rounded-full bg-secondary-container text-xs font-bold text-secondary uppercase tracking-[0.16em]">
-                      {member.status}
-                    </span>
+                    <Badge>{member.status}</Badge>
                   </div>
                 </motion.div>
               ))}
@@ -209,49 +203,11 @@ export default function ClimaDashboard() {
       <AnimatePresence>
         {selectedId && selectedMember && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedId(null)}
-              className={`fixed inset-0 bg-on-surface/5 z-40 will-change-opacity ${
-                shouldLimitMotion ? "" : "backdrop-blur-3xl"
-              }`}
-            />
-            <motion.div
-              layoutId={selectedId}
-              style={{ y: dragY }}
-              drag="y"
-              dragConstraints={{ top: 0, bottom: 400 }}
-              dragElastic={0.15}
-              onDragEnd={(_, info) => {
-                if (info.offset.y > 150) setSelectedId(null);
-              }}
-              transition={STANDARD_SPRING}
-              className="fixed inset-x-0 bottom-0 z-50 bg-white-sanctuary px-5 md:px-12 pt-5 md:pt-12 pb-8 md:pb-10 shadow-ambient h-[85vh] flex flex-col border-none rounded-t-[2rem] md:rounded-t-[5rem] overflow-hidden will-change-transform"
-            >
-              <div className="w-12 h-1.5 bg-on-surface/20 rounded-full mx-auto mb-5 md:mb-6 opacity-50 shrink-0" />
+            <BottomSheetOverlay onClose={() => setSelectedId(null)} />
+            <BottomSheet onClose={() => setSelectedId(null)}>
+              {/* 드래그 핸들은 BottomSheet 내부에서 렌더링 */}
 
-              <motion.div
-                style={{ scale: headerScale, y: headerY }}
-                className="flex items-center gap-4 md:gap-5 mb-5 md:mb-6 w-full shrink-0"
-              >
-                <motion.div
-                  layoutId={`icon-${selectedId}`}
-                  style={{ scale: iconScale }}
-                  className="w-16 h-16 md:w-28 md:h-28 shrink-0 rounded-[1.75rem] md:rounded-[3.5rem] bg-surface-container flex items-center justify-center text-3xl md:text-5xl shadow-sm"
-                >
-                  {selectedMember.avatar_emoji || statusToEmoji(selectedMember.status)}
-                </motion.div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-xl md:text-4xl font-extrabold font-[Plus Jakarta Sans] tracking-tight mb-1 truncate text-on-surface">
-                    {selectedMember.name}
-                  </h2>
-                  <span className="px-3 py-1 bg-secondary-container text-xs font-bold text-secondary uppercase tracking-[0.16em] rounded-full inline-block">
-                    {selectedMember.status}
-                  </span>
-                </div>
-              </motion.div>
+              <MemberSheetHeader member={selectedMember} selectedId={selectedId} />
 
               <div className="flex-1 overflow-y-auto no-scrollbar pb-6 flex flex-col gap-4 md:gap-8 min-h-0">
                 <motion.div
@@ -266,22 +222,16 @@ export default function ClimaDashboard() {
                 </motion.div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8 shrink-0">
-                  <motion.div
-                    whileHover={isMobileLike ? undefined : { scale: 1.02 }}
-                    className="bg-surface-container p-6 md:p-10 rounded-[1.5rem] md:rounded-[3rem]"
-                  >
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] opacity-40 block mb-2 md:mb-4 text-secondary">Clima Score</span>
-                    <div className="text-3xl md:text-5xl font-black font-[Plus Jakarta Sans] text-on-surface">
-                      <RollingNumber value={selectedMember.score} />%
-                    </div>
-                  </motion.div>
-                  <motion.div
-                    whileHover={isMobileLike ? undefined : { scale: 1.02 }}
-                    className="bg-surface-container p-6 md:p-10 rounded-[1.5rem] md:rounded-[3rem]"
-                  >
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] opacity-40 block mb-2 md:mb-4 text-primary">Atmosphere</span>
-                    <div className="text-3xl md:text-5xl font-black font-[Plus Jakarta Sans] text-on-surface">{selectedMember.status}</div>
-                  </motion.div>
+                  <StatCard
+                    label="Clima Score"
+                    labelVariant="secondary"
+                    value={<><RollingNumber value={selectedMember.score} />%</>}
+                  />
+                  <StatCard
+                    label="Atmosphere"
+                    labelVariant="primary"
+                    value={selectedMember.status}
+                  />
                 </div>
               </div>
 
@@ -290,10 +240,33 @@ export default function ClimaDashboard() {
                   Send encouragement
                 </ClimaButton>
               </div>
-            </motion.div>
+            </BottomSheet>
           </>
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function MemberSheetHeader({ member, selectedId }: { member: Member; selectedId: string }) {
+  const ctx = useBottomSheet();
+  return (
+    <motion.div
+      style={ctx ? { scale: ctx.headerScale, y: ctx.headerY } : undefined}
+      className="flex items-center gap-4 md:gap-5 mb-5 md:mb-6 w-full shrink-0"
+    >
+      <motion.div
+        layoutId={`icon-${selectedId}`}
+        className="w-16 h-16 md:w-28 md:h-28 shrink-0 rounded-[1.75rem] md:rounded-[3.5rem] bg-surface-container flex items-center justify-center text-3xl md:text-5xl shadow-sm"
+      >
+        {member.avatar_emoji || statusToEmoji(member.status)}
+      </motion.div>
+      <div className="flex-1 min-w-0">
+        <h2 className="text-xl md:text-4xl font-extrabold tracking-tight mb-1 truncate" style={{ fontFamily: "'Public Sans', sans-serif", color: "var(--on-surface)" }}>
+          {member.name}
+        </h2>
+        <Badge>{member.status}</Badge>
+      </div>
+    </motion.div>
   );
 }

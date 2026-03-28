@@ -7,7 +7,8 @@ import ClimaLogo from "../components/WetherLogo";
 import { RESPONSIVE_SPRING, STANDARD_SPRING, HEAVY_SPRING } from "../constants/springs";
 import DynamicBackground from "../components/DynamicBackground";
 import AtmosphericEffects from "../components/AtmosphericEffects";
-import { ClimaButton, WeatherTile } from "../components/ui";
+import { ClimaButton, WeatherTile, TabToggle } from "../components/ui";
+import GlassModal from "../components/GlassModal";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 
 interface WeatherMetaphor {
@@ -112,7 +113,7 @@ export default function ClimaInput() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="relative z-10 glass px-6 md:px-10 w-full flex flex-col min-h-[100dvh]"
+        className="relative z-10 glass px-6 md:px-10 w-full max-w-lg mx-auto flex flex-col min-h-[100dvh]"
       >
         {/* 헤더 */}
         <header className="flex justify-between items-center w-full shrink-0 px-3 md:px-4 pt-4 pb-2">
@@ -153,29 +154,14 @@ export default function ClimaInput() {
           </div>
 
           {/* 모드 토글 */}
-          <div className="flex gap-2 bg-on-surface/5 rounded-full p-1.5">
-            {(["tile", "range"] as const).map((m) => (
-              <motion.button
-                key={m}
-                onClick={() => setMode(m)}
-                whileHover={{ scale: 1.02, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                transition={RESPONSIVE_SPRING}
-                className="relative text-xs md:text-sm font-black uppercase tracking-[0.12em] rounded-[1.5rem]"
-                style={{ color: mode === m ? "var(--on-primary)" : "var(--secondary)", paddingLeft: "1.125rem", paddingRight: "1.125rem", paddingTop: "0.7rem", paddingBottom: "0.7rem" }}
-              >
-                {mode === m && (
-                  <motion.div
-                    layoutId="mode-pill"
-                    className="absolute inset-0 rounded-[1.5rem]"
-                    style={{ background: "linear-gradient(135deg, #2b6867 0%, #52f2f5 100%)" }}
-                    transition={RESPONSIVE_SPRING}
-                  />
-                )}
-                <span className="relative z-10">{m === "tile" ? "Quick" : "Precise"}</span>
-              </motion.button>
-            ))}
-          </div>
+          <TabToggle
+            tabs={[
+              { value: "tile" as const, label: "Quick" },
+              { value: "range" as const, label: "Precise" },
+            ]}
+            active={mode}
+            onChange={setMode}
+          />
 
           {/* 입력 영역 */}
           <div className="flex items-center justify-center min-h-[300px] md:min-h-[320px] w-full">
@@ -397,90 +383,62 @@ function CelebrationModal({
   const config = CELEBRATION_CONFIG[metaphor.label];
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.25 }}
-      className={`fixed inset-0 z-50 flex items-center justify-center p-6 ${config.overlayClass}`}
-      style={{ background: "rgba(255,255,255,0.10)" }}
-    >
-      {/* 모달 카드 — glassmorphism */}
+    <GlassModal onClose={onClose} closeOnOverlay={false}>
+      {/* 아이콘 */}
       <motion.div
-        initial={{ scale: 0.88, opacity: 0, y: 32 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.92, opacity: 0, y: 16 }}
-        transition={HEAVY_SPRING}
-        className="relative w-full flex flex-col items-center text-center"
-        style={{
-          maxWidth: "26rem",
-          borderRadius: "2.5rem",
-          padding: "2.5rem 2rem",
-          background: "rgba(255,255,255,0.45)",
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
-          border: "1px solid rgba(255,255,255,0.6)",
-          boxShadow: config.cardShadow,
-        }}
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.1, ...HEAVY_SPRING }}
+        className="mb-7 relative"
+        style={{ filter: `drop-shadow(0 12px 24px ${config.glowColor})` }}
       >
-        {/* 아이콘 — 타일과 동일한 SVG, 애니메이션만 추가 */}
-        <motion.div
-          initial={{ scale: 0.6, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.1, ...HEAVY_SPRING }}
-          className="mb-7 relative"
-          style={{ filter: `drop-shadow(0 12px 24px ${config.glowColor})` }}
-        >
-          <ModalWeatherIcon label={metaphor.label} />
-        </motion.div>
-
-        {/* 텍스트 */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, ...STANDARD_SPRING }}
-          className="space-y-3 mb-8 px-2"
-        >
-          <h2 className="font-extrabold tracking-tight leading-tight" style={{ fontSize: "28px", color: "#2e1f1a" }}>
-            {config.title}
-          </h2>
-          <p className="text-base font-medium leading-relaxed" style={{ color: "#6b5551", maxWidth: "22ch", marginInline: "auto" }}>
-            {config.subtitle}
-          </p>
-        </motion.div>
-
-        {/* 버튼들 */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, ...STANDARD_SPRING }}
-          className="flex flex-col items-center w-full gap-3"
-        >
-          {/* 날씨별 네온 CTA */}
-          <Link
-            href="/personal"
-            className="flex items-center justify-center gap-2 font-bold text-white transition-all active:scale-95 w-full"
-            style={{
-              height: 64,
-              borderRadius: "1.5rem",
-              background: config.btnGradient,
-              boxShadow: config.btnShadow,
-              fontSize: "18px",
-            }}
-          >
-            나의 예보 보러가기
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 14L14 4M14 4H7M14 4V11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </Link>
-          {/* 닫기 */}
-          <button
-            onClick={onClose}
-            className="w-full py-4 text-sm font-medium transition-colors hover:opacity-70"
-            style={{ color: "#92817a" }}
-          >
-            닫기
-          </button>
-        </motion.div>
+        <ModalWeatherIcon label={metaphor.label} />
       </motion.div>
-    </motion.div>
+
+      {/* 텍스트 */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25, ...STANDARD_SPRING }}
+        className="space-y-3 mb-8 px-2"
+      >
+        <h2 className="font-extrabold tracking-tight leading-tight" style={{ fontSize: "28px", color: "#2e1f1a" }}>
+          {config.title}
+        </h2>
+        <p className="text-base font-medium leading-relaxed" style={{ color: "#6b5551", maxWidth: "22ch", marginInline: "auto" }}>
+          {config.subtitle}
+        </p>
+      </motion.div>
+
+      {/* 버튼들 */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, ...STANDARD_SPRING }}
+        className="flex flex-col items-center w-full gap-3"
+      >
+        <Link
+          href="/personal"
+          className="flex items-center justify-center gap-2 font-bold text-white transition-all active:scale-95 w-full"
+          style={{
+            height: 64,
+            borderRadius: "1.5rem",
+            background: config.btnGradient,
+            boxShadow: config.btnShadow,
+            fontSize: "18px",
+          }}
+        >
+          나의 예보 보러가기
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 14L14 4M14 4H7M14 4V11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </Link>
+        <button
+          onClick={onClose}
+          className="w-full py-4 text-sm font-medium transition-colors hover:opacity-70"
+          style={{ color: "#92817a" }}
+        >
+          닫기
+        </button>
+      </motion.div>
+    </GlassModal>
   );
 }
