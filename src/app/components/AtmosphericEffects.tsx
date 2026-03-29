@@ -29,40 +29,43 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
 
   // Rain particles
   const rainParticles = useMemo<Particle[]>(
-    () => Array.from({ length: shouldLimitMotion ? 12 : 28 }, (_, i) => ({
+    () => Array.from({ length: shouldLimitMotion ? 14 : 32 }, (_, i) => ({
       id: i,
       x: `${(i * 13 + 3) % 100}%`,
       delay: (i % 7) * 0.22,
       duration: 0.9 + (i % 5) * 0.15,
-      height: 24 + (i % 4) * 10,
-      opacity: 0.25 + (i % 3) * 0.12,
+      height: 28 + (i % 4) * 12,
+      opacity: 0.38 + (i % 3) * 0.14,
     })),
     [shouldLimitMotion]
   );
 
   // Sun ray particles
   const sunRays = useMemo(
-    () => Array.from({ length: shouldLimitMotion ? 4 : 8 }, (_, i) => ({
+    () => Array.from({ length: shouldLimitMotion ? 5 : 8 }, (_, i) => ({
       id: i,
       angle: (i * 45) + (i % 2 === 0 ? 0 : 22.5),
       delay: i * 0.3,
-      length: 120 + (i % 3) * 60,
+      length: 150 + (i % 3) * 80,
     })),
     [shouldLimitMotion]
   );
 
-  // Lightning bolt positions
+  // Lightning bolt definitions — 각각 다른 모양/크기/위치/타이밍
   const lightningBolts = useMemo(
-    () => Array.from({ length: 3 }, (_, i) => ({
-      id: i,
-      x: `${15 + i * 30}%`,
-      delay: i * 2.2,
-    })),
+    () => [
+      // 왼쪽: 크고 선명한 주 번개
+      { id: 0, x: "8%",  top: "0%", width: 52, height: 200, points: "36,0 14,88 28,88 6,200",  strokeW: 3.5, delay: 0,   duration: 5.2 },
+      // 중앙 오른쪽: 작고 빠른 보조 번개
+      { id: 1, x: "58%", top: "0%", width: 28, height: 120, points: "20,0 8,52 16,52 4,120",   strokeW: 2,   delay: 1.8, duration: 4.1 },
+      // 오른쪽: 중간 크기, 꺾임 다른 형태
+      { id: 2, x: "78%", top: "0%", width: 36, height: 160, points: "10,0 26,60 14,60 30,160", strokeW: 2.5, delay: 3.5, duration: 6.0 },
+    ],
     []
   );
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-[5] overflow-hidden">
+    <div className="fixed inset-0 pointer-events-none z-[25] overflow-hidden">
       <AnimatePresence mode="wait">
 
         {/* ─── Radiant: 눈부신 광선 + 반짝임 ─── */}
@@ -77,10 +80,10 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
           >
             {/* 중앙 빛 bloom */}
             <motion.div
-              animate={shouldLimitMotion ? {} : { scale: [1, 1.15, 1], opacity: [0.18, 0.32, 0.18] }}
+              animate={shouldLimitMotion ? {} : { scale: [1, 1.15, 1], opacity: [0.28, 0.48, 0.28] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[140%] h-[80%] rounded-full"
-              style={{ background: "radial-gradient(ellipse, rgba(255,220,80,0.28) 0%, transparent 70%)", filter: "blur(40px)" }}
+              style={{ background: "radial-gradient(ellipse, rgba(255,220,80,0.38) 0%, transparent 70%)", filter: "blur(40px)" }}
             />
             {/* 광선 */}
             {sunRays.map((ray) => (
@@ -132,10 +135,10 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
           >
             {/* 상단 warm glow */}
             <motion.div
-              animate={shouldLimitMotion ? {} : { opacity: [0.15, 0.28, 0.15], y: [0, -12, 0] }}
+              animate={shouldLimitMotion ? {} : { opacity: [0.22, 0.42, 0.22], y: [0, -12, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
               className="absolute top-[-10%] right-[-10%] w-[80%] h-[60%] rounded-full"
-              style={{ background: "radial-gradient(ellipse, rgba(255,180,60,0.25) 0%, transparent 70%)", filter: "blur(60px)" }}
+              style={{ background: "radial-gradient(ellipse, rgba(255,180,60,0.35) 0%, transparent 70%)", filter: "blur(60px)" }}
             />
             {/* 떠다니는 빛 입자 */}
             {Array.from({ length: shouldLimitMotion ? 5 : 14 }, (_, i) => (
@@ -181,7 +184,7 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
                 key={i}
                 animate={shouldLimitMotion ? {} : {
                   x: [0, 40 + i * 20, 0],
-                  opacity: [0.18, 0.35, 0.18],
+                  opacity: [0.28, 0.45, 0.28],
                 }}
                 transition={{
                   duration: 10 + i * 4,
@@ -195,18 +198,11 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
                   height: `${22 + i * 8}%`,
                   top: `${15 + i * 22}%`,
                   left: "-10%",
-                  background: "rgba(200,210,220,0.22)",
+                  background: "rgba(200,210,220,0.25)",
                   filter: "blur(28px)",
                 }}
               />
             ))}
-            {/* 전체 흐림 베일 */}
-            <motion.div
-              animate={shouldLimitMotion ? {} : { opacity: [0.08, 0.18, 0.08] }}
-              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute inset-0"
-              style={{ backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", background: "rgba(180,190,200,0.06)" }}
-            />
           </motion.div>
         )}
 
@@ -283,8 +279,8 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
             {/* 번개 섬광 — 화면 전체 */}
             <motion.div
               animate={shouldLimitMotion
-                ? { opacity: 0.06 }
-                : { opacity: [0, 0, 0, 0.85, 0, 0.4, 0, 0] }
+                ? { opacity: 0.08 }
+                : { opacity: [0, 0, 0, 0.92, 0, 0.5, 0, 0] }
               }
               transition={shouldLimitMotion ? undefined : {
                 duration: 4.5,
@@ -304,27 +300,27 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
                   : { opacity: [0, 0, 0, 1, 0, 0.6, 0, 0] }
                 }
                 transition={{
-                  duration: 4.5 + bolt.delay * 0.3,
+                  duration: bolt.duration,
                   repeat: Infinity,
                   delay: bolt.delay,
                   times: [0, 0.55, 0.74, 0.75, 0.77, 0.78, 0.81, 1],
                   ease: "linear",
                 }}
-                className="absolute top-0"
-                style={{ left: bolt.x }}
+                className="absolute"
+                style={{ left: bolt.x, top: bolt.top }}
               >
-                <svg width="40" height="160" viewBox="0 0 40 160" fill="none">
+                <svg width={bolt.width} height={bolt.height} viewBox={`0 0 ${bolt.width} ${bolt.height}`} fill="none">
                   <polyline
-                    points="28,0 12,70 24,70 8,160"
-                    stroke="rgba(255,240,100,0.9)"
-                    strokeWidth="3"
+                    points={bolt.points}
+                    stroke="rgba(255,240,100,0.92)"
+                    strokeWidth={bolt.strokeW}
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    filter="url(#glow)"
+                    filter="url(#bolt-glow)"
                   />
                   <defs>
-                    <filter id="glow" x="-50%" y="-10%" width="200%" height="120%">
-                      <feGaussianBlur stdDeviation="3" result="blur" />
+                    <filter id="bolt-glow" x="-80%" y="-10%" width="260%" height="120%">
+                      <feGaussianBlur stdDeviation="2.5" result="blur" />
                       <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
                     </filter>
                   </defs>

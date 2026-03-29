@@ -10,7 +10,7 @@ To achieve this, we break the "template" look through **Intentional Asymmetry** 
 
 ## 2. Colors & Surface Architecture
 
-Our palette balances the calm of "Soft Mint" with the high-octane energy of "Electric Blue" and "Soft Coral."
+Our palette balances the calm of "Soft Mint" with the high-octane energy of "Muted Teal" and "Soft Coral."
 
 ### The Surface Hierarchy
 We move beyond flat backgrounds by using a tiered system of `surface` tokens to define importance.
@@ -61,7 +61,7 @@ All components must adhere to the `ROUND_FULL` (9999px) or `xl` (3rem) corner ra
 
 * **Buttons:**
 * **Primary:** Pill-shaped (`full`). Uses the Signature Gradient (Teal to Mint) with `on_primary` text.
-* **Secondary:** `surface_container_highest` background with `secondary` (#0058ba) text. No border.
+* **Secondary:** `surface_container_highest` background with `secondary` (#52f2f5) text. No border.
 * **Input Fields:** Use `surface_container_low` as the field background. On focus, the background shifts to `surface_container_lowest` with a subtle `primary` "Ghost Border."
 * **Tab Toggle — Two variants:**
 
@@ -77,7 +77,7 @@ All components must adhere to the `ROUND_FULL` (9999px) or `xl` (3rem) corner ra
   Primary mode switch. Use when the toggle **fundamentally changes the interaction paradigm** on the screen — not just the data shown.
   * Container: `rgba(37,50,40,0.05)` background, `rounded-full`, `p-1.5`
   * Active tab: **Signature Gradient pill** (`linear-gradient(135deg, #2b6867 0%, #52f2f5 100%)`) + `on-primary` (white) text + `rounded-[1.5rem]`. Animated with Framer Motion `layoutId`.
-  * Inactive tab: `secondary` (#0058ba) text, no background.
+  * Inactive tab: `secondary` (#52f2f5) text, no background.
   * **When to use:** Input mode switches (Quick / Precise), view paradigm switches where the entire UI structure changes.
   * **Implementation:** `<PrimaryTabToggle tabs={[...]} active={value} onChange={fn} />`
 
@@ -116,10 +116,10 @@ Specialized components for the team mood calendar grid. All live in `src/app/com
 ### Do:
 * **Use Asymmetry:** Overlap a glass card slightly over a geometric background pattern to create "Contextual Continuity."
 * **Embrace White Space:** Use the `Spacing Scale 16` (5.5rem) for section breathing room.
-* **Color-Code Context:** Use `secondary` (Electric Blue) for action-oriented flows and `tertiary` (Soft Coral) for lifestyle or social features.
+* **Color-Code Context:** Use `secondary` (Muted Teal) for action-oriented flows and `tertiary` (Soft Coral) for lifestyle or social features.
 
 ### Don't:
 * **Don't use 1px Dividers:** They shatter the illusion of a seamless glass atrium.
 * **Don't use Photo Backgrounds:** The system relies on "Visual Style" through flat/3D glass icons and patterns, not realistic photography.
 * **Don't use Hard Corners:** Even a 4px radius is too sharp. Stick to `md` (1.5rem) as your absolute minimum.
-* **Don't Over-Saturate:** Keep the high-saturation accents (Electric Blue, Yellow, Coral) to less than 10% of the screen real estate; the Soft Mint and Teal must do the heavy lifting to maintain the "Premium" feel.
+* **Don't Over-Saturate:** Keep the high-saturation accents (Muted Teal, Yellow, Coral) to less than 10% of the screen real estate; the Soft Mint and Teal must do the heavy lifting to maintain the "Premium" feel.

@@ -3,7 +3,8 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { RESPONSIVE_SPRING, STANDARD_SPRING } from "../constants/springs";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { WEATHER_ICON_MAP } from "./WeatherIcons";
 import type { WeatherStatus } from "../../lib/mood";
 
@@ -28,7 +29,7 @@ export function GlassCard({ children, className = "", style, intensity = "medium
         background: bgMap[intensity],
         backdropFilter: blurMap[intensity],
         WebkitBackdropFilter: blurMap[intensity],
-        boxShadow: "0 40px 40px -10px rgba(37,50,40,0.06)",
+        boxShadow: "0 20px 40px -10px rgba(37,50,40,0.06)",
         ...style,
       }}
     >
@@ -775,9 +776,16 @@ export function NikoMemberRow({
 interface MiniStatCardProps {
   label: string;
   value: React.ReactNode;
-  valueColor?: "primary" | "default";
+  valueColor?: "primary" | "secondary" | "tertiary" | "default";
   className?: string;
 }
+
+const MINI_STAT_COLOR_MAP = {
+  primary:   "var(--primary)",
+  secondary: "var(--secondary)",
+  tertiary:  "var(--tertiary)",
+  default:   "var(--on-surface)",
+};
 
 export function MiniStatCard({ label, value, valueColor = "default", className = "" }: MiniStatCardProps) {
   return (
@@ -785,7 +793,7 @@ export function MiniStatCard({ label, value, valueColor = "default", className =
       <SectionLabel color="muted" className="mb-1">{label}</SectionLabel>
       <div
         className="text-xl font-black"
-        style={{ color: valueColor === "primary" ? "var(--primary)" : "var(--on-surface)" }}
+        style={{ color: MINI_STAT_COLOR_MAP[valueColor] }}
       >
         {value}
       </div>
@@ -962,5 +970,177 @@ export function WeatherLegend({ className = "" }: WeatherLegendProps) {
         <span className="text-xs font-semibold" style={{ color: "rgba(37,50,40,0.6)" }}>기록 없음</span>
       </div>
     </div>
+  );
+}
+
+// ─── PortalSelect ──────────────────────────────────────────────────────────────
+// 커스텀 드롭다운. 패널을 body에 portal로 마운트하여 z-index 충돌 원천 차단.
+export interface SelectOption {
+  value: string;
+  label: string;
+}
+
+interface PortalSelectProps {
+  options: SelectOption[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+  style?: React.CSSProperties;
+  /** compact=true: ⋮ 아이콘 버튼으로 토글, 패널은 오른쪽 정렬 */
+  compact?: boolean;
+}
+
+export function PortalSelect({
+  options,
+  value,
+  onChange,
+  placeholder = "선택",
+  className = "",
+  style,
+  compact = false,
+}: PortalSelectProps) {
+  const [open, setOpen] = useState(false);
+  const [panelStyle, setPanelStyle] = useState<React.CSSProperties>({});
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  const selected = options.find(o => o.value === value);
+
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const panelHeight = Math.min((options.length + 1) * 44 + 16, 260);
+    const above = spaceBelow < panelHeight && rect.top > panelHeight;
+    const base: React.CSSProperties = {
+      position: "fixed",
+      zIndex: 9999,
+      minWidth: compact ? 160 : Math.max(rect.width, 180),
+      ...(above
+        ? { bottom: window.innerHeight - rect.top + 4 }
+        : { top: rect.bottom + 4 }),
+    };
+    // compact: 패널을 트리거 오른쪽 끝에 맞춤
+    if (compact) {
+      base.right = window.innerWidth - rect.right;
+    } else {
+      base.left = rect.left;
+      base.width = Math.max(rect.width, 180);
+    }
+    setPanelStyle(base);
+  }, [options.length, compact]);
+
+  useEffect(() => {
+    if (!open) return;
+    updatePosition();
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [open, updatePosition]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(e: PointerEvent) {
+      if (
+        !triggerRef.current?.contains(e.target as Node) &&
+        !panelRef.current?.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [open]);
+
+  const panel = open ? (
+    <div
+      ref={panelRef}
+      style={{
+        ...panelStyle,
+        background: "rgba(255,255,255,0.95)",
+        backdropFilter: "blur(20px)",
+        borderRadius: "1.5rem",
+        boxShadow: "0 20px 60px -10px rgba(37,50,40,0.18)",
+        padding: "0.5rem",
+        overflowY: "auto",
+        maxHeight: 260,
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => { onChange(""); setOpen(false); }}
+        className="w-full text-left px-4 py-2.5 rounded-[1rem] text-sm font-semibold transition-colors hover:bg-surface-container-low"
+        style={{ color: "rgba(37,50,40,0.35)" }}
+      >
+        {placeholder}
+      </button>
+      {options.map(opt => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => { onChange(opt.value); setOpen(false); }}
+          className="w-full text-left px-4 py-2.5 rounded-[1rem] text-sm font-semibold transition-colors hover:bg-surface-container-low"
+          style={{
+            color: opt.value === value ? "var(--primary)" : "var(--on-surface)",
+            background: opt.value === value ? "rgba(0,102,104,0.06)" : "transparent",
+            fontWeight: opt.value === value ? 800 : 600,
+          }}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  ) : null;
+
+  if (compact) {
+    return (
+      <>
+        <button
+          ref={triggerRef}
+          type="button"
+          onClick={() => setOpen(v => !v)}
+          className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-surface-container ${className}`}
+          style={{ color: "rgba(37,50,40,0.4)", ...style }}
+          title="파트 변경"
+        >
+          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
+            <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
+          </svg>
+        </button>
+        {typeof window !== "undefined" && panel ? createPortal(panel, document.body) : null}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className={`flex items-center justify-between gap-2 rounded-[1.5rem] px-4 py-3 text-sm font-semibold transition-colors ${className}`}
+        style={{
+          background: "var(--surface-container-low)",
+          color: value ? "var(--on-surface)" : "rgba(37,50,40,0.4)",
+          minWidth: 140,
+          ...style,
+        }}
+      >
+        <span className="truncate">{selected?.label ?? placeholder}</span>
+        <svg
+          viewBox="0 0 24 24"
+          className="w-4 h-4 shrink-0 transition-transform"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", color: "rgba(37,50,40,0.4)" }}
+          fill="none" stroke="currentColor" strokeWidth="2"
+        >
+          <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {typeof window !== "undefined" && panel ? createPortal(panel, document.body) : null}
+    </>
   );
 }

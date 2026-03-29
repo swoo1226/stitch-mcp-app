@@ -39,7 +39,7 @@ export default function DetailsPage() {
       <section className="bg-surface-container text-on-surface rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden mb-8 shadow-ambient">
         <div className="flex justify-between items-center mb-12">
             <div>
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2 text-secondary">Current State</p>
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2 text-primary">Current State</p>
                 <h2 className="text-3xl font-extrabold font-[Plus Jakarta Sans]">안개 (Foggy)</h2>
             </div>
             <span className="text-6xl opacity-20">🌫️</span>
@@ -58,7 +58,7 @@ export default function DetailsPage() {
                 <circle cx="80" cy="80" r="70" stroke="var(--secondary)" strokeWidth="15" fill="transparent" strokeDasharray="439.8" strokeDashoffset="110" strokeLinecap="round" />
             </svg>
             <div className="flex flex-col items-center">
-                <span className="text-4xl font-extrabold font-[Plus Jakarta Sans] text-secondary">12</span>
+                <span className="text-4xl font-extrabold font-[Plus Jakarta Sans] text-primary">12</span>
                 <span className="text-[10px] uppercase font-black tracking-widest opacity-40 mt-1">Members</span>
             </div>
         </div>
@@ -80,7 +80,7 @@ export default function DetailsPage() {
                       className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shrink-0 ${
                         insight.color === "error"
                           ? "bg-error-container text-error"
-                          : "bg-secondary-container text-secondary"
+                          : "bg-secondary-container text-primary"
                       }`}
                     >
                       {insight.tag}

@@ -580,7 +580,7 @@ export function TeamClimateDashboard() {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="mb-2 text-[2.2rem] font-black tracking-tight text-primary">
+                  <div className="mb-2 text-[2.2rem] font-black tracking-tight" style={{ color: "var(--secondary)" }}>
                     {averageStatus}
                   </div>
                   <div className="text-base leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.62)" }}>
@@ -602,7 +602,7 @@ export function TeamClimateDashboard() {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="mb-2 text-[2.2rem] font-black tracking-tight text-primary">
+                  <div className="mb-2 text-[2.2rem] font-black tracking-tight" style={{ color: "var(--tertiary)" }}>
                     {mostFrequent}
                   </div>
                   <div className="text-base leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.62)" }}>
@@ -645,7 +645,7 @@ export function TeamClimateDashboard() {
             >
               <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
                 <div className="max-w-2xl">
-                  <h2 className="mb-3 text-[2rem] font-black tracking-tight text-primary">
+                  <h2 className="mb-3 text-[2rem] font-black tracking-tight" style={{ color: "var(--tertiary)" }}>
                     Feeling like a storm today?
                   </h2>
                   <p className="text-lg leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.72)" }}>
