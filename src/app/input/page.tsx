@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useRef } from "react";
+import { useState, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import ClimaLogo from "../components/WetherLogo";
@@ -89,7 +89,7 @@ const CELEBRATION_CONFIG: Record<string, {
   },
 };
 
-export default function ClimaInput() {
+function ClimaInputInner() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
@@ -551,5 +551,13 @@ function CelebrationModal({
         </button>
       </motion.div>
     </GlassModal>
+  );
+}
+
+export default function ClimaInput() {
+  return (
+    <Suspense>
+      <ClimaInputInner />
+    </Suspense>
   );
 }

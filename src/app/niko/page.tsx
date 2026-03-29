@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import ClimaLogo from "../components/WetherLogo";
 import {
   GlassCard,
@@ -142,7 +142,7 @@ function TopIcon({ type }: { type: "bell" | "settings" | "profile" }) {
 }
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
-export default function NikoPage() {
+function NikoPageInner() {
   const searchParams = useSearchParams();
   const teamId = searchParams.get("team") ?? DEFAULT_TEAM_ID;
 
@@ -439,5 +439,13 @@ export default function NikoPage() {
         <WeatherLegend className="px-1" />
       </motion.main>
     </div>
+  );
+}
+
+export default function NikoPage() {
+  return (
+    <Suspense>
+      <NikoPageInner />
+    </Suspense>
   );
 }

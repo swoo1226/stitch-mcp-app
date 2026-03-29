@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import ClimaLogo from "../components/WetherLogo";
 import { ClimaButton, SectionLabel, PrimaryTabToggle, NikoCalendar, type NikoCalendarMember } from "../components/ui";
@@ -671,5 +671,9 @@ export function TeamClimateDashboard() {
 }
 
 export default function DashboardPage() {
-  return <TeamClimateDashboard />;
+  return (
+    <Suspense>
+      <TeamClimateDashboard />
+    </Suspense>
+  );
 }
