@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import ClimaLogo from "./components/WetherLogo";
 import { ClimaWave } from "./components/WetherWave";
 import { STANDARD_SPRING, HEAVY_SPRING, RESPONSIVE_SPRING } from "./constants/springs";
@@ -12,7 +13,13 @@ import { ClimaButton, FAB, Badge, StatCard, SectionLabel, PlayfulGeometry, PageH
 import { BottomSheet, BottomSheetOverlay, useBottomSheet } from "./components/BottomSheet";
 import { useMotionPreferences } from "./components/useMotionPreferences";
 import { supabase, DEFAULT_TEAM_ID } from "../lib/supabase";
-import { scoreToStatus, statusToEmoji, WeatherStatus } from "../lib/mood";
+
+interface Team {
+  id: string;
+  name: string;
+}
+import { scoreToStatus, WeatherStatus } from "../lib/mood";
+import { WEATHER_ICON_MAP } from "./components/WeatherIcons";
 
 interface Member {
   id: string;
@@ -31,22 +38,26 @@ interface RawUser {
 }
 
 export default function ClimaDashboard() {
+  const searchParams = useSearchParams();
+  const teamId = searchParams.get("team") ?? DEFAULT_TEAM_ID;
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { shouldLimitMotion, isMobileLike } = useMotionPreferences();
 
   useEffect(() => {
     async function fetchData() {
-      // 팀원 목록 + 가장 최근 mood_log 조인
-      const { data: users } = await supabase
-        .from("users")
-        .select(`
-          id, name, avatar_emoji,
-          mood_logs (score, message, logged_at)
-        `)
-        .eq("team_id", DEFAULT_TEAM_ID)
-        .order("logged_at", { referencedTable: "mood_logs", ascending: false });
+      const [{ data: users }, { data: teamsData }] = await Promise.all([
+        supabase
+          .from("users")
+          .select(`id, name, avatar_emoji, mood_logs (score, message, logged_at)`)
+          .eq("team_id", teamId)
+          .order("logged_at", { referencedTable: "mood_logs", ascending: false }),
+        supabase.from("teams").select("id, name").order("name"),
+      ]);
 
       if (users) {
         const mapped = (users as RawUser[]).map((u) => {
@@ -56,7 +67,7 @@ export default function ClimaDashboard() {
           return {
             id: u.id,
             name: u.name,
-            avatar_emoji: u.avatar_emoji,
+            avatar_emoji: u.avatar_emoji || "",
             score,
             status,
             message: latest?.message ?? "아직 오늘 기록이 없어요.",
@@ -64,10 +75,11 @@ export default function ClimaDashboard() {
         });
         setMembers(mapped);
       }
+      if (teamsData) setTeams(teamsData as Team[]);
       setLoading(false);
     }
     fetchData();
-  }, []);
+  }, [teamId]);
 
   const averageScore = members.length
     ? Math.round(members.reduce((sum, m) => sum + m.score, 0) / members.length)
@@ -91,13 +103,15 @@ export default function ClimaDashboard() {
 
   const selectedMember = members.find(m => m.id === selectedId);
 
+  const teamParam = teamId !== DEFAULT_TEAM_ID ? `?team=${teamId}` : "";
   const NAV_ITEMS = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Dashboard", href: `/dashboard${teamParam}` },
     { label: "Personal", href: "/personal" },
-    { label: "Team", href: "/dashboard" },
-    { label: "Niko-Niko", href: "/niko" },
+    { label: "Team", href: `/dashboard${teamParam}` },
+    { label: "Niko-Niko", href: `/niko${teamParam}` },
     { label: "Alerts", href: "/alerts" },
   ];
+  const currentTeamName = teams.find(t => t.id === teamId)?.name ?? "팀 선택";
 
   return (
     <div className="relative min-h-screen flex flex-col items-center bg-surface overflow-x-hidden pb-20">
@@ -110,6 +124,22 @@ export default function ClimaDashboard() {
             <ClimaLogo />
           </Link>
           <nav className="hidden md:flex items-center gap-1">
+            {teams.length > 1 && (
+              <select
+                value={teamId}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  const param = id !== DEFAULT_TEAM_ID ? `?team=${id}` : "";
+                  window.location.href = `/${param}`;
+                }}
+                className="mr-2 rounded-full px-3 py-1.5 text-sm font-semibold border-none outline-none appearance-none cursor-pointer"
+                style={{ background: "var(--surface-container-low)", color: "var(--primary)" }}
+              >
+                {teams.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            )}
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.label}
@@ -123,20 +153,80 @@ export default function ClimaDashboard() {
           </nav>
         </div>
         <div className="flex items-center gap-2" style={{ color: "rgba(37,50,40,0.7)" }}>
-          <Link href="/alerts" className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
+          <Link href="/alerts" className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
               <path d="M12 4.5a4 4 0 0 0-4 4v2.3c0 .7-.2 1.3-.6 1.8L6 14.5h12l-1.4-1.9a3 3 0 0 1-.6-1.8V8.5a4 4 0 0 0-4-4Z" />
               <path d="M9.5 17.5a2.5 2.5 0 0 0 5 0" />
             </svg>
           </Link>
-          <Link href="/personal" className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
+          <Link href="/personal" className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
               <circle cx="12" cy="8" r="3.2" />
               <path d="M5.5 20a6.5 6.5 0 0 1 13 0" />
             </svg>
           </Link>
+          {/* 햄버거 버튼 (모바일) */}
+          <button
+            className="md:hidden flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
+            onClick={() => setMobileNavOpen(true)}
+            aria-label="메뉴 열기"
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
+            </svg>
+          </button>
         </div>
       </header>
+
+      {/* 모바일 네비 드로어 */}
+      <AnimatePresence>
+        {mobileNavOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileNavOpen(false)}
+              className="fixed inset-0 z-[60]"
+              style={{ background: "rgba(37,50,40,0.15)", backdropFilter: "blur(4px)" }}
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={STANDARD_SPRING}
+              className="fixed right-0 top-0 h-full w-72 z-[70] flex flex-col"
+              style={{ background: "rgba(255,255,255,0.96)", backdropFilter: "blur(20px)" }}
+            >
+              <div className="flex items-center justify-between px-6 h-16 shrink-0">
+                <ClimaLogo />
+                <button
+                  onClick={() => setMobileNavOpen(false)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-low transition-colors"
+                  style={{ color: "rgba(37,50,40,0.5)" }}
+                >
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+              <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
+                {NAV_ITEMS.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setMobileNavOpen(false)}
+                    className="px-5 py-4 rounded-[1.5rem] text-base font-semibold tracking-tight transition-colors hover:bg-surface-low"
+                    style={{ color: "rgba(37,50,40,0.8)" }}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <motion.div
         animate={{
@@ -159,7 +249,10 @@ export default function ClimaDashboard() {
             animate={{ opacity: 1, x: 0 }}
             transition={STANDARD_SPRING}
           >
-            <SectionLabel className="mb-3 md:mb-4">The Digital Atrium</SectionLabel>
+            <SectionLabel className="mb-2">The Digital Atrium</SectionLabel>
+            <p className="mb-3 text-xs font-bold" style={{ color: "rgba(37,50,40,0.4)" }}>
+              {new Date().toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "short" })}
+            </p>
             <PageHeadline className="mb-3 md:mb-4 font-black">How is the climate today?</PageHeadline>
             <p className="text-sm md:text-base opacity-60 max-w-sm mb-6 md:mb-8 leading-relaxed font-medium">A sanctuary for team conditions and psychological safety.</p>
           </motion.div>
@@ -211,7 +304,10 @@ export default function ClimaDashboard() {
                       layoutId={`icon-${member.id}`}
                       className="w-14 h-14 md:w-16 md:h-16 rounded-[1.75rem] md:rounded-[2rem] bg-surface-container flex items-center justify-center text-2xl md:text-3xl shadow-sm group-hover:bg-primary/5 transition-colors duration-500"
                     >
-                      {member.avatar_emoji || statusToEmoji(member.status)}
+                      {member.avatar_emoji
+                        ? member.avatar_emoji
+                        : (() => { const Icon = WEATHER_ICON_MAP[member.status]; return <Icon size={32} />; })()
+                      }
                     </motion.div>
                     <div>
                       <h3 className="font-extrabold text-lg md:text-xl font-[Plus Jakarta Sans] mb-1 tracking-tight">{member.name}</h3>
@@ -299,7 +395,10 @@ function MemberSheetHeader({ member, selectedId }: { member: Member; selectedId:
         layoutId={`icon-${selectedId}`}
         className="w-16 h-16 md:w-28 md:h-28 shrink-0 rounded-[1.75rem] md:rounded-[3.5rem] bg-surface-container flex items-center justify-center text-3xl md:text-5xl shadow-sm"
       >
-        {member.avatar_emoji || statusToEmoji(member.status)}
+        {member.avatar_emoji
+          ? member.avatar_emoji
+          : (() => { const Icon = WEATHER_ICON_MAP[member.status]; return <Icon size={48} />; })()
+        }
       </motion.div>
       <div className="flex-1 min-w-0">
         <h2 className="text-xl md:text-4xl font-extrabold tracking-tight mb-1 truncate" style={{ fontFamily: "'Public Sans', sans-serif", color: "var(--on-surface)" }}>

@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import ClimaLogo from "../components/WetherLogo";
 import { RESPONSIVE_SPRING, STANDARD_SPRING, HEAVY_SPRING } from "../constants/springs";
@@ -10,6 +11,7 @@ import AtmosphericEffects from "../components/AtmosphericEffects";
 import { ClimaButton, FAB, WeatherTile, PrimaryTabToggle } from "../components/ui";
 import GlassModal from "../components/GlassModal";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
+import { supabase } from "../../lib/supabase";
 
 interface WeatherMetaphor {
   score: number;
@@ -88,11 +90,17 @@ const CELEBRATION_CONFIG: Record<string, {
 };
 
 export default function ClimaInput() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+
   const [score, setScore] = useState(75);
   const [mode, setMode] = useState<"tile" | "range">("tile");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [ripples, setRipples] = useState<number[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
 
   const currentMetaphor = currentMetaphorFromScore(score);
@@ -104,6 +112,60 @@ export default function ClimaInput() {
     setRipples(prev => [...prev, id]);
     setTimeout(() => setRipples(prev => prev.filter(r => r !== id)), 600);
   };
+
+  async function doInsert(userId: string) {
+    const { error } = await supabase.from("mood_logs").insert({ user_id: userId, score });
+    if (error) {
+      if (error.code === "23505") {
+        // unique violation — 오늘 이미 기록 존재
+        setPendingUserId(userId);
+      } else {
+        setErrorMsg("저장 중 오류가 발생했어요. 다시 시도해주세요.");
+      }
+      return false;
+    }
+    return true;
+  }
+
+  async function handleSubmit() {
+    if (submitting) return;
+    setSubmitting(true);
+    setErrorMsg(null);
+    if (token) {
+      const { data: user } = await supabase
+        .from("users")
+        .select("id")
+        .eq("access_token", token)
+        .single();
+      if (user) {
+        const ok = await doInsert(user.id);
+        if (ok) setIsSubmitted(true);
+      } else {
+        setErrorMsg("유효하지 않은 접속 패스예요.");
+      }
+    } else {
+      // 토큰 없이 접속 — 로컬 피드백만
+      setIsSubmitted(true);
+    }
+    setSubmitting(false);
+  }
+
+  async function handleOverwrite() {
+    if (!pendingUserId) return;
+    setSubmitting(true);
+    setErrorMsg(null);
+    const nowKst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+    const todayIso = `${nowKst.getUTCFullYear()}-${String(nowKst.getUTCMonth() + 1).padStart(2, "0")}-${String(nowKst.getUTCDate()).padStart(2, "0")}`;
+    await supabase
+      .from("mood_logs")
+      .update({ score })
+      .eq("user_id", pendingUserId)
+      .gte("logged_at", `${todayIso}T00:00:00+09:00`)
+      .lte("logged_at", `${todayIso}T23:59:59+09:00`);
+    setPendingUserId(null);
+    setIsSubmitted(true);
+    setSubmitting(false);
+  }
 
   return (
     <div className="relative min-h-[100dvh] flex flex-col items-center overflow-x-hidden">
@@ -285,13 +347,62 @@ export default function ClimaInput() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={STANDARD_SPRING}
-            className="fixed bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-30"
+            className="fixed bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-3"
           >
+            {/* 에러 메시지 */}
+            <AnimatePresence>
+              {errorMsg && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  className="rounded-2xl px-5 py-3 text-sm font-bold text-center max-w-[calc(100vw-3rem)]"
+                  style={{ background: "rgba(220,38,38,0.12)", color: "#dc2626", backdropFilter: "blur(12px)" }}
+                >
+                  {errorMsg}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* 오늘 이미 기록 존재 — 덮어쓰기 확인 */}
+            <AnimatePresence>
+              {pendingUserId && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  className="rounded-2xl px-5 py-4 text-sm font-bold text-center max-w-[calc(100vw-3rem)] flex flex-col gap-3"
+                  style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", boxShadow: "0 8px 32px rgba(37,50,40,0.12)" }}
+                >
+                  <p style={{ color: "rgba(37,50,40,0.75)" }}>오늘 이미 기록이 있어요.<br />현재 점수로 덮어쓸까요?</p>
+                  <div className="flex gap-2 justify-center">
+                    <button
+                      type="button"
+                      onClick={handleOverwrite}
+                      disabled={submitting}
+                      className="px-5 py-2 rounded-full text-white font-black text-sm transition-opacity hover:opacity-80 disabled:opacity-50"
+                      style={{ background: "var(--primary)" }}
+                    >
+                      덮어쓰기
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPendingUserId(null)}
+                      className="px-5 py-2 rounded-full font-bold text-sm transition-opacity hover:opacity-60"
+                      style={{ color: "rgba(37,50,40,0.45)", background: "rgba(37,50,40,0.06)" }}
+                    >
+                      취소
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <FAB
-              onClick={() => setIsSubmitted(true)}
+              onClick={handleSubmit}
               className="text-sm md:text-base tracking-tight max-w-[calc(100vw-2rem)]"
             >
-              Clima it
+              {submitting ? "저장 중..." : "Clima it"}
             </FAB>
           </motion.div>
         )}

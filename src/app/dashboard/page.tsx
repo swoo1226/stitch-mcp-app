@@ -1,21 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import ClimaLogo from "../components/WetherLogo";
-import { ClimaButton, SectionLabel, PrimaryTabToggle } from "../components/ui";
+import { ClimaButton, SectionLabel, PrimaryTabToggle, NikoCalendar, type NikoCalendarMember } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { STANDARD_SPRING } from "../constants/springs";
 import { DEFAULT_TEAM_ID, supabase } from "../../lib/supabase";
 import { scoreToStatus, statusToEmoji, type WeatherStatus } from "../../lib/mood";
 
-type DisplayWeather = WeatherStatus | "Cloudy";
+type DisplayWeather = WeatherStatus | null;
+
+interface MoodLogRow {
+  user_id: string;
+  score: number;
+  logged_at: string;
+}
 
 interface RawUser {
   id: string;
   name: string;
   avatar_emoji: string;
+  part_id: string | null;
   mood_logs: Array<{ score: number; message: string | null; logged_at: string }>;
 }
 
@@ -26,37 +34,63 @@ interface Member {
   score: number;
   status: WeatherStatus;
   message: string;
+  part_id: string | null;
+  week: Array<DisplayWeather>;
+}
+
+interface Part {
+  id: string;
+  name: string;
+}
+
+// ─── 날짜 유틸 ───────────────────────────────────────────────────────────────
+function getWeekStart(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function getWeekDays(monday: Date): Date[] {
+  return Array.from({ length: 5 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d;
+  });
+}
+
+function isoDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+// KST(+09:00) 기준 날짜 범위 — logged_at이 timestamptz라 오프셋 명시 필요
+function kstDayStart(iso: string): string { return `${iso}T00:00:00+09:00`; }
+function kstDayEnd(iso: string): string   { return `${iso}T23:59:59+09:00`; }
+
+// DB에서 내려온 UTC 타임스탬프를 KST 기준 YYYY-MM-DD로 변환
+function utcToKstDate(utcStr: string): string {
+  const d = new Date(utcStr);
+  // KST = UTC+9
+  const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+  const y = kst.getUTCFullYear();
+  const m = String(kst.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(kst.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI"];
+const NIKO_PAGE_SIZE = 5;
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/" },
   { label: "Personal", href: "/personal" },
   { label: "Team", href: "/dashboard", active: true },
   { label: "Alerts", href: "/alerts" },
 ];
-
-function buildWeek(member: Member, index: number): DisplayWeather[] {
-  const sunnyBias: DisplayWeather[] = ["Sunny", "Sunny", "Cloudy", "Sunny", "Sunny"];
-  const rainyBias: DisplayWeather[] = ["Rainy", "Foggy", "Cloudy", "Cloudy", "Sunny"];
-  const stormyBias: DisplayWeather[] = ["Sunny", "Sunny", "Sunny", "Stormy", "Rainy"];
-  const foggyBias: DisplayWeather[] = ["Cloudy", "Cloudy", "Cloudy", "Cloudy", "Cloudy"];
-  const radiantBias: DisplayWeather[] = ["Sunny", "Sunny", "Sunny", "Sunny", "Sunny"];
-
-  if (member.status === "Radiant") return radiantBias;
-  if (member.status === "Sunny") return sunnyBias;
-  if (member.status === "Foggy") return index % 2 === 0 ? foggyBias : rainyBias;
-  if (member.status === "Rainy") return rainyBias;
-  return stormyBias;
-}
-
-function scoreToCardStatus(score: number): DisplayWeather {
-  if (score >= 80) return "Sunny";
-  if (score >= 60) return "Cloudy";
-  if (score >= 40) return "Foggy";
-  if (score >= 20) return "Rainy";
-  return "Stormy";
-}
 
 function SidebarIcon({ type }: { type: "dashboard" | "personal" | "team" | "alerts" }) {
   const stroke = "currentColor";
@@ -137,58 +171,110 @@ function SearchIcon() {
 }
 
 export function TeamClimateDashboard() {
+  const searchParams = useSearchParams();
+  const teamId = searchParams.get("team") ?? DEFAULT_TEAM_ID;
+
   const [members, setMembers] = useState<Member[]>([]);
+  const [parts, setParts] = useState<Part[]>([]);
+  const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [weekTab, setWeekTab] = useState<"this" | "last">("this");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const weekOffset = weekTab === "this" ? 0 : -1;
+  const today = new Date();
+  const baseMonday = getWeekStart(today);
+  baseMonday.setDate(baseMonday.getDate() + weekOffset * 7);
+  const weekDays = getWeekDays(baseMonday);
+
 
   useEffect(() => {
     async function fetchData() {
-      const { data: users } = await supabase
-        .from("users")
-        .select("id, name, avatar_emoji, mood_logs (score, message, logged_at)")
-        .eq("team_id", DEFAULT_TEAM_ID)
-        .order("logged_at", { referencedTable: "mood_logs", ascending: false });
+      setLoading(true);
+      const rangeStart = isoDate(weekDays[0]);
+      const rangeEnd = isoDate(weekDays[4]);
 
-      if (users) {
-        const mapped = (users as RawUser[]).map((user) => {
-          const latest = user.mood_logs?.[0];
-          const score = latest?.score ?? 50;
+      const [{ data: users }, { data: partsData }] = await Promise.all([
+        supabase
+          .from("users")
+          .select("id, name, avatar_emoji, part_id, mood_logs (score, message, logged_at)")
+          .eq("team_id", teamId)
+          .order("logged_at", { referencedTable: "mood_logs", ascending: false }),
+        supabase.from("parts").select("id, name").order("name"),
+      ]);
 
-          return {
-            id: user.id,
-            name: user.name,
-            avatar: user.avatar_emoji || statusToEmoji(scoreToStatus(score)),
-            score,
-            status: scoreToStatus(score),
-            message: latest?.message ?? "오늘 체크인이 아직 없어요.",
-          };
-        });
-
-        setMembers(mapped);
+      if (!users) {
+        setLoading(false);
+        return;
       }
 
+      const userIds = (users as RawUser[]).map((u) => u.id);
+      const { data: weekLogs } = await supabase
+        .from("mood_logs")
+        .select("user_id, score, logged_at")
+        .in("user_id", userIds)
+        .gte("logged_at", kstDayStart(rangeStart))
+        .lte("logged_at", kstDayEnd(rangeEnd))
+        .order("logged_at", { ascending: true });
+
+      const logRows: MoodLogRow[] = (weekLogs as MoodLogRow[]) ?? [];
+
+      const mapped = (users as RawUser[]).map((user) => {
+        const latest = user.mood_logs?.[0];
+        const score = latest?.score ?? 50;
+
+        const userWeekLogs = logRows.filter((l) => l.user_id === user.id);
+        const week: DisplayWeather[] = weekDays.map((day) => {
+          const dayIso = isoDate(day);
+          const dayLogs = userWeekLogs.filter((l) => utcToKstDate(l.logged_at) === dayIso);
+          if (dayLogs.length === 0) return null;
+          const latestLog = dayLogs[dayLogs.length - 1];
+          return scoreToStatus(latestLog.score);
+        });
+
+        return {
+          id: user.id,
+          name: user.name,
+          avatar: user.avatar_emoji || "",
+          score,
+          status: scoreToStatus(score),
+          message: latest?.message ?? "오늘 체크인이 아직 없어요.",
+          part_id: user.part_id ?? null,
+          week,
+        };
+      });
+
+      setMembers(mapped);
+      if (partsData) setParts(partsData as Part[]);
       setLoading(false);
     }
 
     fetchData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamId, weekTab]);
 
-  const averageScore = members.length
-    ? Math.round(members.reduce((sum, member) => sum + member.score, 0) / members.length)
+  const visibleMembers = selectedPartId
+    ? members.filter(m => m.part_id === selectedPartId)
+    : members;
+
+  const teamParts = parts.filter(p => members.some(m => m.part_id === p.id));
+
+  const averageScore = visibleMembers.length
+    ? Math.round(visibleMembers.reduce((sum, member) => sum + member.score, 0) / visibleMembers.length)
     : 62;
 
   const mostFrequent = useMemo(() => {
-    const counts = new Map<DisplayWeather, number>();
-    members.forEach((member, index) => {
-      buildWeek(member, index).forEach((status) => {
-        counts.set(status, (counts.get(status) ?? 0) + 1);
+    const counts = new Map<WeatherStatus, number>();
+    visibleMembers.forEach((member) => {
+      member.week.forEach((status) => {
+        if (status) counts.set(status, (counts.get(status) ?? 0) + 1);
       });
     });
 
-    if (!counts.size) return "Sunny" as DisplayWeather;
+    if (!counts.size) return scoreToStatus(averageScore);
 
     return [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
-  }, [members]);
+  }, [visibleMembers, averageScore]);
 
   const insightText =
     averageScore >= 70
@@ -197,7 +283,7 @@ export function TeamClimateDashboard() {
         ? "The team climate is stabilizing, but the Backend team needs a little more sunshine."
         : "The team climate is heavy right now. Prioritize recovery space before pushing for speed.";
 
-  const averageStatus = scoreToCardStatus(averageScore);
+  const averageStatus = scoreToStatus(averageScore);
   const AverageIcon = WEATHER_ICON_MAP[averageStatus];
   const FrequentIcon = WEATHER_ICON_MAP[mostFrequent];
 
@@ -237,17 +323,77 @@ export function TeamClimateDashboard() {
             </nav>
           </div>
           <div className="flex items-center gap-2" style={{ color: "rgba(37, 50, 40, 0.7)" }}>
-            <button className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
+            <button className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
               <TopIcon type="bell" />
             </button>
-            <button className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
+            <button className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
               <TopIcon type="settings" />
             </button>
-            <Link href="/personal" className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
+            <Link href="/personal" className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
               <TopIcon type="profile" />
             </Link>
+            {/* 햄버거 버튼 (모바일) */}
+            <button
+              className="md:hidden flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
+              onClick={() => setMobileNavOpen(true)}
+              aria-label="메뉴 열기"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
+              </svg>
+            </button>
           </div>
         </motion.header>
+
+        {/* 모바일 네비 드로어 */}
+        <AnimatePresence>
+          {mobileNavOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setMobileNavOpen(false)}
+                className="fixed inset-0 z-[60]"
+                style={{ background: "rgba(37,50,40,0.15)", backdropFilter: "blur(4px)" }}
+              />
+              <motion.div
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={STANDARD_SPRING}
+                className="fixed right-0 top-0 h-full w-72 z-[70] flex flex-col"
+                style={{ background: "rgba(255,255,255,0.96)", backdropFilter: "blur(20px)" }}
+              >
+                <div className="flex items-center justify-between px-6 h-16 shrink-0">
+                  <ClimaLogo />
+                  <button
+                    onClick={() => setMobileNavOpen(false)}
+                    className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-low transition-colors"
+                    style={{ color: "rgba(37,50,40,0.5)" }}
+                  >
+                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+                <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
+                  {NAV_ITEMS.map((item) => (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      onClick={() => setMobileNavOpen(false)}
+                      className="px-5 py-4 rounded-[1.5rem] text-base font-semibold tracking-tight transition-colors hover:bg-surface-low"
+                      style={item.active ? { color: "var(--primary)", fontWeight: 700 } : { color: "rgba(37,50,40,0.8)" }}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </nav>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
 
         <div className="pt-16">
         <div className="grid gap-4 xl:grid-cols-[260px_minmax(0,1fr)] px-4 md:px-8 py-6 max-w-[1440px] mx-auto">
@@ -317,26 +463,29 @@ export function TeamClimateDashboard() {
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-2xl">
-                  <h1 className="mb-3 text-[2.4rem] font-black tracking-tight text-primary md:text-[3.1rem]">
+                  <h1 className="mb-2 text-[2.4rem] font-black tracking-tight text-primary md:text-[3.1rem]">
                     Team Climate
                   </h1>
+                  <p className="mb-3 text-sm font-bold" style={{ color: "rgba(37,50,40,0.4)" }}>
+                    {today.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "short" })}
+                  </p>
                   <p className="max-w-xl text-lg leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.72)" }}>
                     Visualizing the emotional atmosphere of your collective journey this week. Stay connected, stay mindful.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-[-0.5rem] self-start">
-                  {members.slice(0, 3).map((member, index) => (
+                  {visibleMembers.slice(0, 3).map((member, index) => (
                     <div
                       key={member.id}
                       className="-ml-2 flex h-12 w-12 items-center justify-center rounded-full border-[3px] border-white text-xl shadow-sm first:ml-0"
                       style={{ background: index % 2 === 0 ? "var(--surface-highest)" : "var(--surface-low)" }}
                     >
-                      {member.avatar}
+                      {(() => { const Icon = WEATHER_ICON_MAP[member.status]; return <Icon size={24} />; })()}
                     </div>
                   ))}
                   <div className="-ml-2 flex h-12 w-12 items-center justify-center rounded-full border-[3px] border-white bg-surface-high text-sm font-black text-on-surface">
-                    +{Math.max(0, members.length - 3)}
+                    +{Math.max(0, visibleMembers.length - 3)}
                   </div>
                 </div>
               </div>
@@ -359,74 +508,59 @@ export function TeamClimateDashboard() {
                   </div>
                 </div>
 
-                <PrimaryTabToggle
-                  tabs={[
-                    { value: "this", label: "This Week" },
-                    { value: "last", label: "Last Week" },
-                  ]}
-                  active={weekTab}
-                  onChange={setWeekTab}
-                />
-              </div>
-
-              <div className="overflow-x-auto">
-                <div className="min-w-[780px]">
-                  <div
-                    className="grid grid-cols-[220px_repeat(5,minmax(90px,1fr))] px-3 pb-5 text-sm font-black tracking-[0.08em]"
-                    style={{ color: "rgba(37, 50, 40, 0.72)" }}
-                  >
-                    <div>TEAM MEMBER</div>
-                    {DAYS.map((day) => (
-                      <div key={day} className="text-center">{day}</div>
-                    ))}
-                  </div>
-
-                  <div className="space-y-1">
-                    {(loading ? new Array(5).fill(null) : members.slice(0, 5)).map((member, index) => {
-                      if (!member) {
-                        return (
-                          <div
-                            key={`loading-${index}`}
-                            className="grid grid-cols-[220px_repeat(5,minmax(90px,1fr))] items-center rounded-[1.6rem] px-3 py-5"
-                          >
-                            <div className="h-12 w-40 rounded-full bg-surface-low animate-pulse" />
-                            {DAYS.map((day) => (
-                              <div key={day} className="mx-auto h-8 w-8 rounded-full bg-surface-low animate-pulse" />
-                            ))}
-                          </div>
-                        );
-                      }
-
-                      const week = buildWeek(member, index);
-
-                      return (
-                        <div
-                          key={member.id}
-                          className="grid grid-cols-[220px_repeat(5,minmax(90px,1fr))] items-center rounded-[1.8rem] px-3 py-5 transition-colors"
-                          style={{ background: "transparent" }}
+                <div className="flex flex-wrap items-center gap-3">
+                  {teamParts.length > 0 && (
+                    <div className="flex items-center gap-1 rounded-full p-1" style={{ background: "var(--surface-container-low)" }}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPartId(null)}
+                        className="rounded-full px-3 py-1.5 text-xs font-black tracking-tight transition-all"
+                        style={!selectedPartId
+                          ? { background: "white", color: "var(--primary)", boxShadow: "0 2px 8px rgba(37,50,40,0.08)" }
+                          : { color: "rgba(37,50,40,0.5)" }
+                        }
+                      >
+                        전체
+                      </button>
+                      {teamParts.map(p => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => setSelectedPartId(p.id)}
+                          className="rounded-full px-3 py-1.5 text-xs font-black tracking-tight transition-all"
+                          style={selectedPartId === p.id
+                            ? { background: "white", color: "var(--primary)", boxShadow: "0 2px 8px rgba(37,50,40,0.08)" }
+                            : { color: "rgba(37,50,40,0.5)" }
+                          }
                         >
-                          <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-low text-xl">
-                              {member.avatar}
-                            </div>
-                            <div className="text-[1.05rem] font-extrabold tracking-tight text-on-surface">
-                              {member.name}
-                            </div>
-                          </div>
-                          {week.map((status, dayIndex) => {
-                            const Icon = WEATHER_ICON_MAP[status];
-                            return (
-                              <div key={`${member.id}-${dayIndex}`} className="flex justify-center">
-                                <Icon size={36} />
-                              </div>
-                            );
-                          })}
-                        </div>
-                      );
-                    })}
-                  </div>
+                          {p.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <PrimaryTabToggle
+                    tabs={[
+                      { value: "this", label: "This Week" },
+                      { value: "last", label: "Last Week" },
+                    ]}
+                    active={weekTab}
+                    onChange={setWeekTab}
+                  />
                 </div>
               </div>
+
+              <NikoCalendar
+                members={visibleMembers.map((m): NikoCalendarMember => ({
+                  id: m.id,
+                  name: m.name,
+                  week: m.week.map(status => ({ status, score: null })),
+                }))}
+                weekDays={weekDays}
+                todayIso={isoDate(today)}
+                loading={loading}
+                pageSize={NIKO_PAGE_SIZE}
+                colTemplate="220px repeat(5, minmax(90px, 1fr))"
+              />
             </section>
 
             <section className="mb-6 grid gap-5 xl:grid-cols-3">
@@ -447,7 +581,7 @@ export function TeamClimateDashboard() {
                 </div>
                 <div className="text-center">
                   <div className="mb-2 text-[2.2rem] font-black tracking-tight text-primary">
-                    {averageStatus === "Cloudy" ? "Partly Cloudy" : averageStatus}
+                    {averageStatus}
                   </div>
                   <div className="text-base leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.62)" }}>
                     Overall team mood is {averageScore >= 60 ? "stable" : "mixed"}.
@@ -472,7 +606,7 @@ export function TeamClimateDashboard() {
                     {mostFrequent}
                   </div>
                   <div className="text-base leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.62)" }}>
-                    Occurred in {members.length ? Math.max(48, Math.min(84, averageScore)) : 64}% of check-ins.
+                    Occurred in {visibleMembers.length ? Math.max(48, Math.min(84, averageScore)) : 64}% of check-ins.
                   </div>
                 </div>
               </article>

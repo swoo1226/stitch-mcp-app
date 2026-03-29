@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { RESPONSIVE_SPRING, STANDARD_SPRING } from "../constants/springs";
-import type React from "react";
+import React, { useState, useEffect } from "react";
 import { WEATHER_ICON_MAP } from "./WeatherIcons";
 import type { WeatherStatus } from "../../lib/mood";
 
@@ -542,7 +542,6 @@ export function ClimaButton({
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
       transition={RESPONSIVE_SPRING}
-      {...(onClick ? { onClick } : {})}
       {...(props as object)}
     >
       {children}
@@ -550,7 +549,7 @@ export function ClimaButton({
   );
 
   if (href) return <Link href={href}>{inner}</Link>;
-  return <button onClick={onClick} className="contents">{inner}</button>;
+  return <button type="button" onClick={onClick} className="contents">{inner}</button>;
 }
 
 // ─── SectionHeader ────────────────────────────────────────────────────────────
@@ -732,7 +731,17 @@ export function NikoMemberRow({
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-lg"
           style={{ background: "rgba(37,50,40,0.07)" }}
         >
-          {avatar}
+          {avatar
+            ? avatar
+            : (() => {
+                const todayStatus = todayIndex >= 0 ? week[todayIndex]?.status : null;
+                if (todayStatus) {
+                  const Icon = WEATHER_ICON_MAP[todayStatus];
+                  return <Icon size={22} />;
+                }
+                return <span className="text-sm font-black" style={{ color: "rgba(37,50,40,0.3)" }}>{name.slice(0, 1)}</span>;
+              })()
+          }
         </div>
         <div className="min-w-0">
           <span
@@ -781,6 +790,141 @@ export function MiniStatCard({ label, value, valueColor = "default", className =
         {value}
       </div>
     </GlassPanel>
+  );
+}
+
+// ─── NikoCalendar ────────────────────────────────────────────────────────────
+// 니코니코 캘린더 전체 그리드 컴포넌트.
+// members: 각 팀원의 이름·아바타·주간 데이터 배열.
+// pageSize: 한 페이지당 최대 행 수. 초과 시 페이지네이션 표시.
+export interface NikoCalendarMember {
+  id: string;
+  name: string;
+  avatar?: string;
+  subtitle?: string;
+  week: Array<{ status: WeatherStatus | null; score: number | null }>;
+}
+
+interface NikoCalendarProps {
+  members: NikoCalendarMember[];
+  weekDays: Date[];         // 5개 날짜 (월~금)
+  todayIso: string;         // "YYYY-MM-DD"
+  loading?: boolean;
+  pageSize?: number;        // 미설정 시 전체 표시 (페이지네이션 없음)
+  colTemplate?: string;
+}
+
+export function NikoCalendar({
+  members,
+  weekDays,
+  todayIso,
+  loading = false,
+  pageSize,
+  colTemplate = "200px repeat(5, minmax(80px, 1fr))",
+}: NikoCalendarProps) {
+  const [page, setPage] = useState(0);
+
+  // members나 pageSize가 바뀌면 첫 페이지로
+  useEffect(() => { setPage(0); }, [members, pageSize]);
+
+  const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI"];
+  const todayIndex = weekDays.findIndex((d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const dy = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${dy}` === todayIso;
+  });
+
+  const headerDays = weekDays.map((date, i) => ({ label: DAY_LABELS[i], date }));
+
+  const totalPages = pageSize ? Math.ceil(members.length / pageSize) : 1;
+  const pageMembers = pageSize ? members.slice(page * pageSize, (page + 1) * pageSize) : members;
+
+  return (
+    <div className="overflow-x-auto">
+      <div style={{ minWidth: "600px" }}>
+        <NikoGridHeader
+          days={headerDays}
+          todayIso={todayIso}
+          colTemplate={colTemplate}
+        />
+        <div className="flex flex-col gap-2">
+          {loading
+            ? Array.from({ length: pageSize ?? 5 }, (_, i) => (
+                <NikoMemberRow
+                  key={i}
+                  avatar=""
+                  name=""
+                  week={Array.from({ length: 5 }, () => ({ status: null, score: null }))}
+                  todayIndex={todayIndex}
+                  colTemplate={colTemplate}
+                  loading
+                />
+              ))
+            : pageMembers.map((member) => (
+                <NikoMemberRow
+                  key={member.id}
+                  avatar={member.avatar ?? ""}
+                  name={member.name}
+                  subtitle={member.subtitle}
+                  week={member.week}
+                  todayIndex={todayIndex}
+                  colTemplate={colTemplate}
+                />
+              ))
+          }
+        </div>
+
+        {totalPages > 1 && (
+          <div
+            className="flex items-center justify-between pt-4 mt-3"
+            style={{ borderTop: "1px solid rgba(37,50,40,0.07)" }}
+          >
+            <span className="text-sm font-medium" style={{ color: "rgba(37,50,40,0.45)" }}>
+              {page * pageSize! + 1}–{Math.min((page + 1) * pageSize!, members.length)} / {members.length}명
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={page === 0}
+                onClick={() => setPage(p => p - 1)}
+                className="flex h-9 w-9 items-center justify-center rounded-full transition-colors disabled:opacity-30"
+                style={{ background: "rgba(37,50,40,0.06)" }}
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setPage(i)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-black transition-colors"
+                  style={page === i
+                    ? { background: "var(--primary)", color: "#fff" }
+                    : { background: "rgba(37,50,40,0.06)", color: "rgba(37,50,40,0.6)" }
+                  }
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                type="button"
+                disabled={page === totalPages - 1}
+                onClick={() => setPage(p => p + 1)}
+                className="flex h-9 w-9 items-center justify-center rounded-full transition-colors disabled:opacity-30"
+                style={{ background: "rgba(37,50,40,0.06)" }}
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
