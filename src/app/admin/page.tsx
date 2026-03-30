@@ -218,22 +218,28 @@ export default function AdminPage() {
     setAdding(false);
   }
 
+  // ── Optimistic update 헬퍼 ──────────────────────────────────────────────────
+  function patchMember(id: string, patch: Partial<Member>) {
+    setMembers(prev => prev.map(m => m.id === id ? { ...m, ...patch } : m));
+  }
+
   async function deleteMember(id: string) {
+    setMembers(prev => prev.filter(m => m.id !== id));
     await supabase.from("users").delete().eq("id", id);
-    await fetchMembers();
   }
 
   async function resetTodayMood(userId: string) {
+    patchMember(userId, { mood_logs: [] });
     const todayKST = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
     const startOfDay = `${todayKST}T00:00:00+09:00`;
     const endOfDay   = `${todayKST}T23:59:59+09:00`;
-    await supabase
+    const { error } = await supabase
       .from("mood_logs")
       .delete()
       .eq("user_id", userId)
       .gte("logged_at", startOfDay)
       .lte("logged_at", endOfDay);
-    await fetchMembers();
+    if (error) await fetchMembers(); // 실패 시 서버 상태로 복구
   }
 
   async function submitMood() {
@@ -257,11 +263,12 @@ export default function AdminPage() {
       setSubmitting(false);
       return;
     }
+    const newLog: MoodLog = { score: moodScore, message: moodMessage.trim() || null, logged_at: loggedAt };
+    patchMember(moodTarget, { mood_logs: [newLog] });
     setMoodTarget(null);
     setMoodScore(50);
     setMoodMessage("");
     setMoodDuplicate(false);
-    await fetchMembers();
     setSubmitting(false);
   }
 
@@ -292,11 +299,13 @@ export default function AdminPage() {
       setSubmitting(false);
       return;
     }
+    const loggedAt = new Date().toLocaleString("sv-SE", { timeZone: "Asia/Seoul" }).replace(" ", "T") + "+09:00";
+    const newLog: MoodLog = { score: moodScore, message: moodMessage.trim() || null, logged_at: loggedAt };
+    patchMember(moodTarget, { mood_logs: [newLog] });
     setMoodTarget(null);
     setMoodScore(50);
     setMoodMessage("");
     setMoodDuplicate(false);
-    await fetchMembers();
     setSubmitting(false);
   }
 
@@ -834,8 +843,9 @@ export default function AdminPage() {
                             compact
                             value={m.part_id ?? ""}
                             onChange={async (partId) => {
+                              const matched = parts.find(p => p.id === partId) ?? null;
+                              patchMember(m.id, { part_id: partId || null, parts: matched });
                               await supabase.from("users").update({ part_id: partId || null }).eq("id", m.id);
-                              await fetchMembers();
                             }}
                             options={parts.map(p => ({ value: p.id, label: p.name }))}
                           />
