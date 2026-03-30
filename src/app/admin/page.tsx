@@ -396,7 +396,13 @@ export default function AdminPage() {
   }
 
   // ── 관리 대시보드 ─────────────────────────────────────────────────────────────
-  const checkedInToday = members.filter(m => m.mood_logs?.[0]?.logged_at?.startsWith(new Date().toISOString().slice(0, 10))).length;
+  const todayKST = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }); // "YYYY-MM-DD"
+  const checkedInToday = members.filter(m => {
+    const loggedAt = m.mood_logs?.[0]?.logged_at;
+    if (!loggedAt) return false;
+    const logDateKST = new Date(loggedAt).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+    return logDateKST === todayKST;
+  }).length;
 
   // 사이드바 네비 공통 함수
   function handleNavTab(tab: "members" | "teams") {
