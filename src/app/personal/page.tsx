@@ -23,7 +23,7 @@ interface UserData {
   mood_logs: MoodLog[];
 }
 
-const WEEK_DAYS = ["일", "월", "화", "수", "목", "금", "토"];
+const WEEK_DAYS = ["월", "화", "수", "목", "금", "토", "일"];
 
 // 원둘레(r=88) 기준 strokeDashoffset 계산
 function scoreToOffset(score: number) {
@@ -41,7 +41,7 @@ function getWeeklyLogs(logs: MoodLog[]): (MoodLog | null)[] {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    const isoDate = d.toLocaleDateString("sv-SE");
+    const isoDate = d.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
     return logs.find(l =>
       new Date(l.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === isoDate
     ) ?? null;
