@@ -268,17 +268,28 @@ function TeamClimateDashboard() {
     ? Math.round(checkedInMembers.reduce((sum, m) => sum + m.score!, 0) / checkedInMembers.length)
     : null;
 
-  const mostFrequent = useMemo(() => {
+  const { mostFrequent, mostFrequentPct } = useMemo(() => {
     const counts = new Map<WeatherStatus, number>();
+    let total = 0;
     visibleMembers.forEach((member) => {
       member.week.forEach((status) => {
-        if (status) counts.set(status, (counts.get(status) ?? 0) + 1);
+        if (status) {
+          counts.set(status, (counts.get(status) ?? 0) + 1);
+          total++;
+        }
       });
     });
 
-    if (!counts.size) return averageScore !== null ? scoreToStatus(averageScore) : "Foggy";
+    if (!counts.size) return {
+      mostFrequent: (averageScore !== null ? scoreToStatus(averageScore) : "Foggy") as WeatherStatus,
+      mostFrequentPct: 0,
+    };
 
-    return [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+    const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    return {
+      mostFrequent: sorted[0][0],
+      mostFrequentPct: Math.round((sorted[0][1] / total) * 100),
+    };
   }, [visibleMembers, averageScore]);
 
   const insightText =
@@ -603,7 +614,9 @@ function TeamClimateDashboard() {
                     {statusToKo(mostFrequent)}
                   </div>
                   <div className="text-base leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.62)" }}>
-                    전체 체크인의 {checkedInMembers.length ? Math.max(48, Math.min(84, averageScore ?? 64)) : 64}%를 차지해요.
+                    {mostFrequentPct > 0
+                      ? `이번 주 체크인의 ${mostFrequentPct}%를 차지해요.`
+                      : "아직 이번 주 체크인 데이터가 없어요."}
                   </div>
                 </div>
               </article>
