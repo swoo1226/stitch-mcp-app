@@ -214,7 +214,7 @@ function ClimaInputInner() {
           </AnimatePresence>
 
           <div className="text-center">
-            <h1 className="text-3xl md:text-6xl font-black mb-2 md:mb-4 tracking-tight">{currentMetaphor.label}</h1>
+            <h1 className="text-3xl md:text-6xl font-black mb-2 md:mb-4 tracking-tight">{currentMetaphor.ko}</h1>
             <p className="text-base md:text-xl opacity-50 font-bold tracking-tight">오늘 나의 기후는 어때요?</p>
           </div>
 

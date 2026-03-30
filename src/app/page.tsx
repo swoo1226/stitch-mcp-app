@@ -8,6 +8,7 @@ import { STANDARD_SPRING } from "./constants/springs";
 import {
   IconSunny, IconCloudy, IconFoggy, IconRainy, IconStormy, IconRadiant,
 } from "./components/WeatherIcons";
+import { statusToKo } from "../lib/mood";
 
 // ─── Nav ────────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
@@ -22,7 +23,7 @@ const NAV_ITEMS = [
 const WEATHER_STATES = [
   {
     icon: IconRadiant,
-    name: "Radiant",
+    status: "Radiant" as const,
     range: "91–100",
     desc: "에너지가 넘쳐흘러요 — 아이디어가 쏟아지고 팀 전체가 들떠 있어요.",
     bg: "rgba(255,220,80,0.12)",
@@ -30,7 +31,7 @@ const WEATHER_STATES = [
   },
   {
     icon: IconSunny,
-    name: "Sunny",
+    status: "Sunny" as const,
     range: "71–90",
     desc: "집중력이 좋고 긍정적인 하루예요 — 맑고 생산적인 기운이 가득해요.",
     bg: "rgba(245,166,35,0.1)",
@@ -38,7 +39,7 @@ const WEATHER_STATES = [
   },
   {
     icon: IconCloudy,
-    name: "Cloudy",
+    status: "Cloudy" as const,
     range: "41–70",
     desc: "균형을 잡고 있지만 마음 한켠이 조금 무거운 날이에요.",
     bg: "rgba(116,185,232,0.12)",
@@ -46,7 +47,7 @@ const WEATHER_STATES = [
   },
   {
     icon: IconFoggy,
-    name: "Foggy",
+    status: "Foggy" as const,
     range: "21–40",
     desc: "앞이 잘 보이지 않아요 — 에너지가 낮고 방향감이 흐릿한 상태예요.",
     bg: "rgba(154,165,180,0.12)",
@@ -54,7 +55,7 @@ const WEATHER_STATES = [
   },
   {
     icon: IconRainy,
-    name: "Rainy",
+    status: "Rainy" as const,
     range: "6–20",
     desc: "오늘은 많이 힘들어요 — 지지와 관심이 필요한 상태예요.",
     bg: "rgba(91,155,213,0.12)",
@@ -62,7 +63,7 @@ const WEATHER_STATES = [
   },
   {
     icon: IconStormy,
-    name: "Stormy",
+    status: "Stormy" as const,
     range: "1–5",
     desc: "위기 상태예요 — 즉각적인 보살핌과 체크인이 필요해요.",
     bg: "rgba(45,52,54,0.08)",
@@ -389,7 +390,7 @@ export default function LandingPage() {
                   <IconSunny size={24} />
                 </div>
                 <div>
-                  <p className="text-sm font-bold" style={{ color: "var(--on-surface)" }}>오늘 Sunny 3명</p>
+                  <p className="text-sm font-bold" style={{ color: "var(--on-surface)" }}>오늘 맑음 3명</p>
                   <p className="text-xs font-medium" style={{ color: "rgba(37,50,40,0.5)" }}>전원 체크인 완료</p>
                 </div>
               </motion.div>
@@ -490,7 +491,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             {WEATHER_STATES.map((state, i) => (
-              <FadeIn key={state.name} delay={i * 0.06}>
+              <FadeIn key={state.status} delay={i * 0.06}>
                 <div
                   className="rounded-[2rem] p-5 md:p-6 flex flex-col gap-3 transition-transform hover:scale-[1.02] cursor-default"
                   style={{
@@ -509,7 +510,7 @@ export default function LandingPage() {
                     </span>
                   </div>
                   <div>
-                    <p className="font-black text-base tracking-tight mb-1" style={{ color: "var(--on-surface)" }}>{state.name}</p>
+                    <p className="font-black text-base tracking-tight mb-1" style={{ color: "var(--on-surface)" }}>{statusToKo(state.status)}</p>
                     <p className="text-xs font-medium leading-relaxed" style={{ color: "rgba(37,50,40,0.6)" }}>{state.desc}</p>
                   </div>
                 </div>
@@ -586,9 +587,9 @@ export default function LandingPage() {
                 {/* Mock member list */}
                 <div className="px-6 pb-6 flex flex-col gap-2">
                   {[
-                    { name: "Sangwoo", state: "Sunny", score: 82, Icon: IconSunny, color: "rgba(245,166,35,0.15)" },
-                    { name: "Jiyeon", state: "Cloudy", score: 58, Icon: IconCloudy, color: "rgba(116,185,232,0.15)" },
-                    { name: "Minho", state: "Rainy", score: 18, Icon: IconRainy, color: "rgba(91,155,213,0.12)" },
+                    { name: "상우", status: "Sunny" as const, score: 82, Icon: IconSunny, color: "rgba(245,166,35,0.15)" },
+                    { name: "지연", status: "Cloudy" as const, score: 58, Icon: IconCloudy, color: "rgba(116,185,232,0.15)" },
+                    { name: "민호", status: "Rainy" as const, score: 18, Icon: IconRainy, color: "rgba(91,155,213,0.12)" },
                   ].map((m) => (
                     <div key={m.name} className="flex items-center gap-3 rounded-[1.2rem] px-4 py-2.5" style={{ background: "rgba(37,50,40,0.03)" }}>
                       <div className="w-8 h-8 rounded-[0.75rem] flex items-center justify-center shrink-0" style={{ background: m.color }}>
@@ -620,7 +621,7 @@ export default function LandingPage() {
               <div className="flex flex-col gap-4">
                 {[
                   { icon: "📅", title: "주간 체크인 기록", desc: "팀 전체의 일별 체크인 패턴을 한눈에 파악해요." },
-                  { icon: "⚡", title: "즉각 알림", desc: "팀원의 날씨가 Rainy 또는 Stormy로 떨어지면 바로 알려줘요." },
+                  { icon: "⚡", title: "즉각 알림", desc: "팀원의 날씨가 비 또는 번개로 떨어지면 바로 알려줘요." },
                 ].map((feat, i) => (
                   <FadeIn key={feat.title} delay={0.1 + i * 0.1}>
                     <div

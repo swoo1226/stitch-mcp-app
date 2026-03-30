@@ -9,7 +9,7 @@ import { ClimaButton, SectionLabel, PrimaryTabToggle, TabToggle, NikoCalendar, t
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { STANDARD_SPRING } from "../constants/springs";
 import { DEFAULT_TEAM_ID, supabase } from "../../lib/supabase";
-import { scoreToStatus, statusToEmoji, type WeatherStatus } from "../../lib/mood";
+import { scoreToStatus, statusToEmoji, statusToKo, type WeatherStatus } from "../../lib/mood";
 
 type DisplayWeather = WeatherStatus | null;
 
@@ -170,7 +170,7 @@ function SearchIcon() {
   );
 }
 
-export function TeamClimateDashboard() {
+function TeamClimateDashboard() {
   const searchParams = useSearchParams();
   const teamId = searchParams.get("team") ?? DEFAULT_TEAM_ID;
 
@@ -575,7 +575,7 @@ export function TeamClimateDashboard() {
                 </div>
                 <div className="text-center">
                   <div className="mb-2 text-[2.2rem] font-black tracking-tight" style={{ color: "var(--primary)" }}>
-                    {averageStatus ?? "—"}
+                    {statusToKo(averageStatus)}
                   </div>
                   <div className="text-base leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.62)" }}>
                     {averageScore !== null
@@ -600,7 +600,7 @@ export function TeamClimateDashboard() {
                 </div>
                 <div className="text-center">
                   <div className="mb-2 text-[2.2rem] font-black tracking-tight" style={{ color: "var(--tertiary)" }}>
-                    {mostFrequent}
+                    {statusToKo(mostFrequent)}
                   </div>
                   <div className="text-base leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.62)" }}>
                     전체 체크인의 {checkedInMembers.length ? Math.max(48, Math.min(84, averageScore ?? 64)) : 64}%를 차지해요.

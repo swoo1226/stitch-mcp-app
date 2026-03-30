@@ -36,9 +36,10 @@ function getFallbackStatuses(score: number): WeatherStatus[] {
   const base = scoreToStatus(score);
   const variants: Record<WeatherStatus, WeatherStatus[]> = {
     Radiant: ["Sunny", "Radiant", "Sunny", "Radiant", "Sunny"],
-    Sunny: ["Foggy", "Sunny", "Sunny", "Radiant", "Sunny"],
-    Foggy: ["Sunny", "Foggy", "Foggy", "Sunny", "Foggy"],
-    Rainy: ["Foggy", "Rainy", "Foggy", "Rainy", "Sunny"],
+    Sunny: ["Cloudy", "Sunny", "Sunny", "Radiant", "Sunny"],
+    Cloudy: ["Sunny", "Cloudy", "Cloudy", "Sunny", "Cloudy"],
+    Foggy: ["Cloudy", "Foggy", "Foggy", "Cloudy", "Foggy"],
+    Rainy: ["Foggy", "Rainy", "Foggy", "Rainy", "Cloudy"],
     Stormy: ["Rainy", "Stormy", "Rainy", "Foggy", "Rainy"],
   };
 
@@ -221,12 +222,13 @@ export default function TeamClimatePage() {
     {
       Radiant: 0,
       Sunny: 0,
+      Cloudy: 0,
       Foggy: 0,
       Rainy: 0,
       Stormy: 0,
     }
   );
-  const frequentStatus = (Object.entries(statusCounts).sort((left, right) => right[1] - left[1])[0]?.[0] ??
+  const frequentStatus = (Object.entries(statusCounts).sort((left, right) => (right[1] as number) - (left[1] as number))[0]?.[0] ??
     "Sunny") as WeatherStatus;
   const supportNote =
     averageScore >= 75
@@ -499,7 +501,7 @@ export default function TeamClimatePage() {
                     <div>
                       <div className="text-xl font-black tracking-tight">{statusLabel(frequentStatus)}</div>
                       <p className="text-xs" style={{ color: "rgba(23, 49, 46, 0.5)" }}>
-                        Occurred {statusCounts[frequentStatus]} times this week
+                        Occurred {(statusCounts as Record<string, number>)[frequentStatus]} times this week
                       </p>
                     </div>
                   </div>

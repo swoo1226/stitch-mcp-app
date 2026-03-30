@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase, DEFAULT_TEAM_ID } from "../../lib/supabase";
-import { scoreToStatus, statusToEmoji } from "../../lib/mood";
+import { scoreToStatus, statusToEmoji, statusToKo } from "../../lib/mood";
 import { STANDARD_SPRING } from "../constants/springs";
 import Link from "next/link";
 import ClimaLogo from "../components/WetherLogo";
@@ -834,7 +834,7 @@ export default function AdminPage() {
                             <p className="font-bold text-base tracking-tight leading-tight truncate">{m.name}</p>
                             <p className="text-xs font-medium mt-0.5" style={{ color: "rgba(37,50,40,0.45)" }}>
                               {score !== null
-                                ? <><span className="font-black" style={{ color: "var(--primary)" }}>{status}</span> · {score}pt</>
+                                ? <><span className="font-black" style={{ color: "var(--primary)" }}>{statusToKo(status)}</span> · {score}pt</>
                                 : (m.parts?.name ?? teams.find(t => t.id === m.team_id)?.name ?? "기록 없음")
                               }
                             </p>
@@ -1268,7 +1268,7 @@ export default function AdminPage() {
                     {targetMember?.name}의 오늘 기후
                   </p>
                   <h3 className="text-2xl font-black tracking-tight" style={{ color: "var(--primary)" }}>
-                    {currentMetaphor.label}
+                    {currentMetaphor.ko}
                   </h3>
                 </div>
 

@@ -136,6 +136,7 @@ export default function DashboardV2Page() {
       Stormy: 0,
       Rainy: 0,
       Foggy: 0,
+      Cloudy: 0,
       Sunny: 0,
       Radiant: 0,
     };

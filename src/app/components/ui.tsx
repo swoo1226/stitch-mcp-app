@@ -6,7 +6,7 @@ import { RESPONSIVE_SPRING, STANDARD_SPRING } from "../constants/springs";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { WEATHER_ICON_MAP } from "./WeatherIcons";
-import type { WeatherStatus } from "../../lib/mood";
+import { statusToKo, type WeatherStatus } from "../../lib/mood";
 
 // ─── GlassCard ────────────────────────────────────────────────────────────────
 // 공식 glassmorphism 카드. DESIGN.md "Glass & Gradient Rule" 준수.
@@ -631,7 +631,7 @@ export function WeatherCell({ status, score, isToday = false }: WeatherCellProps
       <div
         className="relative flex h-12 w-12 items-center justify-center rounded-[1.5rem]"
         style={{ background: isToday ? "rgba(0,102,104,0.08)" : "transparent" }}
-        title={score != null ? `${status} (${score}점)` : status}
+        title={score != null ? `${statusToKo(status)} (${score}점)` : statusToKo(status)}
       >
         <Icon size={34} />
         {isToday && (
@@ -954,6 +954,7 @@ const WEATHER_LEGEND_ITEMS: Array<{ status: WeatherStatus; label: string }> = [
   { status: "Stormy",  label: "번개" },
   { status: "Rainy",   label: "비" },
   { status: "Foggy",   label: "안개" },
+  { status: "Cloudy",  label: "구름" },
   { status: "Sunny",   label: "맑음" },
   { status: "Radiant", label: "쨍함" },
 ];

@@ -1,12 +1,12 @@
 "use client";
 
-import { Suspense } from "react";
-import { TeamClimateDashboard } from "../dashboard/page";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function TeamPage() {
-  return (
-    <Suspense>
-      <TeamClimateDashboard />
-    </Suspense>
-  );
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/dashboard");
+  }, [router]);
+  return null;
 }
