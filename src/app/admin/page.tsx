@@ -108,6 +108,9 @@ export default function AdminPage() {
   // ── 삭제 재확인
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
+  // ── 기록 초기화 재확인
+  const [confirmResetId, setConfirmResetId] = useState<string | null>(null);
+
   // ── 링크 복사 피드백
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedLinkKey, setCopiedLinkKey] = useState<string | null>(null);
@@ -217,6 +220,19 @@ export default function AdminPage() {
 
   async function deleteMember(id: string) {
     await supabase.from("users").delete().eq("id", id);
+    await fetchMembers();
+  }
+
+  async function resetTodayMood(userId: string) {
+    const todayKST = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+    const startOfDay = `${todayKST}T00:00:00+09:00`;
+    const endOfDay   = `${todayKST}T23:59:59+09:00`;
+    await supabase
+      .from("mood_logs")
+      .delete()
+      .eq("user_id", userId)
+      .gte("logged_at", startOfDay)
+      .lte("logged_at", endOfDay);
     await fetchMembers();
   }
 
@@ -874,6 +890,33 @@ export default function AdminPage() {
                               <path d="M4.5 20c0-4 3.358-7 7.5-7s7.5 3 7.5 7" strokeLinecap="round" />
                             </svg>
                           </Link>
+                          {confirmResetId === m.id ? (
+                            <div className="flex gap-1 shrink-0">
+                              <button type="button" onClick={() => { resetTodayMood(m.id); setConfirmResetId(null); }}
+                                className="flex w-12 h-12 items-center justify-center rounded-full text-xs font-black"
+                                style={{ background: "rgba(237,137,54,0.15)", color: "rgb(180,90,20)" }}>✓</button>
+                              <button type="button" onClick={() => setConfirmResetId(null)}
+                                className="flex w-12 h-12 items-center justify-center rounded-full text-sm"
+                                style={{ color: "rgba(37,50,40,0.4)", background: "rgba(37,50,40,0.05)" }}>✕</button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => { if (latest && isToday) setConfirmResetId(m.id); }}
+                              className="flex w-12 h-12 items-center justify-center rounded-full transition-colors shrink-0"
+                              style={{
+                                background: latest && isToday ? "rgba(237,137,54,0.1)" : "rgba(37,50,40,0.04)",
+                                color: latest && isToday ? "rgb(180,90,20)" : "rgba(37,50,40,0.2)",
+                                cursor: latest && isToday ? "pointer" : "default",
+                              }}
+                              title="오늘 기록 초기화"
+                            >
+                              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M3 3v5h5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </button>
+                          )}
                           {confirmDeleteId === m.id ? (
                             <div className="flex gap-1 shrink-0">
                               <button type="button" onClick={() => { deleteMember(m.id); setConfirmDeleteId(null); }}
