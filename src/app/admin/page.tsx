@@ -890,22 +890,14 @@ export default function AdminPage() {
                               <path d="M4.5 20c0-4 3.358-7 7.5-7s7.5 3 7.5 7" strokeLinecap="round" />
                             </svg>
                           </Link>
-                          {confirmResetId === m.id ? (
-                            <div className="flex gap-1 shrink-0">
-                              <button type="button" onClick={() => { resetTodayMood(m.id); setConfirmResetId(null); }}
-                                className="flex w-12 h-12 items-center justify-center rounded-full text-xs font-black"
-                                style={{ background: "rgba(237,137,54,0.15)", color: "rgb(180,90,20)" }}>✓</button>
-                              <button type="button" onClick={() => setConfirmResetId(null)}
-                                className="flex w-12 h-12 items-center justify-center rounded-full text-sm"
-                                style={{ color: "rgba(37,50,40,0.4)", background: "rgba(37,50,40,0.05)" }}>✕</button>
-                            </div>
-                          ) : (
+                          {/* 초기화 버튼 — 확인 팝업은 위로 올라옴 */}
+                          <div className="relative w-12 h-12 shrink-0">
                             <button
                               type="button"
-                              onClick={() => { if (latest && isToday) setConfirmResetId(m.id); }}
-                              className="flex w-12 h-12 items-center justify-center rounded-full transition-colors shrink-0"
+                              onClick={() => { if (latest && isToday) setConfirmResetId(confirmResetId === m.id ? null : m.id); }}
+                              className="flex w-12 h-12 items-center justify-center rounded-full transition-colors"
                               style={{
-                                background: latest && isToday ? "rgba(237,137,54,0.1)" : "rgba(37,50,40,0.04)",
+                                background: confirmResetId === m.id ? "rgba(237,137,54,0.2)" : latest && isToday ? "rgba(237,137,54,0.1)" : "rgba(37,50,40,0.04)",
                                 color: latest && isToday ? "rgb(180,90,20)" : "rgba(37,50,40,0.2)",
                                 cursor: latest && isToday ? "pointer" : "default",
                               }}
@@ -916,22 +908,37 @@ export default function AdminPage() {
                                 <path d="M3 3v5h5" strokeLinecap="round" strokeLinejoin="round" />
                               </svg>
                             </button>
-                          )}
-                          {confirmDeleteId === m.id ? (
-                            <div className="flex gap-1 shrink-0">
-                              <button type="button" onClick={() => { deleteMember(m.id); setConfirmDeleteId(null); }}
-                                className="flex w-12 h-12 items-center justify-center rounded-full text-xs font-black"
-                                style={{ background: "var(--error-container)", color: "var(--error)" }}>✓</button>
-                              <button type="button" onClick={() => setConfirmDeleteId(null)}
-                                className="flex w-12 h-12 items-center justify-center rounded-full text-sm"
-                                style={{ color: "rgba(37,50,40,0.4)", background: "rgba(37,50,40,0.05)" }}>✕</button>
-                            </div>
-                          ) : (
+                            <AnimatePresence>
+                              {confirmResetId === m.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: 6, scale: 0.9 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: 6, scale: 0.9 }}
+                                  transition={{ duration: 0.15 }}
+                                  className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1.5 p-1.5 rounded-2xl shadow-lg z-20"
+                                  style={{ background: "var(--surface-highest, white)", boxShadow: "0 8px 24px rgba(37,50,40,0.14)" }}
+                                >
+                                  <button type="button" onClick={() => { resetTodayMood(m.id); setConfirmResetId(null); }}
+                                    className="flex w-10 h-10 items-center justify-center rounded-xl text-xs font-black"
+                                    style={{ background: "rgba(237,137,54,0.15)", color: "rgb(180,90,20)" }}>✓</button>
+                                  <button type="button" onClick={() => setConfirmResetId(null)}
+                                    className="flex w-10 h-10 items-center justify-center rounded-xl text-sm"
+                                    style={{ color: "rgba(37,50,40,0.4)", background: "rgba(37,50,40,0.05)" }}>✕</button>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          {/* 삭제 버튼 — 확인 팝업은 위로 올라옴 */}
+                          <div className="relative w-12 h-12 shrink-0">
                             <button
                               type="button"
-                              onClick={() => setConfirmDeleteId(m.id)}
-                              className="flex w-12 h-12 items-center justify-center rounded-full transition-colors shrink-0"
-                              style={{ background: "rgba(179,27,37,0.07)", color: "var(--error)" }}
+                              onClick={() => setConfirmDeleteId(confirmDeleteId === m.id ? null : m.id)}
+                              className="flex w-12 h-12 items-center justify-center rounded-full transition-colors"
+                              style={{
+                                background: confirmDeleteId === m.id ? "var(--error-container)" : "rgba(179,27,37,0.07)",
+                                color: "var(--error)",
+                              }}
                               title="삭제"
                             >
                               <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
@@ -939,7 +946,26 @@ export default function AdminPage() {
                                 <path d="M10 11v6M14 11v6M9 6V4h6v2" strokeLinecap="round" />
                               </svg>
                             </button>
-                          )}
+                            <AnimatePresence>
+                              {confirmDeleteId === m.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: 6, scale: 0.9 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: 6, scale: 0.9 }}
+                                  transition={{ duration: 0.15 }}
+                                  className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1.5 p-1.5 rounded-2xl shadow-lg z-20"
+                                  style={{ background: "var(--surface-highest, white)", boxShadow: "0 8px 24px rgba(37,50,40,0.14)" }}
+                                >
+                                  <button type="button" onClick={() => { deleteMember(m.id); setConfirmDeleteId(null); }}
+                                    className="flex w-10 h-10 items-center justify-center rounded-xl text-xs font-black"
+                                    style={{ background: "var(--error-container)", color: "var(--error)" }}>✓</button>
+                                  <button type="button" onClick={() => setConfirmDeleteId(null)}
+                                    className="flex w-10 h-10 items-center justify-center rounded-xl text-sm"
+                                    style={{ color: "rgba(37,50,40,0.4)", background: "rgba(37,50,40,0.05)" }}>✕</button>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
                         </div>
                       </motion.div>
                     );
