@@ -115,7 +115,8 @@ function ClimaInputInner() {
   };
 
   async function doInsert(userId: string) {
-    const { error } = await supabase.from("mood_logs").insert({ user_id: userId, score });
+    const loggedAt = new Date().toLocaleString("sv-SE", { timeZone: "Asia/Seoul" }).replace(" ", "T") + "+09:00";
+    const { error } = await supabase.from("mood_logs").insert({ user_id: userId, score, logged_at: loggedAt });
     if (error) {
       if (error.code === "23505") {
         // unique violation — 오늘 이미 기록 존재

@@ -225,10 +225,12 @@ export default function AdminPage() {
     setSubmitting(true);
     setMoodError(null);
     setMoodDuplicate(false);
+    const loggedAt = new Date().toLocaleString("sv-SE", { timeZone: "Asia/Seoul" }).replace(" ", "T") + "+09:00";
     const { error } = await supabase.from("mood_logs").insert({
       user_id: moodTarget,
       score: moodScore,
       message: moodMessage.trim() || null,
+      logged_at: loggedAt,
     });
     if (error) {
       if (error.code === "23505") {
