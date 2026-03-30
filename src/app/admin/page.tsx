@@ -108,6 +108,21 @@ export default function AdminPage() {
   // ── 삭제 재확인
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
+  // ── 링크 복사 피드백
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedLinkKey, setCopiedLinkKey] = useState<string | null>(null);
+
+  function copyWithFeedback(text: string, key: string, type: "member" | "link") {
+    navigator.clipboard.writeText(text);
+    if (type === "member") {
+      setCopiedId(key);
+      setTimeout(() => setCopiedId(null), 1800);
+    } else {
+      setCopiedLinkKey(key);
+      setTimeout(() => setCopiedLinkKey(null), 1800);
+    }
+  }
+
   // ── 팀원 관리 상태
   const [members, setMembers] = useState<Member[]>([]);
   const [parts, setParts] = useState<Part[]>([]);
@@ -435,7 +450,7 @@ export default function AdminPage() {
             onClick={() => handleNavTab("members")}
             className="flex items-center gap-3 px-4 py-3 rounded-full text-sm font-bold text-left transition-all"
             style={activeTab === "members"
-              ? { background: "linear-gradient(90deg, #006668, #52f2f5)", color: "#fff" }
+              ? { background: "var(--secondary)", color: "var(--primary)", fontWeight: 800 }
               : { color: "var(--on-surface-variant)" }
             }
           >
@@ -448,7 +463,7 @@ export default function AdminPage() {
             onClick={() => handleNavTab("teams")}
             className="flex items-center gap-3 px-4 py-3 rounded-full text-sm font-bold text-left transition-all"
             style={activeTab === "teams"
-              ? { background: "linear-gradient(90deg, #006668, #52f2f5)", color: "#fff" }
+              ? { background: "var(--secondary)", color: "var(--primary)", fontWeight: 800 }
               : { color: "var(--on-surface-variant)" }
             }
           >
@@ -521,7 +536,7 @@ export default function AdminPage() {
                   onClick={() => handleNavTab("members")}
                   className="flex items-center gap-3 px-4 py-4 rounded-[1.5rem] text-base font-bold text-left transition-all"
                   style={activeTab === "members"
-                    ? { background: "linear-gradient(90deg, #006668, #52f2f5)", color: "#fff" }
+                    ? { background: "var(--secondary)", color: "var(--primary)", fontWeight: 800 }
                     : { color: "var(--on-surface-variant)" }
                   }
                 >
@@ -534,7 +549,7 @@ export default function AdminPage() {
                   onClick={() => handleNavTab("teams")}
                   className="flex items-center gap-3 px-4 py-4 rounded-[1.5rem] text-base font-bold text-left transition-all"
                   style={activeTab === "teams"
-                    ? { background: "linear-gradient(90deg, #006668, #52f2f5)", color: "#fff" }
+                    ? { background: "var(--secondary)", color: "var(--primary)", fontWeight: 800 }
                     : { color: "var(--on-surface-variant)" }
                   }
                 >
@@ -818,15 +833,31 @@ export default function AdminPage() {
                           >
                             기록 입력
                           </button>
-                          <button
+                          <motion.button
                             type="button"
-                            onClick={() => navigator.clipboard.writeText(`${window.location.origin}/input?token=${m.access_token}`)}
-                            className="flex w-12 h-12 items-center justify-center rounded-full transition-colors hover:opacity-70 shrink-0"
-                            style={{ background: "var(--surface-container)", color: "rgba(37,50,40,0.45)" }}
+                            onClick={() => copyWithFeedback(`${window.location.origin}/input?token=${m.access_token}`, m.id, "member")}
+                            animate={copiedId === m.id
+                              ? { scale: [1, 1.2, 1], backgroundColor: "rgba(82,242,245,0.18)" }
+                              : { scale: 1, backgroundColor: "var(--surface-container)" }
+                            }
+                            transition={{ duration: 0.3 }}
+                            className="flex w-12 h-12 items-center justify-center rounded-full shrink-0"
+                            style={{ color: copiedId === m.id ? "var(--primary)" : "rgba(37,50,40,0.45)" }}
                             title="입력 링크 복사"
                           >
-                            <LinkIcon />
-                          </button>
+                            <AnimatePresence mode="wait">
+                              {copiedId === m.id ? (
+                                <motion.svg key="check" viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5"
+                                  initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.2 }}>
+                                  <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+                                </motion.svg>
+                              ) : (
+                                <motion.div key="link" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.2 }}>
+                                  <LinkIcon />
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </motion.button>
                           {confirmDeleteId === m.id ? (
                             <div className="flex gap-1 shrink-0">
                               <button type="button" onClick={() => { deleteMember(m.id); setConfirmDeleteId(null); }}
@@ -1066,26 +1097,28 @@ export default function AdminPage() {
                         <div className="flex items-center gap-3">
                           <span className="text-[10px] font-black uppercase tracking-widest w-16 shrink-0" style={{ color: "rgba(37,50,40,0.4)" }}>Dashboard</span>
                           <code className="text-xs truncate flex-1" style={{ color: "rgba(37,50,40,0.4)" }}>{dashUrl}</code>
-                          <button
+                          <motion.button
                             type="button"
-                            onClick={() => navigator.clipboard.writeText(dashUrl)}
-                            className="text-xs font-extrabold shrink-0 transition-opacity hover:opacity-70"
-                            style={{ color: "var(--primary)" }}
+                            onClick={() => copyWithFeedback(dashUrl, `${t.id}-dash`, "link")}
+                            animate={{ color: copiedLinkKey === `${t.id}-dash` ? "var(--secondary)" : "var(--primary)" }}
+                            transition={{ duration: 0.2 }}
+                            className="text-xs font-extrabold shrink-0"
                           >
-                            Copy
-                          </button>
+                            {copiedLinkKey === `${t.id}-dash` ? "✓ Copied" : "Copy"}
+                          </motion.button>
                         </div>
                         <div className="flex items-center gap-3">
                           <span className="text-[10px] font-black uppercase tracking-widest w-16 shrink-0" style={{ color: "rgba(37,50,40,0.4)" }}>Niko-Niko</span>
                           <code className="text-xs truncate flex-1" style={{ color: "rgba(37,50,40,0.4)" }}>{nikoUrl}</code>
-                          <button
+                          <motion.button
                             type="button"
-                            onClick={() => navigator.clipboard.writeText(nikoUrl)}
-                            className="text-xs font-extrabold shrink-0 transition-opacity hover:opacity-70"
-                            style={{ color: "var(--primary)" }}
+                            onClick={() => copyWithFeedback(nikoUrl, `${t.id}-niko`, "link")}
+                            animate={{ color: copiedLinkKey === `${t.id}-niko` ? "var(--secondary)" : "var(--primary)" }}
+                            transition={{ duration: 0.2 }}
+                            className="text-xs font-extrabold shrink-0"
                           >
-                            Copy
-                          </button>
+                            {copiedLinkKey === `${t.id}-niko` ? "✓ Copied" : "Copy"}
+                          </motion.button>
                         </div>
                       </div>
                     );
