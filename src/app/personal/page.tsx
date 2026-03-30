@@ -40,7 +40,7 @@ export default function PersonalGarden() {
         <div className="grid grid-cols-7 gap-2 md:gap-4 text-center text-[10px] md:text-xs font-bold">
             {['일', '월', '화', '수', '목', '금', '토'].map(d => <span key={d} className="opacity-40 mb-2">{d}</span>)}
             {[...Array(30)].map((_, i) => (
-                <div key={i} className={`h-8 md:h-10 flex items-center justify-center rounded-[1.5rem] ${i === 6 ? "bg-gradient-to-tr from-secondary to-secondary-container text-white shadow-md shadow-secondary/20" : "opacity-60 bg-white/40"}`}>
+                <div key={i} className={`h-8 md:h-10 flex items-center justify-center rounded-[1.5rem] ${i === 6 ? "bg-gradient-to-tr from-primary to-primary-container text-white shadow-md shadow-primary/20" : "opacity-60 bg-white/40"}`}>
                     {i + 1}
                 </div>
             ))}
@@ -52,7 +52,7 @@ export default function PersonalGarden() {
         <h2 className="text-xl font-bold mb-4 font-[Plus Jakarta Sans]">이번 주 목요일은<br /> 가장 맑은 날이었어요</h2>
         <div className="flex items-center gap-3">
             <span className="text-2xl">☀️</span>
-            <span className="text-xs font-bold text-secondary">평균 지수보다 24% 높았습니다.</span>
+            <span className="text-xs font-bold text-primary">평균 지수보다 24% 높았습니다.</span>
         </div>
       </SanctuaryCard>
 

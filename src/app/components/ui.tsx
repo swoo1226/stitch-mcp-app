@@ -70,7 +70,7 @@ const SANCTUARY_PRIMARY_BUTTON_CLASS =
   "relative inline-flex min-h-[3.75rem] items-center justify-center gap-2 rounded-[1.6rem] px-9 py-[0.95rem] font-extrabold tracking-[-0.01em] whitespace-nowrap transition-all active:scale-95";
 
 const SANCTUARY_SECONDARY_BUTTON_CLASS =
-  "relative inline-flex min-h-14 items-center justify-center gap-2 rounded-[1.6rem] px-8 py-[0.9rem] font-extrabold tracking-[-0.01em] whitespace-nowrap transition-all active:scale-95 bg-surface-highest text-secondary";
+  "relative inline-flex min-h-14 items-center justify-center gap-2 rounded-[1.6rem] px-8 py-[0.9rem] font-extrabold tracking-[-0.01em] whitespace-nowrap transition-all active:scale-95 bg-surface-highest text-primary";
 
 const SANCTUARY_TERTIARY_BUTTON_CLASS =
   "relative inline-flex min-h-14 items-center justify-center gap-2 rounded-[1.6rem] px-8 py-[0.9rem] font-extrabold tracking-[-0.01em] whitespace-nowrap transition-all active:scale-95 bg-tertiary-container text-tertiary";
@@ -250,7 +250,7 @@ interface BadgeProps {
 }
 
 const BADGE_STYLES: Record<BadgeVariant, React.CSSProperties> = {
-  secondary: { background: "var(--secondary-container)", color: "var(--secondary)" },
+  secondary: { background: "var(--secondary-container)", color: "var(--primary)" },
   primary:   { background: "var(--primary-container)",   color: "var(--primary)" },
   tertiary:  { background: "var(--tertiary-container)",  color: "var(--tertiary)" },
   surface:   { background: "var(--surface-container-highest)", color: "var(--on-surface-variant)" },
@@ -433,7 +433,7 @@ export function PrimaryTabToggle<T extends string>({ tabs, active, onChange }: P
           transition={RESPONSIVE_SPRING}
           className="relative text-xs md:text-sm font-black uppercase tracking-[0.12em] rounded-[1.5rem]"
           style={{
-            color: active === value ? "var(--on-primary)" : "var(--secondary)",
+            color: active === value ? "var(--on-primary)" : "var(--primary)",
             paddingLeft: "1.125rem",
             paddingRight: "1.125rem",
             paddingTop: "0.7rem",
@@ -527,7 +527,7 @@ export function ClimaButton({
 
   const variantStyle =
     variant === "secondary"
-      ? { boxShadow: "0 12px 32px -18px rgba(0, 88, 186, 0.28)" }
+      ? { boxShadow: "0 12px 32px -18px rgba(0, 102, 104, 0.22)" }
       : variant === "tertiary"
         ? { boxShadow: "0 12px 32px -18px rgba(155, 61, 55, 0.28)" }
         : {

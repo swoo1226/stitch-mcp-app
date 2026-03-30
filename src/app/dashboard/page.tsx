@@ -580,7 +580,7 @@ export function TeamClimateDashboard() {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="mb-2 text-[2.2rem] font-black tracking-tight" style={{ color: "var(--secondary)" }}>
+                  <div className="mb-2 text-[2.2rem] font-black tracking-tight" style={{ color: "var(--primary)" }}>
                     {averageStatus}
                   </div>
                   <div className="text-base leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.62)" }}>

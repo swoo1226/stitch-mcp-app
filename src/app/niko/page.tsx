@@ -407,7 +407,7 @@ function NikoPageInner() {
               <MiniStatCard
                 label="Today's Check-ins"
                 value={loading ? "—" : `${checkedInCount} / ${visibleMembers.length}`}
-                valueColor="secondary"
+                valueColor="primary"
               />
               <MiniStatCard
                 label="Team Avg Today"

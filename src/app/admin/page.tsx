@@ -341,7 +341,7 @@ export default function AdminPage() {
       >
         {/* 배경 장식 */}
         <PlayfulGeometry variant="circle" color="var(--primary)" className="w-80 h-80 -top-20 -left-20 opacity-[0.06]" />
-        <PlayfulGeometry variant="circle" color="var(--secondary)" className="w-64 h-64 bottom-10 right-10 opacity-[0.05]" />
+        <PlayfulGeometry variant="circle" color="var(--primary)" className="w-64 h-64 bottom-10 right-10 opacity-[0.05]" />
         <PlayfulGeometry variant="dots" color="var(--primary)" className="top-1/3 right-1/4 opacity-30" />
 
         <motion.div

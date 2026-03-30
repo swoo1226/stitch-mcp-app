@@ -55,7 +55,7 @@ export default function DetailsPage() {
         <div className="relative inline-flex items-center justify-center w-40 h-40">
             <svg className="absolute inset-0 w-full h-full -rotate-90">
                 <circle cx="80" cy="80" r="70" stroke="var(--surface-container-highest)" strokeWidth="15" fill="transparent" />
-                <circle cx="80" cy="80" r="70" stroke="var(--secondary)" strokeWidth="15" fill="transparent" strokeDasharray="439.8" strokeDashoffset="110" strokeLinecap="round" />
+                <circle cx="80" cy="80" r="70" stroke="var(--primary)" strokeWidth="15" fill="transparent" strokeDasharray="439.8" strokeDashoffset="110" strokeLinecap="round" />
             </svg>
             <div className="flex flex-col items-center">
                 <span className="text-4xl font-extrabold font-[Plus Jakarta Sans] text-primary">12</span>
