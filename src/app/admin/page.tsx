@@ -745,7 +745,11 @@ export default function AdminPage() {
                   style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", msOverflowStyle: "none", scrollbarWidth: "none" }}
                 >
                   {members.map(m => {
-                    const latest = m.mood_logs?.[0];
+                    const raw = m.mood_logs?.[0];
+                    const isToday = raw?.logged_at
+                      ? new Date(raw.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === todayKST
+                      : false;
+                    const latest = isToday ? raw : undefined;
                     const score = latest?.score ?? null;
                     const status = score !== null ? scoreToStatus(score) : null;
                     const relativeTime = latest?.logged_at
