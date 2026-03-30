@@ -101,6 +101,7 @@ function ClimaInputInner() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
+  const [resolvedUserId, setResolvedUserId] = useState<string | null>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
 
   const currentMetaphor = currentMetaphorFromScore(score);
@@ -139,7 +140,7 @@ function ClimaInputInner() {
         .single();
       if (user) {
         const ok = await doInsert(user.id);
-        if (ok) setIsSubmitted(true);
+        if (ok) { setResolvedUserId(user.id); setIsSubmitted(true); }
       } else {
         setErrorMsg("유효하지 않은 접속 패스예요.");
       }
@@ -162,6 +163,7 @@ function ClimaInputInner() {
       .eq("user_id", pendingUserId)
       .gte("logged_at", `${todayIso}T00:00:00+09:00`)
       .lte("logged_at", `${todayIso}T23:59:59+09:00`);
+    setResolvedUserId(pendingUserId);
     setPendingUserId(null);
     setIsSubmitted(true);
     setSubmitting(false);
@@ -413,6 +415,7 @@ function ClimaInputInner() {
         {isSubmitted && (
           <CelebrationModal
             metaphor={currentMetaphor}
+            userId={resolvedUserId}
             onClose={() => setIsSubmitted(false)}
           />
         )}
@@ -486,12 +489,15 @@ function ModalWeatherIcon({ label }: { label: string }) {
 // 축하 모달 컴포넌트
 function CelebrationModal({
   metaphor,
+  userId,
   onClose,
 }: {
   metaphor: WeatherMetaphor;
+  userId: string | null;
   onClose: () => void;
 }) {
   const config = CELEBRATION_CONFIG[metaphor.label];
+  const personalHref = userId ? `/personal?user=${userId}` : "/personal";
 
   return (
     <GlassModal onClose={onClose} closeOnOverlay={false}>
@@ -529,7 +535,7 @@ function CelebrationModal({
         className="flex flex-col items-center w-full gap-3"
       >
         <Link
-          href="/personal"
+          href={personalHref}
           className="flex items-center justify-center gap-2 font-bold text-white transition-all active:scale-95 w-full"
           style={{
             height: 64,
