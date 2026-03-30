@@ -720,7 +720,7 @@ export default function AdminPage() {
                 </p>
                 {!loading && members.length > 0 && (
                   <p className="text-xs font-medium" style={{ color: "var(--on-surface-variant)" }}>
-                    {checkedInToday} / {members.length} checked in today
+                    오늘 {checkedInToday} / {members.length}명 체크인
                   </p>
                 )}
               </GlassCard>

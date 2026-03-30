@@ -16,8 +16,8 @@ interface Alert {
 
 export default function AlertsPage() {
   const alerts: Alert[] = [
-    { id: 1, title: "Storm Warning", team: "Marketing", desc: "Burnout risk detected due to high weekend activity.", level: "High" },
-    { id: 2, title: "Foggy Outlook", team: "Backend", desc: "Communication bridge seems disconnected.", level: "Medium" },
+    { id: 1, title: "폭풍 경보", team: "마케팅", desc: "주말 과도한 활동으로 번아웃 위험이 감지됐어요.", level: "High" },
+    { id: 2, title: "안개 주의보", team: "백엔드", desc: "소통이 단절된 것처럼 보여요. 연결이 필요해요.", level: "Medium" },
   ];
 
   return (
@@ -34,8 +34,8 @@ export default function AlertsPage() {
         animate={{ filter: "blur(0px)", opacity: 1 }}
         transition={{ duration: 1 }}
       >
-        <SectionLabel color="tertiary" className="mb-4">Risk Center</SectionLabel>
-        <PageHeadline className="mb-12">Find out how <br /> the team is doing.</PageHeadline>
+        <SectionLabel color="tertiary" className="mb-4">위험 센터</SectionLabel>
+        <PageHeadline className="mb-12">팀이 어떤지<br />살펴봐요.</PageHeadline>
 
         <div className="grid gap-8">
           {alerts.map((alert) => (
@@ -46,17 +46,17 @@ export default function AlertsPage() {
               <motion.div whileHover={{ y: -5 }}>
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <Badge variant={alert.level === 'High' ? 'error' : 'surface'}>{alert.level} RISK</Badge>
+                  <Badge variant={alert.level === 'High' ? 'error' : 'surface'}>{alert.level === 'High' ? '높은' : '중간'} 위험</Badge>
                   <h2 className="text-2xl font-extrabold font-[Plus Jakarta Sans] mt-6">{alert.title}</h2>
                 </div>
                 <span className="text-5xl opacity-80">{alert.level === 'High' ? '⛈️' : '🌫️'}</span>
               </div>
               <p className="text-sm font-medium opacity-60 leading-relaxed mb-10 max-w-md">
-                {alert.team} Team: {alert.desc}
+                {alert.team} 팀: {alert.desc}
               </p>
               <div className="flex gap-4">
-                <ClimaButton variant="secondary" className="text-sm py-4 px-10">Intervene</ClimaButton>
-                <ClimaButton variant="tertiary" className="text-sm py-4 px-10">Dismiss</ClimaButton>
+                <ClimaButton variant="secondary" className="text-sm py-4 px-10">개입하기</ClimaButton>
+                <ClimaButton variant="tertiary" className="text-sm py-4 px-10">무시하기</ClimaButton>
               </div>
               </motion.div>
             </SanctuaryCard>

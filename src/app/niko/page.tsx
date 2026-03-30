@@ -91,11 +91,11 @@ interface MemberRow {
 
 // ─── Nav ────────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Personal", href: "/personal" },
-  { label: "Team", href: "/dashboard" },
+  { label: "대시보드", href: "/dashboard" },
+  { label: "개인 현황", href: "/personal" },
+  { label: "팀", href: "/dashboard" },
   { label: "Niko-Niko", href: "/niko", active: true },
-  { label: "Alerts", href: "/alerts" },
+  { label: "알림", href: "/alerts" },
 ];
 
 function CalendarIcon() {
@@ -396,8 +396,8 @@ function NikoPageInner() {
               )}
               <PrimaryTabToggle
                 tabs={[
-                  { value: "this", label: "This Week" },
-                  { value: "last", label: "Last Week" },
+                  { value: "this", label: "이번 주" },
+                  { value: "last", label: "지난 주" },
                 ]}
                 active={weekOffset === 0 ? "this" : "last"}
                 onChange={(v) => setWeekOffset(v === "this" ? 0 : -1)}
@@ -405,12 +405,12 @@ function NikoPageInner() {
             </div>
             <div className="flex flex-wrap gap-2 sm:justify-end">
               <MiniStatCard
-                label="Today's Check-ins"
+                label="오늘 체크인"
                 value={loading ? "—" : `${checkedInCount} / ${visibleMembers.length}`}
                 valueColor="primary"
               />
               <MiniStatCard
-                label="Team Avg Today"
+                label="오늘 팀 평균"
                 value={loading ? "—" : avgToday !== null ? `${avgToday}pt` : "—"}
                 valueColor="primary"
               />
@@ -425,7 +425,7 @@ function NikoPageInner() {
               id: m.id,
               name: m.name,
               avatar: m.avatar,
-              subtitle: m.todayScore !== null ? `${m.todayScore}pt today` : "No entry today",
+              subtitle: m.todayScore !== null ? `오늘 ${m.todayScore}pt` : "오늘 기록 없음",
               week: m.week,
             }))}
             weekDays={weekDays}

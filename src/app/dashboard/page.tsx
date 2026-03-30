@@ -86,10 +86,10 @@ function utcToKstDate(utcStr: string): string {
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI"];
 const NIKO_PAGE_SIZE = 5;
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/" },
-  { label: "Personal", href: "/personal" },
-  { label: "Team", href: "/dashboard", active: true },
-  { label: "Alerts", href: "/alerts" },
+  { label: "대시보드", href: "/" },
+  { label: "개인 현황", href: "/personal" },
+  { label: "팀", href: "/dashboard", active: true },
+  { label: "알림", href: "/alerts" },
 ];
 
 function SidebarIcon({ type }: { type: "dashboard" | "personal" | "team" | "alerts" }) {
@@ -283,12 +283,12 @@ export function TeamClimateDashboard() {
 
   const insightText =
     averageScore === null
-      ? "No check-ins yet today. Waiting for the team to share their climate."
+      ? "오늘 아직 체크인이 없어요. 팀이 날씨를 공유하길 기다리고 있어요."
       : averageScore >= 70
-        ? "The team climate is bright and steady. Keep momentum without overloading your core contributors."
+        ? "팀 기후가 밝고 안정적이에요. 핵심 기여자에게 과부하가 걸리지 않도록 균형 있게 유지해요."
         : averageScore >= 50
-          ? "The team climate is stabilizing, but the Backend team needs a little more sunshine."
-          : "The team climate is heavy right now. Prioritize recovery space before pushing for speed.";
+          ? "팀 기후가 회복세지만, 일부 팀원에게 햇살이 조금 더 필요해 보여요."
+          : "지금 팀 기후가 많이 무거워요. 속도를 올리기 전에 회복 공간을 먼저 확보해요.";
 
   const averageStatus = averageScore !== null ? scoreToStatus(averageScore) : null;
   const AverageIcon = averageStatus ? WEATHER_ICON_MAP[averageStatus] : null;
@@ -416,16 +416,16 @@ export function TeamClimateDashboard() {
               </div>
               <div>
                 <div className="text-[2rem] font-black tracking-tight leading-none text-primary">Clima</div>
-                <div className="mt-1 text-sm font-medium" style={{ color: "rgba(37, 50, 40, 0.6)" }}>Mental Wellness</div>
+                <div className="mt-1 text-sm font-medium" style={{ color: "rgba(37, 50, 40, 0.6)" }}>팀 마음 건강</div>
               </div>
             </div>
 
             <div className="space-y-2">
               {[
-                { label: "Dashboard", href: "/", icon: "dashboard" as const },
-                { label: "Personal", href: "/personal", icon: "personal" as const },
-                { label: "Team", href: "/dashboard", icon: "team" as const, active: true },
-                { label: "Alerts", href: "/alerts", icon: "alerts" as const },
+                { label: "대시보드", href: "/", icon: "dashboard" as const },
+                { label: "개인 현황", href: "/personal", icon: "personal" as const },
+                { label: "팀", href: "/dashboard", icon: "team" as const, active: true },
+                { label: "알림", href: "/alerts", icon: "alerts" as const },
               ].map((item) => (
                 <Link
                   key={item.label}
@@ -449,7 +449,7 @@ export function TeamClimateDashboard() {
 
             <div className="mt-10 rounded-[2rem] bg-surface-low px-4 py-4">
               <ClimaButton href="/input" className="w-full justify-center">
-                Daily Check-in
+                오늘 기록하기
               </ClimaButton>
             </div>
           </motion.aside>
@@ -471,13 +471,13 @@ export function TeamClimateDashboard() {
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-2xl">
                   <h1 className="mb-2 text-[2.4rem] font-black tracking-tight text-primary md:text-[3.1rem]">
-                    Team Climate
+                    팀 기후
                   </h1>
                   <p className="mb-3 text-sm font-bold" style={{ color: "rgba(37,50,40,0.4)" }}>
                     {today.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "short" })}
                   </p>
                   <p className="max-w-xl text-lg leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.72)" }}>
-                    Visualizing the emotional atmosphere of your collective journey this week. Stay connected, stay mindful.
+                    이번 주 팀의 감정 대기를 함께 들여다봐요. 연결되어 있고, 서로를 살피며 나아가요.
                   </p>
                 </div>
 
@@ -514,7 +514,7 @@ export function TeamClimateDashboard() {
                     </svg>
                   </div>
                   <div className="text-[1.1rem] md:text-[1.2rem] font-black tracking-tight text-primary">
-                    Niko-Niko Calendar
+                    Niko-Niko 캘린더
                   </div>
                 </div>
 
@@ -529,8 +529,8 @@ export function TeamClimateDashboard() {
                   )}
                   <PrimaryTabToggle
                     tabs={[
-                      { value: "this", label: "This Week" },
-                      { value: "last", label: "Last Week" },
+                      { value: "this", label: "이번 주" },
+                      { value: "last", label: "지난 주" },
                     ]}
                     active={weekTab}
                     onChange={setWeekTab}
@@ -558,7 +558,7 @@ export function TeamClimateDashboard() {
                 style={{ background: "rgba(255,255,255,0.86)" }}
               >
                 <div className="mb-7 text-center">
-                  <SectionLabel color="muted">Team Average</SectionLabel>
+                  <SectionLabel color="muted">팀 평균</SectionLabel>
                 </div>
                 <div className="mb-6 flex justify-center">
                   <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-surface-low">
@@ -579,8 +579,8 @@ export function TeamClimateDashboard() {
                   </div>
                   <div className="text-base leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.62)" }}>
                     {averageScore !== null
-                      ? `Overall team mood is ${averageScore >= 60 ? "stable" : "mixed"}.`
-                      : `${checkedInMembers.length} / ${visibleMembers.length} checked in today.`
+                      ? `팀 전체 분위기는 ${averageScore >= 60 ? "안정적" : "혼조"}이에요.`
+                      : `오늘 ${checkedInMembers.length} / ${visibleMembers.length}명 체크인했어요.`
                     }
                   </div>
                 </div>
@@ -591,7 +591,7 @@ export function TeamClimateDashboard() {
                 style={{ background: "rgba(255,255,255,0.86)" }}
               >
                 <div className="mb-7 text-center">
-                  <SectionLabel color="muted">Most Frequent Weather</SectionLabel>
+                  <SectionLabel color="muted">가장 많은 날씨</SectionLabel>
                 </div>
                 <div className="mb-6 flex justify-center">
                   <div className="flex h-28 w-28 items-center justify-center rounded-full bg-surface-low">
@@ -603,7 +603,7 @@ export function TeamClimateDashboard() {
                     {mostFrequent}
                   </div>
                   <div className="text-base leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.62)" }}>
-                    Occurred in {checkedInMembers.length ? Math.max(48, Math.min(84, averageScore ?? 64)) : 64}% of check-ins.
+                    전체 체크인의 {checkedInMembers.length ? Math.max(48, Math.min(84, averageScore ?? 64)) : 64}%를 차지해요.
                   </div>
                 </div>
               </article>
@@ -624,14 +624,14 @@ export function TeamClimateDashboard() {
                       <path d="M4.5 10.5h2M17.5 10.5h2M10.5 4.5v2M10.5 17.5v2M13.5 4.5v2M13.5 17.5v2" />
                     </svg>
                   </div>
-                  <div className="text-[1.05rem] font-black tracking-tight">Climate Insights</div>
+                  <div className="text-[1.05rem] font-black tracking-tight">기후 인사이트</div>
                 </div>
                 <p className="mb-8 text-[1.1rem] italic leading-[1.7] text-on-surface">
                   "{insightText}"
                 </p>
                 <div className="flex items-center gap-3 text-[0.95rem] font-black uppercase tracking-[0.18em] text-primary">
                   <span className="h-2.5 w-2.5 rounded-full bg-primary" />
-                  AI Powered Analysis
+                  AI 기반 분석
                 </div>
               </article>
             </section>
@@ -643,19 +643,19 @@ export function TeamClimateDashboard() {
               <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
                 <div className="max-w-2xl">
                   <h2 className="mb-3 text-[2rem] font-black tracking-tight" style={{ color: "var(--tertiary)" }}>
-                    Feeling like a storm today?
+                    오늘 폭풍 같은 기분인가요?
                   </h2>
                   <p className="text-lg leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.72)" }}>
-                    It's okay to not be okay. Reach out for a quick 1-on-1 talk or request a wellness break with one click.
+                    괜찮지 않아도 괜찮아요. 빠른 1:1 대화를 신청하거나 웰니스 브레이크를 한 번의 클릭으로 요청해보세요.
                   </p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4">
                   <ClimaButton className="min-w-[170px] justify-center px-8">
-                    Book a Talk
+                    1:1 대화 신청
                   </ClimaButton>
                   <ClimaButton variant="secondary" className="min-w-[170px] justify-center px-8">
-                    Take a Break
+                    브레이크 요청
                   </ClimaButton>
                 </div>
               </div>

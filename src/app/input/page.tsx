@@ -215,14 +215,14 @@ function ClimaInputInner() {
 
           <div className="text-center">
             <h1 className="text-3xl md:text-6xl font-black mb-2 md:mb-4 tracking-tight">{currentMetaphor.label}</h1>
-            <p className="text-base md:text-xl opacity-50 font-bold tracking-tight">How's your climate today?</p>
+            <p className="text-base md:text-xl opacity-50 font-bold tracking-tight">오늘 나의 기후는 어때요?</p>
           </div>
 
           {/* 모드 토글 */}
           <PrimaryTabToggle
             tabs={[
-              { value: "tile" as const, label: "Quick" },
-              { value: "range" as const, label: "Precise" },
+              { value: "tile" as const, label: "빠르게" },
+              { value: "range" as const, label: "정밀하게" },
             ]}
             active={mode}
             onChange={setMode}
@@ -405,7 +405,7 @@ function ClimaInputInner() {
               onClick={handleSubmit}
               className="text-sm md:text-base tracking-tight max-w-[calc(100vw-2rem)]"
             >
-              {submitting ? "저장 중..." : "Clima it"}
+              {submitting ? "저장 중..." : "기록하기"}
             </FAB>
           </motion.div>
         )}
