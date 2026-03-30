@@ -31,8 +31,8 @@ interface Member {
   id: string;
   name: string;
   avatar: string;
-  score: number;
-  status: WeatherStatus;
+  score: number | null;
+  status: WeatherStatus | null;
   message: string;
   part_id: string | null;
   week: Array<DisplayWeather>;
@@ -219,9 +219,13 @@ export function TeamClimateDashboard() {
 
       const logRows: MoodLogRow[] = (weekLogs as MoodLogRow[]) ?? [];
 
+      const todayKST = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
       const mapped = (users as RawUser[]).map((user) => {
         const latest = user.mood_logs?.[0];
-        const score = latest?.score ?? 50;
+        const isToday = latest?.logged_at
+          ? utcToKstDate(latest.logged_at) === todayKST
+          : false;
+        const score = isToday ? latest!.score : null;
 
         const userWeekLogs = logRows.filter((l) => l.user_id === user.id);
         const week: DisplayWeather[] = weekDays.map((day) => {
@@ -237,8 +241,8 @@ export function TeamClimateDashboard() {
           name: user.name,
           avatar: user.avatar_emoji || "",
           score,
-          status: scoreToStatus(score),
-          message: latest?.message ?? "오늘 체크인이 아직 없어요.",
+          status: score !== null ? scoreToStatus(score) : null,
+          message: isToday ? (latest?.message ?? "") : "오늘 체크인이 아직 없어요.",
           part_id: user.part_id ?? null,
           week,
         };
@@ -259,9 +263,10 @@ export function TeamClimateDashboard() {
 
   const teamParts = parts.filter(p => members.some(m => m.part_id === p.id));
 
-  const averageScore = visibleMembers.length
-    ? Math.round(visibleMembers.reduce((sum, member) => sum + member.score, 0) / visibleMembers.length)
-    : 62;
+  const checkedInMembers = visibleMembers.filter(m => m.score !== null);
+  const averageScore = checkedInMembers.length
+    ? Math.round(checkedInMembers.reduce((sum, m) => sum + m.score!, 0) / checkedInMembers.length)
+    : null;
 
   const mostFrequent = useMemo(() => {
     const counts = new Map<WeatherStatus, number>();
@@ -271,20 +276,22 @@ export function TeamClimateDashboard() {
       });
     });
 
-    if (!counts.size) return scoreToStatus(averageScore);
+    if (!counts.size) return averageScore !== null ? scoreToStatus(averageScore) : "Foggy";
 
     return [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
   }, [visibleMembers, averageScore]);
 
   const insightText =
-    averageScore >= 70
-      ? "The team climate is bright and steady. Keep momentum without overloading your core contributors."
-      : averageScore >= 50
-        ? "The team climate is stabilizing, but the Backend team needs a little more sunshine."
-        : "The team climate is heavy right now. Prioritize recovery space before pushing for speed.";
+    averageScore === null
+      ? "No check-ins yet today. Waiting for the team to share their climate."
+      : averageScore >= 70
+        ? "The team climate is bright and steady. Keep momentum without overloading your core contributors."
+        : averageScore >= 50
+          ? "The team climate is stabilizing, but the Backend team needs a little more sunshine."
+          : "The team climate is heavy right now. Prioritize recovery space before pushing for speed.";
 
-  const averageStatus = scoreToStatus(averageScore);
-  const AverageIcon = WEATHER_ICON_MAP[averageStatus];
+  const averageStatus = averageScore !== null ? scoreToStatus(averageScore) : null;
+  const AverageIcon = averageStatus ? WEATHER_ICON_MAP[averageStatus] : null;
   const FrequentIcon = WEATHER_ICON_MAP[mostFrequent];
 
   return (
@@ -481,7 +488,10 @@ export function TeamClimateDashboard() {
                       className="-ml-2 flex h-12 w-12 items-center justify-center rounded-full border-[3px] border-white text-xl shadow-sm first:ml-0"
                       style={{ background: index % 2 === 0 ? "var(--surface-highest)" : "var(--surface-low)" }}
                     >
-                      {(() => { const Icon = WEATHER_ICON_MAP[member.status]; return <Icon size={24} />; })()}
+                      {member.status
+                        ? (() => { const Icon = WEATHER_ICON_MAP[member.status]; return <Icon size={24} />; })()
+                        : <span className="text-base opacity-30">—</span>
+                      }
                     </div>
                   ))}
                   <div className="-ml-2 flex h-12 w-12 items-center justify-center rounded-full border-[3px] border-white bg-surface-high text-sm font-black text-on-surface">
@@ -573,18 +583,26 @@ export function TeamClimateDashboard() {
                 </div>
                 <div className="mb-6 flex justify-center">
                   <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-surface-low">
-                    <AverageIcon size={56} />
-                    <div className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--primary-container)] text-xs font-black text-primary">
-                      ↗
-                    </div>
+                    {AverageIcon
+                      ? <AverageIcon size={56} />
+                      : <span className="text-4xl opacity-30">🌫️</span>
+                    }
+                    {AverageIcon && (
+                      <div className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--primary-container)] text-xs font-black text-primary">
+                        ↗
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="text-center">
                   <div className="mb-2 text-[2.2rem] font-black tracking-tight" style={{ color: "var(--primary)" }}>
-                    {averageStatus}
+                    {averageStatus ?? "—"}
                   </div>
                   <div className="text-base leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.62)" }}>
-                    Overall team mood is {averageScore >= 60 ? "stable" : "mixed"}.
+                    {averageScore !== null
+                      ? `Overall team mood is ${averageScore >= 60 ? "stable" : "mixed"}.`
+                      : `${checkedInMembers.length} / ${visibleMembers.length} checked in today.`
+                    }
                   </div>
                 </div>
               </article>
@@ -606,7 +624,7 @@ export function TeamClimateDashboard() {
                     {mostFrequent}
                   </div>
                   <div className="text-base leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.62)" }}>
-                    Occurred in {visibleMembers.length ? Math.max(48, Math.min(84, averageScore)) : 64}% of check-ins.
+                    Occurred in {checkedInMembers.length ? Math.max(48, Math.min(84, averageScore ?? 64)) : 64}% of check-ins.
                   </div>
                 </div>
               </article>
