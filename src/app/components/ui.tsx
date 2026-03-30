@@ -269,38 +269,93 @@ export function Badge({ children, variant = "secondary", className = "" }: Badge
 }
 
 // ─── TabToggle ────────────────────────────────────────────────────────────────
+// variant="neutral"  : 흰 pill — 같은 데이터의 뷰 전환 (기간, 정렬 등)
+// variant="primary"  : Signature Gradient pill — 인터랙션 패러다임 전환
+// variant="filter"   : nullable active + "전체" 자동 포함 — 필터 칩
 interface TabToggleProps<T extends string> {
+  tabs: { value: T; label: string }[];
+  active: T | null;
+  onChange: (value: T | null) => void;
+  variant?: "neutral" | "primary" | "filter";
+  layoutId?: string;
+  allLabel?: string; // filter variant의 "전체" 라벨, 기본 "전체"
+}
+
+export function TabToggle<T extends string>({
+  tabs,
+  active,
+  onChange,
+  variant = "neutral",
+  layoutId,
+  allLabel = "전체",
+}: TabToggleProps<T>) {
+  const id = layoutId ?? `tab-${tabs.map(t => t.value).join("-")}`;
+  const isPrimary = variant === "primary";
+  const isFilter = variant === "filter";
+
+  const allTabs: { value: T | null; label: string }[] = isFilter
+    ? [{ value: null, label: allLabel }, ...tabs]
+    : tabs;
+
+  return (
+    <div
+      className="flex items-center rounded-full p-1"
+      style={{ background: "rgba(37,50,40,0.05)" }}
+    >
+      {allTabs.map(({ value, label }) => {
+        const isActive = active === value;
+        return (
+          <motion.button
+            key={value ?? "__all__"}
+            type="button"
+            onClick={() => onChange(value as T | null)}
+            whileHover={{ scale: 1.02, y: -1 }}
+            whileTap={{ scale: 0.97 }}
+            transition={RESPONSIVE_SPRING}
+            className="relative text-xs font-black tracking-tight rounded-[1.5rem] transition-colors"
+            style={{
+              paddingLeft: "0.875rem",
+              paddingRight: "0.875rem",
+              paddingTop: "0.5rem",
+              paddingBottom: "0.5rem",
+              color: isActive
+                ? isPrimary ? "var(--on-primary)" : "var(--primary)"
+                : "rgba(37,50,40,0.45)",
+            }}
+          >
+            {isActive && (
+              <motion.div
+                layoutId={id}
+                className="absolute inset-0 rounded-[1.5rem]"
+                style={isPrimary
+                  ? { background: "linear-gradient(135deg, #2b6867 0%, #52f2f5 100%)" }
+                  : { background: "white", boxShadow: "0 2px 8px rgba(37,50,40,0.08)" }
+                }
+                transition={RESPONSIVE_SPRING}
+              />
+            )}
+            <span className="relative z-10">{label}</span>
+          </motion.button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── PrimaryTabToggle — TabToggle variant="primary" alias ─────────────────────
+interface PrimaryTabToggleProps<T extends string> {
   tabs: { value: T; label: string }[];
   active: T;
   onChange: (value: T) => void;
-  layoutId?: string;
 }
-
-export function TabToggle<T extends string>({ tabs, active, onChange, layoutId }: TabToggleProps<T>) {
-  const id = layoutId ?? `tab-${tabs.map(t => t.value).join("-")}`;
+export function PrimaryTabToggle<T extends string>({ tabs, active, onChange }: PrimaryTabToggleProps<T>) {
   return (
-    <div className="flex items-center rounded-full p-1" style={{ background: "rgba(37,50,40,0.05)" }}>
-      {tabs.map(({ value, label }) => (
-        <motion.button
-          key={value}
-          onClick={() => onChange(value)}
-          whileHover={{ scale: 1.02, y: -1 }}
-          whileTap={{ scale: 0.97 }}
-          transition={RESPONSIVE_SPRING}
-          className="relative text-xs font-bold px-5 py-2 rounded-full transition-colors"
-          style={{ color: active === value ? "var(--primary)" : "var(--on-surface-variant)" }}
-        >
-          {active === value && (
-            <motion.div
-              layoutId={id}
-              className="absolute inset-0 rounded-full bg-white shadow-sm"
-              transition={RESPONSIVE_SPRING}
-            />
-          )}
-          <span className="relative z-10">{label}</span>
-        </motion.button>
-      ))}
-    </div>
+    <TabToggle
+      tabs={tabs}
+      active={active}
+      onChange={(v) => { if (v !== null) onChange(v); }}
+      variant="primary"
+    />
   );
 }
 
@@ -409,49 +464,6 @@ export function WeatherTile({ Icon, label, isSelected, onClick }: WeatherTilePro
         {label}
       </span>
     </motion.button>
-  );
-}
-
-// ─── PrimaryTabToggle ─────────────────────────────────────────────────────────
-// Signature Gradient 활성 탭 토글. input 페이지처럼 강한 인상이 필요한 곳에 사용.
-// TabToggle과 달리 active 탭 = gradient 배경 + 흰 텍스트 (더 impactful).
-interface PrimaryTabToggleProps<T extends string> {
-  tabs: { value: T; label: string }[];
-  active: T;
-  onChange: (value: T) => void;
-}
-
-export function PrimaryTabToggle<T extends string>({ tabs, active, onChange }: PrimaryTabToggleProps<T>) {
-  return (
-    <div className="flex gap-2 rounded-full p-1.5" style={{ background: "rgba(37,50,40,0.05)" }}>
-      {tabs.map(({ value, label }) => (
-        <motion.button
-          key={value}
-          onClick={() => onChange(value)}
-          whileHover={{ scale: 1.02, y: -2 }}
-          whileTap={{ scale: 0.98 }}
-          transition={RESPONSIVE_SPRING}
-          className="relative text-xs md:text-sm font-black uppercase tracking-[0.12em] rounded-[1.5rem]"
-          style={{
-            color: active === value ? "var(--on-primary)" : "var(--primary)",
-            paddingLeft: "1.125rem",
-            paddingRight: "1.125rem",
-            paddingTop: "0.7rem",
-            paddingBottom: "0.7rem",
-          }}
-        >
-          {active === value && (
-            <motion.div
-              layoutId={`primary-tab-${tabs.map(t => t.value).join("-")}`}
-              className="absolute inset-0 rounded-[1.5rem]"
-              style={{ background: "linear-gradient(135deg, #2b6867 0%, #52f2f5 100%)" }}
-              transition={RESPONSIVE_SPRING}
-            />
-          )}
-          <span className="relative z-10">{label}</span>
-        </motion.button>
-      ))}
-    </div>
   );
 }
 

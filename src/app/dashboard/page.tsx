@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import ClimaLogo from "../components/WetherLogo";
-import { ClimaButton, SectionLabel, PrimaryTabToggle, NikoCalendar, type NikoCalendarMember } from "../components/ui";
+import { ClimaButton, SectionLabel, PrimaryTabToggle, TabToggle, NikoCalendar, type NikoCalendarMember } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { STANDARD_SPRING } from "../constants/springs";
 import { DEFAULT_TEAM_ID, supabase } from "../../lib/supabase";
@@ -520,33 +520,12 @@ export function TeamClimateDashboard() {
 
                 <div className="flex flex-wrap items-center gap-3">
                   {teamParts.length > 0 && (
-                    <div className="flex items-center gap-1 rounded-full p-1" style={{ background: "var(--surface-container-low)" }}>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedPartId(null)}
-                        className="rounded-full px-3 py-1.5 text-xs font-black tracking-tight transition-all"
-                        style={!selectedPartId
-                          ? { background: "white", color: "var(--primary)", boxShadow: "0 2px 8px rgba(37,50,40,0.08)" }
-                          : { color: "rgba(37,50,40,0.5)" }
-                        }
-                      >
-                        전체
-                      </button>
-                      {teamParts.map(p => (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => setSelectedPartId(p.id)}
-                          className="rounded-full px-3 py-1.5 text-xs font-black tracking-tight transition-all"
-                          style={selectedPartId === p.id
-                            ? { background: "white", color: "var(--primary)", boxShadow: "0 2px 8px rgba(37,50,40,0.08)" }
-                            : { color: "rgba(37,50,40,0.5)" }
-                          }
-                        >
-                          {p.name}
-                        </button>
-                      ))}
-                    </div>
+                    <TabToggle
+                      variant="filter"
+                      tabs={teamParts.map(p => ({ value: p.id, label: p.name }))}
+                      active={selectedPartId}
+                      onChange={setSelectedPartId}
+                    />
                   )}
                   <PrimaryTabToggle
                     tabs={[

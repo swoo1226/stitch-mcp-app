@@ -826,14 +826,17 @@ export default function AdminPage() {
                         </div>
 
                         {/* 하단: 액션 */}
-                        <div className="flex gap-2">
+                        <div className="flex justify-between">
                           <button
                             type="button"
                             onClick={() => { setMoodTarget(m.id); setMoodScore(score ?? 50); setMoodMessage(latest?.message ?? ""); setMoodError(null); setMoodDuplicate(false); }}
-                            className="flex-1 py-3 rounded-full text-sm font-bold transition-all hover:opacity-90 active:scale-95"
+                            className="flex w-12 h-12 items-center justify-center rounded-full shrink-0 transition-all active:scale-95"
                             style={{ background: "linear-gradient(135deg, #2b6867 0%, #52f2f5 100%)", color: "#fff" }}
+                            title="기록 입력"
                           >
-                            기록 입력
+                            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                              <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+                            </svg>
                           </button>
                           <motion.button
                             type="button"
@@ -860,6 +863,17 @@ export default function AdminPage() {
                               )}
                             </AnimatePresence>
                           </motion.button>
+                          <Link
+                            href={`/personal?user=${m.id}`}
+                            className="flex w-12 h-12 items-center justify-center rounded-full shrink-0 transition-colors active:scale-95"
+                            style={{ background: "var(--surface-container)", color: "rgba(37,50,40,0.45)" }}
+                            title="개인 페이지 보기"
+                          >
+                            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                              <circle cx="12" cy="8" r="3.5" />
+                              <path d="M4.5 20c0-4 3.358-7 7.5-7s7.5 3 7.5 7" strokeLinecap="round" />
+                            </svg>
+                          </Link>
                           {confirmDeleteId === m.id ? (
                             <div className="flex gap-1 shrink-0">
                               <button type="button" onClick={() => { deleteMember(m.id); setConfirmDeleteId(null); }}
