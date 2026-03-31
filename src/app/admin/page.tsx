@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase, DEFAULT_TEAM_ID } from "../../lib/supabase";
 import { scoreToStatus, statusToEmoji, statusToKo } from "../../lib/mood";
@@ -105,6 +105,16 @@ function ExternalLinkIcon() {
   );
 }
 
+function ThoughtBubbleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M8.5 16.5c-2.9 0-5-1.8-5-4.4 0-2.7 2.3-4.8 5.2-4.8.8-2 2.9-3.3 5.5-3.3 3.6 0 6.3 2.4 6.3 5.7 0 3.1-2.5 5.8-6.2 5.8h-1.8l-3 2.4v-2.4H8.5Z" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="7.3" cy="19.1" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="4.8" cy="21" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 
 interface Team {
   id: string;
@@ -133,6 +143,9 @@ export default function AdminPage() {
   // ── 링크 복사 피드백
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedLinkKey, setCopiedLinkKey] = useState<string | null>(null);
+  const [activeThoughtId, setActiveThoughtId] = useState<string | null>(null);
+  const thoughtPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const thoughtLongPressTriggeredRef = useRef(false);
 
   function copyWithFeedback(text: string, key: string, type: "member" | "link") {
     navigator.clipboard.writeText(text);
@@ -143,6 +156,34 @@ export default function AdminPage() {
       setCopiedLinkKey(key);
       setTimeout(() => setCopiedLinkKey(null), 1800);
     }
+  }
+
+  function clearThoughtPressTimer() {
+    if (thoughtPressTimerRef.current) {
+      clearTimeout(thoughtPressTimerRef.current);
+      thoughtPressTimerRef.current = null;
+    }
+  }
+
+  function beginThoughtPress(id: string) {
+    clearThoughtPressTimer();
+    thoughtLongPressTriggeredRef.current = false;
+    thoughtPressTimerRef.current = setTimeout(() => {
+      thoughtLongPressTriggeredRef.current = true;
+      setActiveThoughtId(id);
+    }, 380);
+  }
+
+  function endThoughtPress() {
+    clearThoughtPressTimer();
+  }
+
+  function toggleThought(id: string) {
+    if (thoughtLongPressTriggeredRef.current) {
+      thoughtLongPressTriggeredRef.current = false;
+      return;
+    }
+    setActiveThoughtId((current) => current === id ? null : id);
   }
 
   // ── 팀원 관리 상태
@@ -814,6 +855,8 @@ export default function AdminPage() {
                     const latest = isToday ? raw : undefined;
                     const score = latest?.score ?? null;
                     const status = score !== null ? scoreToStatus(score) : null;
+                    const thought = latest?.message?.trim() ?? "";
+                    const hasThought = thought.length > 0;
                     const relativeTime = latest?.logged_at
                       ? (() => {
                         const diff = Math.max(0, Date.now() - new Date(latest.logged_at).getTime());
@@ -829,6 +872,9 @@ export default function AdminPage() {
                         key={m.id}
                         layout
                         className="flex flex-col gap-4 rounded-[2rem] p-5 shrink-0 group"
+                        onMouseLeave={() => {
+                          if (activeThoughtId === m.id) setActiveThoughtId(null);
+                        }}
                         style={{
                           width: 300,
                           maxWidth: "calc(100vw - 3rem)",
@@ -852,12 +898,70 @@ export default function AdminPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-base tracking-tight leading-tight truncate">{m.name}</p>
-                            <p className="text-xs font-medium mt-0.5" style={{ color: "var(--text-soft)" }}>
-                              {score !== null
-                                ? <><span className="font-black" style={{ color: "var(--primary)" }}>{statusToKo(status)}</span> · {score}pt</>
-                                : (m.parts?.name ?? teams.find(t => t.id === m.team_id)?.name ?? "기록 없음")
-                              }
-                            </p>
+                            <div className="mt-1 flex items-center gap-2">
+                              <p className="text-xs font-medium min-w-0 truncate" style={{ color: "var(--text-soft)" }}>
+                                {score !== null
+                                  ? <><span className="font-black" style={{ color: "var(--primary)" }}>{statusToKo(status)}</span> · {score}pt</>
+                                  : (m.parts?.name ?? teams.find(t => t.id === m.team_id)?.name ?? "기록 없음")
+                                }
+                              </p>
+                              {hasThought && (
+                                <div
+                                  className="relative shrink-0"
+                                  onMouseEnter={() => setActiveThoughtId(m.id)}
+                                >
+                                  <motion.button
+                                    type="button"
+                                    className="flex h-8 items-center gap-1 rounded-full px-2.5 text-[11px] font-black tracking-tight"
+                                    style={{
+                                      background: activeThoughtId === m.id ? "var(--highlight-soft)" : "color-mix(in srgb, var(--primary) 10%, transparent)",
+                                      color: "var(--primary)",
+                                      boxShadow: activeThoughtId === m.id ? "var(--button-subtle-shadow)" : "none",
+                                    }}
+                                    animate={activeThoughtId === m.id ? { y: 0, scale: 1 } : { y: [0, -1.5, 0], scale: [1, 1.03, 1] }}
+                                    transition={activeThoughtId === m.id
+                                      ? { duration: 0.18 }
+                                      : { duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+                                    onTouchStart={() => beginThoughtPress(m.id)}
+                                    onTouchEnd={endThoughtPress}
+                                    onTouchCancel={endThoughtPress}
+                                    onClick={() => toggleThought(m.id)}
+                                    title="메시지 미리보기"
+                                  >
+                                    <ThoughtBubbleIcon />
+                                    한마디
+                                  </motion.button>
+                                  <AnimatePresence>
+                                    {activeThoughtId === m.id && (
+                                      <motion.div
+                                        initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                                        transition={STANDARD_SPRING}
+                                        className="absolute left-0 top-full z-20 mt-2 w-52 rounded-[1.4rem] px-4 py-3"
+                                        style={{
+                                          background: "var(--surface-elevated)",
+                                          backdropFilter: "var(--glass-blur-low)",
+                                          WebkitBackdropFilter: "var(--glass-blur-low)",
+                                          boxShadow: "var(--glass-shadow)",
+                                        }}
+                                      >
+                                        <div
+                                          className="absolute -top-2 left-5 h-4 w-4 rotate-45 rounded-[0.35rem]"
+                                          style={{ background: "var(--surface-elevated)" }}
+                                        />
+                                        <p className="mb-1 text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--primary)" }}>
+                                          Thought
+                                        </p>
+                                        <p className="text-xs font-medium leading-relaxed break-words" style={{ color: "var(--on-surface)" }}>
+                                          {thought}
+                                        </p>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+                                </div>
+                              )}
+                            </div>
                           </div>
                           <PortalSelect
                             compact

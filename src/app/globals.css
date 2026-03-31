@@ -210,11 +210,26 @@ h1, h2, h3, h4, .headline {
 }
 
 /* Logo Styling */
+.logo-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  filter: drop-shadow(0 10px 18px color-mix(in srgb, var(--primary) 18%, transparent));
+}
+
 .logo-text {
-  font-family: 'Public Sans', 'Pretendard', sans-serif;
-  font-weight: 800;
-  letter-spacing: -0.05em;
+  font-family: 'Space Grotesk', 'Public Sans', 'Pretendard', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.06em;
   color: var(--primary);
+  line-height: 1;
 }
 /* Atmospheric State Utilities from Service Spec */
 .foggy-state {
@@ -226,7 +241,7 @@ h1, h2, h3, h4, .headline {
 }
 
 .logo-text span {
-  opacity: 0.4;
+  color: color-mix(in srgb, var(--primary) 72%, var(--primary-container));
 }
 
 /* Hide scrollbar */

@@ -1,0 +1,16 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="climaAppIconBg" x1="48" y1="32" x2="208" y2="224" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#006668" />
+      <stop offset="1" stop-color="#52F2F5" />
+    </linearGradient>
+    <linearGradient id="climaGlow" x1="92" y1="70" x2="156" y2="130" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.95" />
+      <stop offset="1" stop-color="#E6FFFF" stop-opacity="0.55" />
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="224" height="224" rx="72" fill="url(#climaAppIconBg)" />
+  <circle cx="96" cy="94" r="28" fill="url(#climaGlow)" />
+  <path d="M66 154.5C66 131.58 84.58 113 107.5 113C118.52 113 128.64 117.3 136.12 124.28C142.47 116.5 151.97 111.55 162.62 111.55C181.71 111.55 197.19 127.03 197.19 146.12C197.19 165.21 181.71 180.69 162.62 180.69H108.88C85.2 180.69 66 171.74 66 154.5Z" fill="#F8FEFE" fill-opacity="0.96"/>
+  <path d="M105 73C114.04 66.79 123.5 64 134 64" stroke="#F8FEFE" stroke-opacity="0.88" stroke-width="10" stroke-linecap="round"/>
+</svg>

@@ -1,10 +1,15 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
-import { ThemeProvider, getThemeInitScript } from "./components/ThemeProvider";
+import { ThemeProvider } from "./components/ThemeProvider";
+import { getThemeInitScript } from "./components/themeScript";
 
 export const metadata: Metadata = {
   title: "Clima | Check how the team feels today.",
   description: "Interactive team mental health dashboard with weather metaphors.",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export const viewport: Viewport = {
