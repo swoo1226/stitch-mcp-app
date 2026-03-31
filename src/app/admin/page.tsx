@@ -1213,40 +1213,77 @@ export default function AdminPage() {
                         style={{ background: "var(--surface-container-low)" }}
                       >
                         <p className="font-black text-sm tracking-tight" style={{ color: "var(--primary)" }}>{t.name}</p>
-                        {actions.map((action) => (
-                          <div key={action.key} className="flex items-center justify-between gap-3 rounded-[1.1rem] px-3 py-3" style={{ background: "rgba(255,255,255,0.62)" }}>
-                            <div>
+                        <div className="grid grid-cols-2 gap-3">
+                          {actions.map((action) => (
+                            <div
+                              key={action.key}
+                              className="rounded-[1.2rem] px-3 py-3"
+                              style={{ background: "rgba(255,255,255,0.62)" }}
+                            >
                               <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "rgba(37,50,40,0.38)" }}>
                                 {action.label}
                               </p>
-                              <p className="mt-1 text-sm font-bold" style={{ color: "rgba(37,50,40,0.72)" }}>
-                                팀 전용 링크
-                              </p>
+                              <div className="mt-3 flex items-center justify-between gap-2">
+                                <p className="text-sm font-bold" style={{ color: "rgba(37,50,40,0.72)" }}>
+                                  팀 전용 링크
+                                </p>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <motion.button
+                                    type="button"
+                                    title={`${action.label} 링크 복사`}
+                                    onClick={() => copyWithFeedback(action.href, `${t.id}-${action.key}`, "link")}
+                                    animate={copiedLinkKey === `${t.id}-${action.key}`
+                                      ? { scale: [1, 1.2, 1], backgroundColor: "rgba(82,242,245,0.18)" }
+                                      : { scale: 1, backgroundColor: "var(--surface-container)" }
+                                    }
+                                    transition={{ duration: 0.3 }}
+                                    className="flex w-12 h-12 items-center justify-center rounded-full shrink-0"
+                                    style={{ color: copiedLinkKey === `${t.id}-${action.key}` ? "var(--primary)" : "rgba(37,50,40,0.45)" }}
+                                  >
+                                    <AnimatePresence mode="wait">
+                                      {copiedLinkKey === `${t.id}-${action.key}` ? (
+                                        <motion.svg
+                                          key="check"
+                                          viewBox="0 0 24 24"
+                                          className="w-5 h-5"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          strokeWidth="2.5"
+                                          initial={{ scale: 0, opacity: 0 }}
+                                          animate={{ scale: 1, opacity: 1 }}
+                                          exit={{ scale: 0, opacity: 0 }}
+                                          transition={{ duration: 0.2 }}
+                                        >
+                                          <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+                                        </motion.svg>
+                                      ) : (
+                                        <motion.div
+                                          key="copy"
+                                          initial={{ scale: 0, opacity: 0 }}
+                                          animate={{ scale: 1, opacity: 1 }}
+                                          exit={{ scale: 0, opacity: 0 }}
+                                          transition={{ duration: 0.2 }}
+                                        >
+                                          <CopyIcon />
+                                        </motion.div>
+                                      )}
+                                    </AnimatePresence>
+                                  </motion.button>
+                                  <Link
+                                    href={action.href}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    title={`${action.label} 새 탭 열기`}
+                                    className="flex w-12 h-12 items-center justify-center rounded-full shrink-0 transition-colors active:scale-95"
+                                    style={{ background: "var(--surface-container)", color: "rgba(37,50,40,0.45)" }}
+                                  >
+                                    <ExternalLinkIcon />
+                                  </Link>
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <motion.button
-                                type="button"
-                                title={`${action.label} 링크 복사`}
-                                onClick={() => copyWithFeedback(action.href, `${t.id}-${action.key}`, "link")}
-                                animate={{ color: copiedLinkKey === `${t.id}-${action.key}` ? "var(--secondary)" : "var(--primary)" }}
-                                transition={{ duration: 0.2 }}
-                                className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
-                              >
-                                <CopyIcon />
-                              </motion.button>
-                              <Link
-                                href={action.href}
-                                target="_blank"
-                                rel="noreferrer"
-                                title={`${action.label} 새 탭 열기`}
-                                className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
-                                style={{ color: "var(--primary)" }}
-                              >
-                                <ExternalLinkIcon />
-                              </Link>
-                            </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     );
                   })}
