@@ -83,7 +83,7 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
               animate={shouldLimitMotion ? {} : { scale: [1, 1.15, 1], opacity: [0.28, 0.48, 0.28] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[140%] h-[80%] rounded-full"
-              style={{ background: "radial-gradient(ellipse, rgba(255,220,80,0.38) 0%, transparent 70%)", filter: "blur(40px)" }}
+              style={{ background: "radial-gradient(ellipse, color-mix(in srgb, var(--weather-radiant-blob-2) 38%, transparent) 0%, transparent 70%)", filter: "blur(40px)" }}
             />
             {/* 광선 */}
             {sunRays.map((ray) => (
@@ -138,7 +138,7 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
               animate={shouldLimitMotion ? {} : { opacity: [0.22, 0.42, 0.22], y: [0, -12, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
               className="absolute top-[-10%] right-[-10%] w-[80%] h-[60%] rounded-full"
-              style={{ background: "radial-gradient(ellipse, rgba(255,180,60,0.35) 0%, transparent 70%)", filter: "blur(60px)" }}
+              style={{ background: "radial-gradient(ellipse, color-mix(in srgb, var(--weather-sunny-blob-2) 32%, transparent) 0%, transparent 70%)", filter: "blur(60px)" }}
             />
             {/* 떠다니는 빛 입자 */}
             {Array.from({ length: shouldLimitMotion ? 5 : 14 }, (_, i) => (
@@ -159,7 +159,7 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
                 style={{
                   width: 3 + (i % 3),
                   height: 3 + (i % 3),
-                  background: "rgba(255,200,80,0.7)",
+                  background: "color-mix(in srgb, var(--weather-sunny-blob-2) 72%, white)",
                   bottom: `${5 + (i * 11) % 50}%`,
                   left: `${(i * 17 + 5) % 95}%`,
                   filter: "blur(1px)",
@@ -198,7 +198,7 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
                   height: `${22 + i * 8}%`,
                   top: `${15 + i * 22}%`,
                   left: "-10%",
-                  background: "rgba(200,210,220,0.25)",
+                  background: "color-mix(in srgb, var(--weather-foggy-blob-2) 36%, transparent)",
                   filter: "blur(28px)",
                 }}
               />
@@ -217,7 +217,7 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
             className="absolute inset-0"
           >
             {/* 전체 어두운 베일 */}
-            <div className="absolute inset-0" style={{ background: "rgba(60,90,140,0.08)" }} />
+            <div className="absolute inset-0" style={{ background: "color-mix(in srgb, var(--weather-rainy-blob-1) 14%, transparent)" }} />
             {/* 빗줄기 파티클 */}
             {rainParticles.map((p) => (
               <motion.div
@@ -239,7 +239,7 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
                   left: p.x,
                   width: 1.5,
                   height: p.height,
-                  background: "linear-gradient(180deg, rgba(120,160,220,0.7) 0%, rgba(80,120,200,0.3) 100%)",
+                  background: "linear-gradient(180deg, color-mix(in srgb, var(--weather-rainy-blob-2) 70%, white) 0%, color-mix(in srgb, var(--weather-rainy-blob-1) 45%, transparent) 100%)",
                   transform: "rotate(12deg)",
                 }}
               />
@@ -256,7 +256,7 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
                   height: 3,
                   bottom: `${2 + (i % 4) * 3}%`,
                   left: `${(i * 23 + 8) % 90}%`,
-                  background: "rgba(100,150,220,0.3)",
+                  background: "color-mix(in srgb, var(--weather-rainy-blob-2) 36%, transparent)",
                 }}
               />
             ))}
@@ -274,7 +274,7 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
             className="absolute inset-0"
           >
             {/* 어두운 베일 */}
-            <div className="absolute inset-0" style={{ background: "rgba(30,40,60,0.14)" }} />
+            <div className="absolute inset-0" style={{ background: "color-mix(in srgb, var(--weather-stormy-blob-2) 28%, transparent)" }} />
 
             {/* 번개 섬광 — 화면 전체 */}
             <motion.div

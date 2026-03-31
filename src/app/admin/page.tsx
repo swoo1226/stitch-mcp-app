@@ -7,6 +7,7 @@ import { scoreToStatus, statusToEmoji, statusToKo } from "../../lib/mood";
 import { STANDARD_SPRING } from "../constants/springs";
 import Link from "next/link";
 import ClimaLogo from "../components/WetherLogo";
+import ThemeToggleButton from "../components/ThemeToggleButton";
 import {
   ClimaButton,
   ClimaInput,
@@ -382,7 +383,7 @@ export default function AdminPage() {
     return (
       <div
         className="min-h-screen flex items-center justify-center overflow-hidden relative px-6"
-        style={{ background: "radial-gradient(circle at top left, #ebfaec 0%, #ffffff 100%)" }}
+        style={{ background: "var(--hero-gradient)" }}
       >
         {/* 배경 장식 */}
         <PlayfulGeometry variant="circle" color="var(--primary)" className="w-80 h-80 -top-20 -left-20 opacity-[0.06]" />
@@ -399,7 +400,7 @@ export default function AdminPage() {
             {/* 아이콘 뱃지 */}
             <div
               className="w-20 h-20 rounded-full flex items-center justify-center mb-6 text-3xl"
-              style={{ background: "linear-gradient(45deg, #006668, #52f2f5)", boxShadow: "0 8px 24px rgba(0,102,104,0.25)" }}
+              style={{ background: "var(--button-primary-gradient)", boxShadow: "var(--button-primary-shadow)", color: "var(--on-primary)" }}
             >
               ☁️
             </div>
@@ -446,7 +447,7 @@ export default function AdminPage() {
             </div>
 
             {/* 하단 메타 */}
-            <p className="mt-8 text-[10px] font-bold tracking-widest uppercase" style={{ color: "rgba(37,50,40,0.3)" }}>
+            <p className="mt-8 text-[10px] font-bold tracking-widest uppercase" style={{ color: "var(--text-soft)" }}>
               Region: Horizon-01 &nbsp;·&nbsp; v4.2.0
             </p>
           </GlassCard>
@@ -476,7 +477,7 @@ export default function AdminPage() {
       {/* ── 사이드바 (데스크탑) ── */}
       <aside
         className="hidden md:flex fixed left-0 top-0 h-full w-60 flex-col z-40"
-        style={{ background: "rgba(248,253,249,1)", borderRight: "1px solid rgba(37,50,40,0.06)" }}
+        style={{ background: "var(--surface)", borderRight: "1px solid var(--border-subtle)" }}
       >
         {/* 로고 */}
         <div className="pt-8 px-6 mb-8">
@@ -521,7 +522,7 @@ export default function AdminPage() {
 
         {/* 하단 */}
         <div className="px-6 pb-8 flex flex-col gap-3">
-          <p className="text-[10px] font-black tracking-widest uppercase" style={{ color: "rgba(37,50,40,0.35)" }}>Admin Ops</p>
+          <p className="text-[10px] font-black tracking-widest uppercase" style={{ color: "var(--text-soft)" }}>Admin Ops</p>
           <Link
             href="/"
             className="text-xs font-bold transition-opacity hover:opacity-70"
@@ -549,7 +550,7 @@ export default function AdminPage() {
               exit={{ opacity: 0 }}
               onClick={() => setSidebarOpen(false)}
               className="fixed inset-0 z-50 md:hidden"
-              style={{ background: "rgba(37,50,40,0.2)", backdropFilter: "blur(4px)" }}
+              style={{ background: "var(--drawer-scrim)", backdropFilter: "blur(4px)" }}
             />
             <motion.aside
               initial={{ x: "-100%" }}
@@ -557,7 +558,7 @@ export default function AdminPage() {
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="fixed left-0 top-0 h-full w-72 z-[60] flex flex-col md:hidden"
-              style={{ background: "rgba(248,253,249,0.98)", backdropFilter: "blur(20px)" }}
+              style={{ background: "var(--drawer-bg)", backdropFilter: "var(--glass-blur)" }}
             >
               <div className="flex items-center justify-between pt-8 px-6 mb-8">
                 <div>
@@ -569,7 +570,7 @@ export default function AdminPage() {
                 <button
                   onClick={() => setSidebarOpen(false)}
                   className="flex h-10 w-10 items-center justify-center rounded-full"
-                  style={{ color: "rgba(37,50,40,0.4)", background: "rgba(37,50,40,0.05)" }}
+                  style={{ color: "var(--text-soft)", background: "var(--button-subtle-bg)" }}
                 >
                   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
                     <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
@@ -605,7 +606,7 @@ export default function AdminPage() {
                 </button>
               </nav>
               <div className="px-6 pb-10 flex flex-col gap-3">
-                <p className="text-[10px] font-black tracking-widest uppercase" style={{ color: "rgba(37,50,40,0.35)" }}>Admin Ops</p>
+                <p className="text-[10px] font-black tracking-widest uppercase" style={{ color: "var(--text-soft)" }}>Admin Ops</p>
                 <Link
                   href="/"
                   className="text-sm font-bold transition-opacity hover:opacity-70"
@@ -627,8 +628,8 @@ export default function AdminPage() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={STANDARD_SPRING}
-          className="fixed z-40 top-0 left-0 right-0 md:left-60 flex items-center justify-between h-16 px-6 md:px-10 bg-white/70 backdrop-blur-[20px]"
-          style={{ boxShadow: "0 20px 40px -10px rgba(37,50,40,0.06)" }}
+          className="fixed z-40 top-0 left-0 right-0 md:left-60 flex items-center justify-between h-16 px-6 md:px-10"
+          style={{ background: "var(--header-bg)", backdropFilter: "var(--glass-blur)", boxShadow: "var(--header-shadow)" }}
         >
           {/* 좌측: 로고 (모바일) / 탭 제목 (데스크탑) */}
           <div className="flex items-center gap-3">
@@ -644,7 +645,8 @@ export default function AdminPage() {
           </div>
 
           {/* 우측: 홈 + 로그아웃 (데스크탑) / 햄버거 (모바일) */}
-          <div className="flex items-center gap-2" style={{ color: "rgba(37,50,40,0.7)" }}>
+          <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
+            <ThemeToggleButton />
             <Link
               href="/"
               className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
@@ -688,7 +690,7 @@ export default function AdminPage() {
               <GlassCard className="p-6 flex flex-col justify-between min-h-[140px]" intensity="low">
                 <div
                   className="w-10 h-10 rounded-[1rem] flex items-center justify-center mb-4"
-                  style={{ background: "rgba(0,102,104,0.1)", color: "var(--primary)" }}
+                  style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
                 >
                   <UsersIcon />
                 </div>
@@ -704,7 +706,7 @@ export default function AdminPage() {
               <GlassCard className="p-6 flex flex-col justify-between min-h-[140px]" intensity="low">
                 <div
                   className="w-10 h-10 rounded-[1rem] flex items-center justify-center mb-4"
-                  style={{ background: "rgba(0,102,104,0.08)", color: "var(--primary)" }}
+                  style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
                 >
                   <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8">
                     <path d="M9 11l3 3L22 4" strokeLinecap="round" strokeLinejoin="round" />
@@ -796,9 +798,9 @@ export default function AdminPage() {
                 )}
               </div>
               {loading ? (
-                <p className="text-sm font-bold py-4" style={{ color: "rgba(37,50,40,0.4)" }}>Loading...</p>
+                <p className="text-sm font-bold py-4" style={{ color: "var(--text-soft)" }}>Loading...</p>
               ) : members.length === 0 ? (
-                <p className="text-sm font-bold py-4" style={{ color: "rgba(37,50,40,0.4)" }}>팀원이 없어요.</p>
+                <p className="text-sm font-bold py-4" style={{ color: "var(--text-soft)" }}>팀원이 없어요.</p>
               ) : (
                 <div
                   className="flex gap-4 overflow-x-auto pb-3 -mx-1 px-1"
@@ -831,26 +833,26 @@ export default function AdminPage() {
                           width: 300,
                           maxWidth: "calc(100vw - 3rem)",
                           scrollSnapAlign: "start",
-                          background: "rgba(228,245,229,0.7)",
-                          backdropFilter: "blur(16px)",
-                          WebkitBackdropFilter: "blur(16px)",
-                          boxShadow: "0 8px 24px -6px rgba(37,50,40,0.10)",
+                          background: "var(--surface-overlay)",
+                          backdropFilter: "var(--glass-blur-low)",
+                          WebkitBackdropFilter: "var(--glass-blur-low)",
+                          boxShadow: "var(--glass-shadow)",
                         }}
                       >
                         {/* 통합: 아이콘 + 이름/파트 + 날씨상태 */}
                         <div className="flex items-center gap-3">
                           <div
                             className="w-12 h-12 rounded-[1.2rem] flex items-center justify-center shrink-0"
-                            style={{ background: score !== null ? "rgba(0,102,104,0.08)" : "var(--surface-container)" }}
+                            style={{ background: score !== null ? "var(--highlight-soft)" : "var(--surface-container)" }}
                           >
                             {score !== null
                               ? (() => { const Icon = WEATHER_ICON_MAP[scoreToStatus(score)]; return <Icon size={26} />; })()
-                              : <span className="text-lg font-black" style={{ color: "rgba(37,50,40,0.2)" }}>{m.name.slice(0, 1)}</span>
+                              : <span className="text-lg font-black" style={{ color: "var(--text-soft)" }}>{m.name.slice(0, 1)}</span>
                             }
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-base tracking-tight leading-tight truncate">{m.name}</p>
-                            <p className="text-xs font-medium mt-0.5" style={{ color: "rgba(37,50,40,0.45)" }}>
+                            <p className="text-xs font-medium mt-0.5" style={{ color: "var(--text-soft)" }}>
                               {score !== null
                                 ? <><span className="font-black" style={{ color: "var(--primary)" }}>{statusToKo(status)}</span> · {score}pt</>
                                 : (m.parts?.name ?? teams.find(t => t.id === m.team_id)?.name ?? "기록 없음")
@@ -875,7 +877,7 @@ export default function AdminPage() {
                             type="button"
                             onClick={() => { setMoodTarget(m.id); setMoodScore(score ?? 50); setMoodMessage(latest?.message ?? ""); setMoodError(null); setMoodDuplicate(false); }}
                             className="flex w-12 h-12 items-center justify-center rounded-full shrink-0 transition-all active:scale-95"
-                            style={{ background: "linear-gradient(135deg, #2b6867 0%, #52f2f5 100%)", color: "#fff" }}
+                            style={{ background: "var(--button-primary-gradient)", color: "var(--on-primary)", boxShadow: "var(--button-primary-shadow)" }}
                             title="기록 입력"
                           >
                             <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -886,12 +888,12 @@ export default function AdminPage() {
                             type="button"
                             onClick={() => copyWithFeedback(`${window.location.origin}/input?token=${m.access_token}`, m.id, "member")}
                             animate={copiedId === m.id
-                              ? { scale: [1, 1.2, 1], backgroundColor: "rgba(82,242,245,0.18)" }
+                              ? { scale: [1, 1.2, 1], backgroundColor: "var(--highlight-soft)" }
                               : { scale: 1, backgroundColor: "var(--surface-container)" }
                             }
                             transition={{ duration: 0.3 }}
                             className="flex w-12 h-12 items-center justify-center rounded-full shrink-0"
-                            style={{ color: copiedId === m.id ? "var(--primary)" : "rgba(37,50,40,0.45)" }}
+                            style={{ color: copiedId === m.id ? "var(--primary)" : "var(--text-soft)" }}
                             title="입력 링크 복사"
                           >
                             <AnimatePresence mode="wait">
@@ -910,7 +912,7 @@ export default function AdminPage() {
                           <Link
                             href={`/personal?user=${m.id}`}
                             className="flex w-12 h-12 items-center justify-center rounded-full shrink-0 transition-colors active:scale-95"
-                            style={{ background: "var(--surface-container)", color: "rgba(37,50,40,0.45)" }}
+                            style={{ background: "var(--surface-container)", color: "var(--text-soft)" }}
                             title="개인 페이지 보기"
                           >
                             <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -925,8 +927,8 @@ export default function AdminPage() {
                               onClick={() => { if (latest && isToday) setConfirmResetId(confirmResetId === m.id ? null : m.id); }}
                               className="flex w-12 h-12 items-center justify-center rounded-full transition-colors"
                               style={{
-                                background: confirmResetId === m.id ? "rgba(237,137,54,0.2)" : latest && isToday ? "rgba(237,137,54,0.1)" : "rgba(37,50,40,0.04)",
-                                color: latest && isToday ? "rgb(180,90,20)" : "rgba(37,50,40,0.2)",
+                                background: confirmResetId === m.id ? "color-mix(in srgb, #ed8936 22%, transparent)" : latest && isToday ? "color-mix(in srgb, #ed8936 14%, transparent)" : "var(--button-subtle-bg)",
+                                color: latest && isToday ? "color-mix(in srgb, #ed8936 78%, var(--on-surface))" : "var(--text-soft)",
                                 cursor: latest && isToday ? "pointer" : "default",
                               }}
                               title="오늘 기록 초기화"
@@ -944,14 +946,14 @@ export default function AdminPage() {
                                   exit={{ opacity: 0, y: 6, scale: 0.9 }}
                                   transition={{ duration: 0.15 }}
                                   className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1.5 p-1.5 rounded-2xl shadow-lg z-20"
-                                  style={{ background: "var(--surface-highest, white)", boxShadow: "0 8px 24px rgba(37,50,40,0.14)" }}
+                                  style={{ background: "var(--surface-container-highest)", boxShadow: "var(--glass-shadow)" }}
                                 >
                                   <button type="button" onClick={() => { resetTodayMood(m.id); setConfirmResetId(null); }}
                                     className="flex w-10 h-10 items-center justify-center rounded-xl text-xs font-black"
-                                    style={{ background: "rgba(237,137,54,0.15)", color: "rgb(180,90,20)" }}>✓</button>
+                                    style={{ background: "color-mix(in srgb, #ed8936 16%, transparent)", color: "color-mix(in srgb, #ed8936 78%, var(--on-surface))" }}>✓</button>
                                   <button type="button" onClick={() => setConfirmResetId(null)}
                                     className="flex w-10 h-10 items-center justify-center rounded-xl text-sm"
-                                    style={{ color: "rgba(37,50,40,0.4)", background: "rgba(37,50,40,0.05)" }}>✕</button>
+                                    style={{ color: "var(--text-soft)", background: "var(--button-subtle-bg)" }}>✕</button>
                                 </motion.div>
                               )}
                             </AnimatePresence>
@@ -964,7 +966,7 @@ export default function AdminPage() {
                               onClick={() => setConfirmDeleteId(confirmDeleteId === m.id ? null : m.id)}
                               className="flex w-12 h-12 items-center justify-center rounded-full transition-colors"
                               style={{
-                                background: confirmDeleteId === m.id ? "var(--error-container)" : "rgba(179,27,37,0.07)",
+                                background: confirmDeleteId === m.id ? "var(--error-container)" : "color-mix(in srgb, var(--error) 12%, transparent)",
                                 color: "var(--error)",
                               }}
                               title="삭제"
@@ -982,14 +984,14 @@ export default function AdminPage() {
                                   exit={{ opacity: 0, y: 6, scale: 0.9 }}
                                   transition={{ duration: 0.15 }}
                                   className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1.5 p-1.5 rounded-2xl shadow-lg z-20"
-                                  style={{ background: "var(--surface-highest, white)", boxShadow: "0 8px 24px rgba(37,50,40,0.14)" }}
+                                  style={{ background: "var(--surface-container-highest)", boxShadow: "var(--glass-shadow)" }}
                                 >
                                   <button type="button" onClick={() => { deleteMember(m.id); setConfirmDeleteId(null); }}
                                     className="flex w-10 h-10 items-center justify-center rounded-xl text-xs font-black"
                                     style={{ background: "var(--error-container)", color: "var(--error)" }}>✓</button>
                                   <button type="button" onClick={() => setConfirmDeleteId(null)}
                                     className="flex w-10 h-10 items-center justify-center rounded-xl text-sm"
-                                    style={{ color: "rgba(37,50,40,0.4)", background: "rgba(37,50,40,0.05)" }}>✕</button>
+                                    style={{ color: "var(--text-soft)", background: "var(--button-subtle-bg)" }}>✕</button>
                                 </motion.div>
                               )}
                             </AnimatePresence>
@@ -1033,7 +1035,7 @@ export default function AdminPage() {
                   </ClimaButton>
                 </div>
                 {teams.length === 0 ? (
-                  <p className="text-sm font-bold py-2" style={{ color: "rgba(37,50,40,0.4)" }}>등록된 팀이 없어요.</p>
+                  <p className="text-sm font-bold py-2" style={{ color: "var(--text-soft)" }}>등록된 팀이 없어요.</p>
                 ) : (
                   <div className="flex flex-col gap-2">
                     {teams.map(t => (
@@ -1044,7 +1046,7 @@ export default function AdminPage() {
                       >
                         <div
                           className="w-9 h-9 rounded-[0.875rem] flex items-center justify-center shrink-0"
-                          style={{ background: "rgba(0,102,104,0.08)", color: "var(--primary)" }}
+                          style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
                         >
                           <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
                         </div>
@@ -1063,7 +1065,7 @@ export default function AdminPage() {
                               type="button"
                               onClick={() => setConfirmDeleteId(null)}
                               className="text-xs font-bold transition-opacity hover:opacity-60"
-                              style={{ color: "rgba(37,50,40,0.35)" }}
+                              style={{ color: "var(--text-soft)" }}
                             >
                               취소
                             </button>
@@ -1073,7 +1075,7 @@ export default function AdminPage() {
                             type="button"
                             onClick={() => setConfirmDeleteId(t.id)}
                             className="text-xs font-bold shrink-0 transition-opacity hover:opacity-60"
-                            style={{ color: "rgba(37,50,40,0.25)" }}
+                            style={{ color: "var(--text-soft)" }}
                           >
                             삭제
                           </button>
@@ -1107,7 +1109,7 @@ export default function AdminPage() {
                     className="flex-1 min-w-[140px] rounded-[1.5rem] px-4 py-3 text-sm font-semibold border-none outline-none appearance-none cursor-pointer"
                     style={{
                       background: "var(--surface-container-low)",
-                      color: newPartTeamId ? "var(--on-surface)" : "rgba(37,50,40,0.4)",
+                      color: newPartTeamId ? "var(--on-surface)" : "var(--text-soft)",
                     }}
                   >
                     <option value="">팀 선택 (선택)</option>
@@ -1125,7 +1127,7 @@ export default function AdminPage() {
                   </ClimaButton>
                 </div>
                 {parts.length === 0 ? (
-                  <p className="text-sm font-bold py-2" style={{ color: "rgba(37,50,40,0.4)" }}>등록된 파트가 없어요.</p>
+                  <p className="text-sm font-bold py-2" style={{ color: "var(--text-soft)" }}>등록된 파트가 없어요.</p>
                 ) : (
                   <div className="flex flex-col gap-2">
                     {parts.map(p => {
@@ -1138,14 +1140,14 @@ export default function AdminPage() {
                         >
                           <div
                             className="w-9 h-9 rounded-[0.875rem] flex items-center justify-center shrink-0"
-                            style={{ background: "rgba(0,102,104,0.07)", color: "var(--primary)" }}
+                            style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
                           >
                             <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-base tracking-tight">{p.name}</p>
                             {teamName && (
-                              <p className="text-xs font-medium mt-0.5" style={{ color: "rgba(37,50,40,0.45)" }}>{teamName}</p>
+                              <p className="text-xs font-medium mt-0.5" style={{ color: "var(--text-soft)" }}>{teamName}</p>
                             )}
                           </div>
                           {confirmDeleteId === p.id ? (
@@ -1162,7 +1164,7 @@ export default function AdminPage() {
                                 type="button"
                                 onClick={() => setConfirmDeleteId(null)}
                                 className="text-xs font-bold transition-opacity hover:opacity-60"
-                                style={{ color: "rgba(37,50,40,0.35)" }}
+                                style={{ color: "var(--text-soft)" }}
                               >
                                 취소
                               </button>
@@ -1172,7 +1174,7 @@ export default function AdminPage() {
                               type="button"
                               onClick={() => setConfirmDeleteId(p.id)}
                               className="text-xs font-bold shrink-0 transition-opacity hover:opacity-60"
-                              style={{ color: "rgba(37,50,40,0.25)" }}
+                              style={{ color: "var(--text-soft)" }}
                             >
                               삭제
                             </button>
@@ -1218,13 +1220,13 @@ export default function AdminPage() {
                             <div
                               key={action.key}
                               className="rounded-[1.2rem] px-3 py-3"
-                              style={{ background: "rgba(255,255,255,0.62)" }}
+                              style={{ background: "var(--surface-overlay)" }}
                             >
-                              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "rgba(37,50,40,0.38)" }}>
+                              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--text-soft)" }}>
                                 {action.label}
                               </p>
                               <div className="mt-3 flex items-center justify-between gap-2">
-                                <p className="text-sm font-bold" style={{ color: "rgba(37,50,40,0.72)" }}>
+                                <p className="text-sm font-bold" style={{ color: "var(--text-muted)" }}>
                                   팀 전용 링크
                                 </p>
                                 <div className="flex items-center gap-2 shrink-0">
@@ -1233,12 +1235,12 @@ export default function AdminPage() {
                                     title={`${action.label} 링크 복사`}
                                     onClick={() => copyWithFeedback(action.href, `${t.id}-${action.key}`, "link")}
                                     animate={copiedLinkKey === `${t.id}-${action.key}`
-                                      ? { scale: [1, 1.2, 1], backgroundColor: "rgba(82,242,245,0.18)" }
+                                      ? { scale: [1, 1.2, 1], backgroundColor: "var(--highlight-soft)" }
                                       : { scale: 1, backgroundColor: "var(--surface-container)" }
                                     }
                                     transition={{ duration: 0.3 }}
                                     className="flex w-12 h-12 items-center justify-center rounded-full shrink-0"
-                                    style={{ color: copiedLinkKey === `${t.id}-${action.key}` ? "var(--primary)" : "rgba(37,50,40,0.45)" }}
+                                    style={{ color: copiedLinkKey === `${t.id}-${action.key}` ? "var(--primary)" : "var(--text-soft)" }}
                                   >
                                     <AnimatePresence mode="wait">
                                       {copiedLinkKey === `${t.id}-${action.key}` ? (
@@ -1275,7 +1277,7 @@ export default function AdminPage() {
                                     rel="noreferrer"
                                     title={`${action.label} 새 탭 열기`}
                                     className="flex w-12 h-12 items-center justify-center rounded-full shrink-0 transition-colors active:scale-95"
-                                    style={{ background: "var(--surface-container)", color: "rgba(37,50,40,0.45)" }}
+                                    style={{ background: "var(--surface-container)", color: "var(--text-soft)" }}
                                   >
                                     <ExternalLinkIcon />
                                   </Link>
@@ -1308,7 +1310,7 @@ export default function AdminPage() {
                 exit={{ opacity: 0 }}
                 onClick={() => setMoodTarget(null)}
                 className="fixed inset-0 z-40"
-                style={{ background: "rgba(37,50,40,0.15)", backdropFilter: "blur(8px)" }}
+                style={{ background: "var(--drawer-scrim)", backdropFilter: "blur(8px)" }}
               />
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
@@ -1316,7 +1318,7 @@ export default function AdminPage() {
                 exit={{ opacity: 0, y: 40 }}
                 transition={STANDARD_SPRING}
                 className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 rounded-[2.5rem] p-8 max-w-sm mx-auto flex flex-col items-center gap-5"
-                style={{ background: "var(--surface-lowest)", boxShadow: "0 30px 80px rgba(37,50,40,0.18)" }}
+                style={{ background: "var(--surface-lowest)", boxShadow: "var(--glass-shadow)" }}
               >
                 {/* 날씨 아이콘 */}
                 <AnimatePresence mode="wait">
@@ -1333,7 +1335,7 @@ export default function AdminPage() {
 
                 {/* 이름 + 상태 */}
                 <div className="text-center">
-                  <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: "rgba(37,50,40,0.4)" }}>
+                  <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: "var(--text-soft)" }}>
                     {targetMember?.name}의 오늘 기후
                   </p>
                   <h3 className="text-2xl font-black tracking-tight" style={{ color: "var(--primary)" }}>
@@ -1420,14 +1422,14 @@ export default function AdminPage() {
                 {/* 에러 / 중복 피드백 */}
                 {moodError && (
                   <p className="w-full text-center text-sm font-bold rounded-2xl px-4 py-3"
-                    style={{ background: "rgba(220,38,38,0.08)", color: "#dc2626" }}>
+                    style={{ background: "color-mix(in srgb, var(--error) 12%, transparent)", color: "var(--error)" }}>
                     {moodError}
                   </p>
                 )}
                 {moodDuplicate && (
                   <div className="w-full rounded-2xl px-4 py-4 flex flex-col gap-3 text-center"
-                    style={{ background: "rgba(255,153,0,0.08)" }}>
-                    <p className="text-sm font-bold" style={{ color: "rgba(37,50,40,0.7)" }}>
+                    style={{ background: "color-mix(in srgb, #ff9900 12%, transparent)" }}>
+                    <p className="text-sm font-bold" style={{ color: "var(--text-muted)" }}>
                       오늘 이미 기록이 있어요.<br />현재 점수로 덮어쓸까요?
                     </p>
                     <div className="flex gap-2 justify-center">
@@ -1444,7 +1446,7 @@ export default function AdminPage() {
                         type="button"
                         onClick={() => setMoodDuplicate(false)}
                         className="px-5 py-2 rounded-full font-bold text-sm"
-                        style={{ color: "rgba(37,50,40,0.45)", background: "rgba(37,50,40,0.06)" }}
+                        style={{ color: "var(--text-soft)", background: "var(--button-subtle-bg)" }}
                       >
                         취소
                       </button>

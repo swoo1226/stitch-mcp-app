@@ -172,7 +172,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                     key={i}
                     className="aspect-square rounded-[1rem] flex items-center justify-center"
                     style={{
-                      background: isToday ? "rgba(0,102,104,0.08)" : "transparent",
+                      background: isToday ? "var(--highlight-soft)" : "transparent",
                       outline: isToday ? "2px solid var(--primary)" : "none",
                       outlineOffset: "-2px",
                     }}
@@ -180,7 +180,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                     {Icon ? (
                       <Icon size={22} />
                     ) : (
-                      <span className="block h-5 w-5 rounded-full" style={{ background: "rgba(37,50,40,0.07)" }} />
+                      <span className="block h-5 w-5 rounded-full" style={{ background: "var(--track-bg)" }} />
                     )}
                   </div>
                 );

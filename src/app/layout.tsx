@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
+import { ThemeProvider, getThemeInitScript } from "./components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Clima | Check how the team feels today.",
@@ -14,11 +15,14 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="no-scrollbar">
-        <main className="relative min-h-screen">
-          {children}
-        </main>
+        <script dangerouslySetInnerHTML={{ __html: getThemeInitScript() }} />
+        <ThemeProvider>
+          <main className="relative min-h-screen">
+            {children}
+          </main>
+        </ThemeProvider>
       </body>
     </html>
   );

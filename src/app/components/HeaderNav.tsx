@@ -52,17 +52,17 @@ export default function HeaderNav({ items, mobile = false, onNavigate }: HeaderN
                 ? active
                   ? {
                       color: "var(--primary)",
-                      background: "linear-gradient(135deg, rgba(0,102,104,0.14), rgba(26,157,159,0.08))",
-                      boxShadow: "inset 0 0 0 1px rgba(0,102,104,0.08)",
+                      background: "color-mix(in srgb, var(--primary) 16%, transparent)",
+                      boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--primary) 18%, transparent)",
                     }
-                  : { color: "rgba(37,50,40,0.8)" }
+                  : { color: "var(--text-muted)" }
                 : active
                   ? {
                       color: "var(--primary)",
-                      background: "linear-gradient(135deg, rgba(0,102,104,0.12), rgba(26,157,159,0.05))",
-                      boxShadow: "inset 0 0 0 1px rgba(0,102,104,0.08)",
+                      background: "color-mix(in srgb, var(--primary) 14%, transparent)",
+                      boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--primary) 16%, transparent)",
                     }
-                  : { color: "rgba(37,50,40,0.58)" }
+                  : { color: "var(--text-muted)" }
             }
           >
             {item.label}

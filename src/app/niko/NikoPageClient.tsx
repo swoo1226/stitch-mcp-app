@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import ClimaLogo from "../components/WetherLogo";
 import HeaderNav, { type HeaderNavItem } from "../components/HeaderNav";
+import ThemeToggleButton from "../components/ThemeToggleButton";
 import {
   GlassCard,
   MiniStatCard,
@@ -240,17 +241,15 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
   return (
     <div
       className="min-h-screen"
-      style={{
-        background:
-          "radial-gradient(circle at top right, rgba(197,242,237,0.42) 0%, rgba(235,250,236,0.96) 38%, rgba(228,245,229,1) 100%)",
-      }}
+      style={{ background: "var(--hero-gradient)" }}
     >
       {/* ── 헤더 (fixed, h-16, 한 줄) ── */}
       <motion.header
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={STANDARD_SPRING}
-        className="fixed top-0 left-0 w-full z-50 flex items-center justify-between h-16 px-10 bg-white/70 backdrop-blur-[20px] shadow-[0_40px_40px_-10px_rgba(37,50,40,0.06)]"
+        className="fixed top-0 left-0 w-full z-50 flex items-center justify-between h-16 px-10"
+        style={{ background: "var(--header-bg)", backdropFilter: "var(--glass-blur)", boxShadow: "var(--header-shadow)" }}
       >
         <div className="flex items-center gap-8">
           <Link href="/" className="flex shrink-0 items-center">
@@ -260,7 +259,8 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
             <HeaderNav items={NAV_ITEMS} />
           </nav>
         </div>
-        <div className="flex items-center gap-2" style={{ color: "rgba(37,50,40,0.7)" }}>
+        <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
+          <ThemeToggleButton />
           <button className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
             <TopIcon type="bell" />
           </button>
@@ -293,7 +293,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
               exit={{ opacity: 0 }}
               onClick={() => setMobileNavOpen(false)}
               className="fixed inset-0 z-[60]"
-              style={{ background: "rgba(37,50,40,0.15)", backdropFilter: "blur(4px)" }}
+              style={{ background: "var(--drawer-scrim)", backdropFilter: "blur(4px)" }}
             />
             <motion.div
               initial={{ x: "100%" }}
@@ -301,14 +301,14 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
               exit={{ x: "100%" }}
               transition={STANDARD_SPRING}
               className="fixed right-0 top-0 h-full w-72 z-[70] flex flex-col"
-              style={{ background: "rgba(255,255,255,0.96)", backdropFilter: "blur(20px)" }}
+              style={{ background: "var(--drawer-bg)", backdropFilter: "var(--glass-blur)" }}
             >
               <div className="flex items-center justify-between px-6 h-16 shrink-0">
                 <ClimaLogo />
                 <button
                   onClick={() => setMobileNavOpen(false)}
                   className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-low transition-colors"
-                  style={{ color: "rgba(37,50,40,0.5)" }}
+                  style={{ color: "var(--text-soft)" }}
                 >
                   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
                     <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
@@ -340,14 +340,14 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
           <div className="flex flex-col gap-3 sm:items-end">
             <div className="flex flex-wrap gap-2 sm:justify-end items-center">
               {teamParts.length > 0 && (
-                <div className="flex items-center gap-1 rounded-full p-1" style={{ background: "rgba(255,255,255,0.7)" }}>
+                <div className="flex items-center gap-1 rounded-full p-1" style={{ background: "var(--surface-overlay)", boxShadow: "var(--button-subtle-shadow)" }}>
                   <button
                     type="button"
                     onClick={() => setSelectedPartId(null)}
                     className="rounded-full px-3 py-1.5 text-xs font-black tracking-tight transition-all"
                     style={!selectedPartId
-                      ? { background: "var(--primary)", color: "#fff", boxShadow: "0 2px 8px rgba(0,102,104,0.2)" }
-                      : { color: "rgba(37,50,40,0.5)" }
+                      ? { background: "var(--primary)", color: "var(--on-primary)", boxShadow: "var(--button-primary-shadow)" }
+                      : { color: "var(--text-soft)" }
                     }
                   >
                     전체
@@ -359,8 +359,8 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
                       onClick={() => setSelectedPartId(p.id)}
                       className="rounded-full px-3 py-1.5 text-xs font-black tracking-tight transition-all"
                       style={selectedPartId === p.id
-                        ? { background: "var(--primary)", color: "#fff", boxShadow: "0 2px 8px rgba(0,102,104,0.2)" }
-                        : { color: "rgba(37,50,40,0.5)" }
+                        ? { background: "var(--primary)", color: "var(--on-primary)", boxShadow: "var(--button-primary-shadow)" }
+                        : { color: "var(--text-soft)" }
                       }
                     >
                       {p.name}

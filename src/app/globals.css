@@ -24,6 +24,9 @@
   --color-tertiary-container: var(--tertiary-container);
   --color-error: var(--error);
   --color-error-container: var(--error-container);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-overlay: var(--surface-overlay);
+  --color-border-subtle: var(--border-subtle);
 }
 
 
@@ -35,9 +38,14 @@
   --surface-container-high: #d5e8d8;
   --surface-container-highest: #cde2cf;
   --surface-lowest: #ffffff;
+  --surface-elevated: rgba(255, 255, 255, 0.82);
+  --surface-overlay: rgba(255, 255, 255, 0.72);
   
   --on-surface: #253228;
   --on-surface-variant: #516b67;
+  --text-muted: rgba(37, 50, 40, 0.62);
+  --text-soft: rgba(37, 50, 40, 0.45);
+  --border-subtle: rgba(37, 50, 40, 0.08);
   
   --primary: #006668;
   --on-primary: #ffffff;
@@ -53,9 +61,120 @@
   --error-container: #ffdad6;
   
   --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-bg-low: rgba(255, 255, 255, 0.5);
+  --glass-bg-medium: rgba(255, 255, 255, 0.65);
+  --glass-bg-high: rgba(255, 255, 255, 0.8);
   --glass-blur: blur(20px);
-  
+  --glass-blur-low: blur(16px);
+  --glass-blur-medium: blur(24px);
+  --glass-blur-high: blur(40px);
+
   --shadow-ambient: 0 20px 40px -10px rgba(37, 50, 40, 0.06);
+  --glass-shadow: 0 20px 40px -10px rgba(37, 50, 40, 0.06);
+  --header-bg: rgba(255, 255, 255, 0.72);
+  --header-shadow: 0 20px 40px -10px rgba(37, 50, 40, 0.06);
+  --header-action-color: rgba(37, 50, 40, 0.7);
+  --drawer-bg: rgba(255, 255, 255, 0.96);
+  --drawer-scrim: rgba(37, 50, 40, 0.15);
+  --panel-soft: rgba(228, 245, 229, 0.6);
+  --panel-strong: rgba(255, 255, 255, 0.86);
+  --panel-tint: rgba(235, 250, 236, 0.88);
+  --tile-soft: rgba(255, 255, 255, 0.62);
+  --hero-gradient: radial-gradient(circle at top right, rgba(197,242,237,0.42) 0%, rgba(235,250,236,0.96) 38%, rgba(228,245,229,1) 100%);
+  --landing-hero-gradient: radial-gradient(ellipse 80% 60% at 70% 40%, rgba(82,242,245,0.18) 0%, transparent 60%), radial-gradient(ellipse 60% 80% at 10% 60%, rgba(0,102,104,0.06) 0%, transparent 60%), var(--surface);
+  --highlight-soft: rgba(0, 102, 104, 0.08);
+  --button-primary-gradient: linear-gradient(135deg, #006668, #1a9d9f);
+  --button-primary-shadow: 0 8px 24px rgba(0,102,104,0.28);
+  --button-subtle-bg: var(--surface-container);
+  --button-subtle-shadow: none;
+  --button-subtle-text: rgba(37, 50, 40, 0.7);
+  --track-bg: rgba(37, 50, 40, 0.08);
+  --weather-radiant-bg: #fdf8ec;
+  --weather-radiant-blob-1: #e6a800;
+  --weather-radiant-blob-2: #fbbf24;
+  --weather-sunny-bg: #fef3e8;
+  --weather-sunny-blob-1: #f97316;
+  --weather-sunny-blob-2: #fb923c;
+  --weather-foggy-bg: #eef1f5;
+  --weather-foggy-blob-1: #94a3b8;
+  --weather-foggy-blob-2: #cbd5e1;
+  --weather-rainy-bg: #e4ecf7;
+  --weather-rainy-blob-1: #3b82f6;
+  --weather-rainy-blob-2: #60a5fa;
+  --weather-stormy-bg: #e8eaf2;
+  --weather-stormy-blob-1: #4b5577;
+  --weather-stormy-blob-2: #334155;
+}
+
+html[data-theme="dark"] {
+  --surface: #0f1718;
+  --surface-container-low: #162124;
+  --surface-container: #1b2a2d;
+  --surface-container-high: #223337;
+  --surface-container-highest: #2a4044;
+  --surface-lowest: #111a1c;
+  --surface-elevated: rgba(19, 28, 31, 0.88);
+  --surface-overlay: rgba(17, 26, 28, 0.78);
+
+  --on-surface: #e5f1ee;
+  --on-surface-variant: #9bb2ae;
+  --text-muted: rgba(229, 241, 238, 0.72);
+  --text-soft: rgba(229, 241, 238, 0.52);
+  --border-subtle: rgba(229, 241, 238, 0.1);
+
+  --primary: #52f2f5;
+  --on-primary: #062b2c;
+  --primary-container: #0f4f51;
+
+  --secondary: #87d9dc;
+  --secondary-container: #183a3c;
+
+  --tertiary: #ff9f95;
+  --tertiary-container: #48211e;
+
+  --error: #ff8f8f;
+  --error-container: #4b1f20;
+
+  --glass-bg: rgba(18, 28, 31, 0.72);
+  --glass-bg-low: rgba(18, 28, 31, 0.5);
+  --glass-bg-medium: rgba(18, 28, 31, 0.68);
+  --glass-bg-high: rgba(18, 28, 31, 0.82);
+
+  --shadow-ambient: 0 22px 48px -16px rgba(0, 0, 0, 0.42);
+  --glass-shadow: 0 22px 48px -16px rgba(0, 0, 0, 0.38);
+  --header-bg: rgba(16, 23, 25, 0.78);
+  --header-shadow: 0 24px 44px -16px rgba(0, 0, 0, 0.42);
+  --header-action-color: rgba(229, 241, 238, 0.72);
+  --drawer-bg: rgba(14, 21, 23, 0.96);
+  --drawer-scrim: rgba(5, 8, 10, 0.46);
+  --panel-soft: rgba(20, 30, 33, 0.92);
+  --panel-strong: rgba(15, 23, 25, 0.92);
+  --panel-tint: rgba(17, 27, 29, 0.92);
+  --tile-soft: rgba(27, 40, 43, 0.92);
+  --hero-gradient: radial-gradient(circle at top right, rgba(19,71,74,0.42) 0%, rgba(12,21,23,0.96) 38%, rgba(9,15,17,1) 100%);
+  --landing-hero-gradient: radial-gradient(ellipse 80% 60% at 70% 40%, rgba(82,242,245,0.12) 0%, transparent 60%), radial-gradient(ellipse 60% 80% at 10% 60%, rgba(0,102,104,0.18) 0%, transparent 60%), var(--surface);
+  --highlight-soft: rgba(82, 242, 245, 0.16);
+  --button-primary-gradient: linear-gradient(135deg, #0d7375, #34b9bc);
+  --button-primary-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  --button-subtle-bg: rgba(255, 255, 255, 0.04);
+  --button-subtle-shadow: inset 0 0 0 1px rgba(229, 241, 238, 0.06);
+  --button-subtle-text: rgba(229, 241, 238, 0.7);
+  --track-bg: rgba(229, 241, 238, 0.12);
+  --weather-radiant-bg: #241d10;
+  --weather-radiant-blob-1: #c98d13;
+  --weather-radiant-blob-2: #d7a53a;
+  --weather-sunny-bg: #241710;
+  --weather-sunny-blob-1: #c96b1a;
+  --weather-sunny-blob-2: #d7813e;
+  --weather-foggy-bg: #161d24;
+  --weather-foggy-blob-1: #607287;
+  --weather-foggy-blob-2: #4b5968;
+  --weather-rainy-bg: #101c29;
+  --weather-rainy-blob-1: #275aa7;
+  --weather-rainy-blob-2: #326fbb;
+  --weather-stormy-bg: #0c1016;
+  --weather-stormy-blob-1: #273349;
+  --weather-stormy-blob-2: #1a2332;
 }
 
 @layer base {
@@ -73,6 +192,7 @@ body {
   background-color: var(--surface);
   color: var(--on-surface);
   overflow-x: hidden;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 h1, h2, h3, h4, .headline {
@@ -86,7 +206,7 @@ h1, h2, h3, h4, .headline {
   -webkit-backdrop-filter: var(--glass-blur);
   /* Rule: strictly prohibit 1px solid borders for sectioning */
   border: none;
-  box-shadow: var(--shadow-ambient);
+  box-shadow: var(--glass-shadow);
 }
 
 /* Logo Styling */

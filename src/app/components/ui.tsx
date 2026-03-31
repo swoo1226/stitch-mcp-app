@@ -19,8 +19,16 @@ interface GlassCardProps {
 }
 
 export function GlassCard({ children, className = "", style, intensity = "medium" }: GlassCardProps) {
-  const blurMap = { low: "blur(16px)", medium: "blur(24px)", high: "blur(40px)" };
-  const bgMap   = { low: "rgba(255,255,255,0.5)", medium: "rgba(255,255,255,0.65)", high: "rgba(255,255,255,0.8)" };
+  const blurMap = {
+    low: "var(--glass-blur-low)",
+    medium: "var(--glass-blur-medium)",
+    high: "var(--glass-blur-high)",
+  };
+  const bgMap = {
+    low: "var(--glass-bg-low)",
+    medium: "var(--glass-bg-medium)",
+    high: "var(--glass-bg-high)",
+  };
 
   return (
     <div
@@ -29,7 +37,7 @@ export function GlassCard({ children, className = "", style, intensity = "medium
         background: bgMap[intensity],
         backdropFilter: blurMap[intensity],
         WebkitBackdropFilter: blurMap[intensity],
-        boxShadow: "0 20px 40px -10px rgba(37,50,40,0.06)",
+        boxShadow: "var(--glass-shadow)",
         ...style,
       }}
     >
@@ -51,10 +59,10 @@ export function GlassPanel({ children, className = "", style }: GlassPanelProps)
     <div
       className={`rounded-[1.75rem] ${className}`}
       style={{
-        background: "rgba(255,255,255,0.55)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        boxShadow: "0 16px 32px -12px rgba(37,50,40,0.08)",
+        background: "var(--glass-bg-low)",
+        backdropFilter: "var(--glass-blur-low)",
+        WebkitBackdropFilter: "var(--glass-blur-low)",
+        boxShadow: "var(--glass-shadow)",
         ...style,
       }}
     >
@@ -177,7 +185,7 @@ export function ProgressBar({ value, variant = "gradient", height = 8, className
   return (
     <div
       className={`w-full rounded-full overflow-hidden ${className}`}
-      style={{ height, background: "rgba(37,50,40,0.08)" }}
+      style={{ height, background: "var(--track-bg)" }}
     >
       <motion.div
         initial={animate ? { width: 0 } : { width: `${value}%` }}

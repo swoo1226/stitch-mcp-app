@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion";
 import { useState, useRef } from "react";
 import ClimaLogo from "./components/WetherLogo";
+import ThemeToggleButton from "./components/ThemeToggleButton";
 import { STANDARD_SPRING } from "./constants/springs";
 import {
   IconSunny, IconFoggy, IconRainy, IconStormy, IconRadiant,
@@ -26,40 +27,40 @@ const WEATHER_STATES = [
     status: "Radiant" as const,
     range: "81–100",
     desc: "에너지가 넘쳐흘러요 — 아이디어가 쏟아지고 팀 전체가 들떠 있어요.",
-    bg: "rgba(255,220,80,0.12)",
-    accent: "#F5A623",
+    bg: "color-mix(in srgb, var(--weather-radiant-blob-2) 14%, var(--surface-elevated))",
+    accent: "var(--weather-radiant-blob-1)",
   },
   {
     icon: IconSunny,
     status: "Sunny" as const,
     range: "61–80",
     desc: "집중력이 좋고 긍정적인 하루예요 — 맑고 생산적인 기운이 가득해요.",
-    bg: "rgba(245,166,35,0.1)",
-    accent: "#E8972B",
+    bg: "color-mix(in srgb, var(--weather-sunny-blob-2) 12%, var(--surface-elevated))",
+    accent: "var(--weather-sunny-blob-1)",
   },
   {
     icon: IconFoggy,
     status: "Foggy" as const,
     range: "41–60",
     desc: "앞이 잘 보이지 않아요 — 에너지가 낮고 방향감이 흐릿한 상태예요.",
-    bg: "rgba(154,165,180,0.12)",
-    accent: "#9aa5b4",
+    bg: "color-mix(in srgb, var(--weather-foggy-blob-2) 16%, var(--surface-elevated))",
+    accent: "var(--weather-foggy-blob-1)",
   },
   {
     icon: IconRainy,
     status: "Rainy" as const,
     range: "21–40",
     desc: "오늘은 많이 힘들어요 — 지지와 관심이 필요한 상태예요.",
-    bg: "rgba(91,155,213,0.12)",
-    accent: "#4a8bc4",
+    bg: "color-mix(in srgb, var(--weather-rainy-blob-2) 14%, var(--surface-elevated))",
+    accent: "var(--weather-rainy-blob-2)",
   },
   {
     icon: IconStormy,
     status: "Stormy" as const,
     range: "0–20",
     desc: "위기 상태예요 — 즉각적인 보살핌과 체크인이 필요해요.",
-    bg: "rgba(45,52,54,0.08)",
-    accent: "#2d3436",
+    bg: "color-mix(in srgb, var(--weather-stormy-blob-2) 18%, var(--surface-elevated))",
+    accent: "var(--weather-stormy-blob-2)",
   },
 ];
 
@@ -123,7 +124,10 @@ export default function LandingPage() {
       style={{ background: "var(--surface)" }}
     >
       {/* ── Header ── */}
-      <header className="fixed top-0 left-0 w-full z-50 flex items-center justify-between h-16 px-6 md:px-10 bg-white/70 backdrop-blur-[20px] shadow-[0_40px_40px_-10px_rgba(37,50,40,0.06)]">
+      <header
+        className="fixed top-0 left-0 w-full z-50 flex items-center justify-between h-16 px-6 md:px-10"
+        style={{ background: "var(--header-bg)", backdropFilter: "var(--glass-blur)", boxShadow: "var(--header-shadow)" }}
+      >
         <div className="flex items-center gap-8">
           <Link href="/" className="flex shrink-0 items-center">
             <ClimaLogo />
@@ -134,7 +138,7 @@ export default function LandingPage() {
                 key={item.label}
                 href={item.href}
                 className="px-3 py-1 text-sm font-semibold tracking-tight transition-colors rounded-full hover:bg-surface-low"
-                style={{ color: "rgba(37,50,40,0.55)" }}
+                style={{ color: "var(--text-muted)" }}
               >
                 {item.label}
               </Link>
@@ -142,13 +146,14 @@ export default function LandingPage() {
           </nav>
         </div>
         <div className="flex items-center gap-3">
+          <ThemeToggleButton />
           <Link
             href="/input"
             className="hidden md:inline-flex items-center h-9 px-5 rounded-full text-sm font-bold transition-all hover:opacity-80"
             style={{
-              background: "linear-gradient(135deg, #006668, #1a9d9f)",
-              color: "#fff",
-              boxShadow: "0 4px 12px rgba(0,102,104,0.25)",
+              background: "var(--button-primary-gradient)",
+              color: "var(--on-primary)",
+              boxShadow: "var(--button-primary-shadow)",
             }}
           >
             Let's Clima
@@ -156,7 +161,7 @@ export default function LandingPage() {
           <button
             className="md:hidden flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
             onClick={() => setMobileNavOpen(true)}
-            style={{ color: "rgba(37,50,40,0.7)" }}
+            style={{ color: "var(--header-action-color)" }}
             aria-label="메뉴 열기"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -174,20 +179,20 @@ export default function LandingPage() {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setMobileNavOpen(false)}
               className="fixed inset-0 z-[60]"
-              style={{ background: "rgba(37,50,40,0.15)", backdropFilter: "blur(4px)" }}
+              style={{ background: "var(--drawer-scrim)", backdropFilter: "blur(4px)" }}
             />
             <motion.div
               initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
               transition={STANDARD_SPRING}
               className="fixed right-0 top-0 h-full w-72 z-[70] flex flex-col"
-              style={{ background: "rgba(255,255,255,0.96)", backdropFilter: "blur(20px)" }}
+              style={{ background: "var(--drawer-bg)", backdropFilter: "var(--glass-blur)" }}
             >
               <div className="flex items-center justify-between px-6 h-16 shrink-0">
                 <ClimaLogo />
                 <button
                   onClick={() => setMobileNavOpen(false)}
                   className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-low transition-colors"
-                  style={{ color: "rgba(37,50,40,0.5)" }}
+                  style={{ color: "var(--text-soft)" }}
                 >
                   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
                     <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
@@ -201,7 +206,7 @@ export default function LandingPage() {
                     href={item.href}
                     onClick={() => setMobileNavOpen(false)}
                     className="px-5 py-4 rounded-[1.5rem] text-base font-semibold tracking-tight transition-colors hover:bg-surface-low"
-                    style={{ color: "rgba(37,50,40,0.8)" }}
+                    style={{ color: "var(--text-muted)" }}
                   >
                     {item.label}
                   </Link>
@@ -211,7 +216,7 @@ export default function LandingPage() {
                     href="/input"
                     onClick={() => setMobileNavOpen(false)}
                     className="flex items-center justify-center h-14 rounded-[1.5rem] text-base font-bold"
-                    style={{ background: "linear-gradient(135deg, #006668, #1a9d9f)", color: "#fff" }}
+                    style={{ background: "var(--button-primary-gradient)", color: "var(--on-primary)" }}
                   >
                     Let's Clima
                   </Link>
@@ -227,21 +232,20 @@ export default function LandingPage() {
         ref={heroRef}
         className="relative min-h-screen flex items-center pt-16 overflow-hidden"
         style={{
-          background:
-            "radial-gradient(ellipse 80% 60% at 70% 40%, rgba(82,242,245,0.18) 0%, transparent 60%), radial-gradient(ellipse 60% 80% at 10% 60%, rgba(0,102,104,0.06) 0%, transparent 60%), var(--surface)",
+          background: "var(--landing-hero-gradient)",
         }}
       >
         {/* Background decoration */}
         <div
           className="absolute top-20 right-0 md:right-10 w-[280px] md:w-[420px] h-[280px] md:h-[420px] rounded-full pointer-events-none"
           style={{
-            background: "radial-gradient(circle, rgba(245,166,35,0.18) 0%, rgba(245,166,35,0.06) 50%, transparent 70%)",
+            background: "radial-gradient(circle, color-mix(in srgb, var(--weather-radiant-blob-2) 22%, transparent) 0%, color-mix(in srgb, var(--weather-radiant-blob-2) 8%, transparent) 50%, transparent 70%)",
           }}
         />
         <div
           className="absolute bottom-10 left-0 w-[200px] h-[200px] rounded-full pointer-events-none"
           style={{
-            background: "radial-gradient(circle, rgba(0,102,104,0.08) 0%, transparent 70%)",
+            background: "radial-gradient(circle, color-mix(in srgb, var(--primary) 14%, transparent) 0%, transparent 70%)",
           }}
         />
 
@@ -257,7 +261,7 @@ export default function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...STANDARD_SPRING, delay: 0.05 }}
                 className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] mb-6"
-                style={{ background: "rgba(0,102,104,0.08)", color: "var(--primary)" }}
+                style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-current inline-block" />
                 팀 컨디션 대시보드
@@ -276,7 +280,7 @@ export default function LandingPage() {
                 <br />
                 <span
                   style={{
-                    backgroundImage: "linear-gradient(135deg, #006668 0%, #1a9d9f 40%, #52f2f5 100%)",
+                    backgroundImage: "linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 78%, white) 40%, color-mix(in srgb, var(--primary) 58%, white) 100%)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                     backgroundClip: "text",
@@ -291,7 +295,7 @@ export default function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...STANDARD_SPRING, delay: 0.16 }}
                 className="text-base md:text-lg font-medium leading-relaxed mb-8 max-w-md"
-                style={{ color: "rgba(37,50,40,0.6)" }}
+                style={{ color: "var(--text-muted)" }}
               >
                 팀원의 감정을 직관적인 날씨 메타포로 변환해주는 Clima — 문제가 커지기 전에 리더가 팀의 컨디션을 알아채고, 이해하고, 행동할 수 있도록 도와줘요.
               </motion.p>
@@ -306,9 +310,9 @@ export default function LandingPage() {
                   href="/input"
                   className="inline-flex items-center gap-2 h-14 px-8 rounded-[1.5rem] text-base font-bold transition-all hover:opacity-90 hover:scale-[1.02] active:scale-95"
                   style={{
-                    background: "linear-gradient(135deg, #006668, #1a9d9f)",
-                    color: "#fff",
-                    boxShadow: "0 8px 24px rgba(0,102,104,0.28)",
+                    background: "var(--button-primary-gradient)",
+                    color: "var(--on-primary)",
+                    boxShadow: "var(--button-primary-shadow)",
                   }}
                 >
                   오늘 날씨 기록하기
@@ -316,7 +320,7 @@ export default function LandingPage() {
                 <Link
                   href="/dashboard"
                   className="inline-flex items-center gap-2 h-14 px-8 rounded-[1.5rem] text-base font-bold transition-all hover:bg-surface-container active:scale-95"
-                  style={{ background: "rgba(255,255,255,0.7)", color: "var(--primary)", backdropFilter: "blur(12px)" }}
+                  style={{ background: "var(--surface-overlay)", color: "var(--primary)", backdropFilter: "var(--glass-blur-low)", boxShadow: "var(--button-subtle-shadow)" }}
                 >
                   대시보드 보기
                 </Link>
@@ -339,8 +343,8 @@ export default function LandingPage() {
                 <div
                   className="w-[180px] h-[180px] md:w-[240px] md:h-[240px] rounded-full flex items-center justify-center"
                   style={{
-                    background: "radial-gradient(circle at 38% 34%, #FFE580, #F5A623)",
-                    boxShadow: "0 0 60px rgba(245,166,35,0.35), 0 0 120px rgba(245,166,35,0.15)",
+                    background: "radial-gradient(circle at 38% 34%, color-mix(in srgb, var(--weather-radiant-blob-2) 72%, white), var(--weather-radiant-blob-1))",
+                    boxShadow: "0 0 60px color-mix(in srgb, var(--weather-radiant-blob-2) 35%, transparent), 0 0 120px color-mix(in srgb, var(--weather-radiant-blob-1) 18%, transparent)",
                   }}
                 >
                   <IconSunny size={100} />
@@ -354,12 +358,12 @@ export default function LandingPage() {
                 transition={{ ...STANDARD_SPRING, delay: 0.4 }}
                 className="absolute top-6 right-4 md:right-0 rounded-[1.5rem] px-5 py-3"
                 style={{
-                  background: "rgba(255,255,255,0.85)",
-                  backdropFilter: "blur(20px)",
-                  boxShadow: "0 8px 24px rgba(37,50,40,0.1)",
+                  background: "var(--surface-elevated)",
+                  backdropFilter: "var(--glass-blur)",
+                  boxShadow: "var(--glass-shadow)",
                 }}
               >
-                <p className="text-xs font-bold uppercase tracking-wider mb-0.5" style={{ color: "rgba(37,50,40,0.45)" }}>팀 점수</p>
+                <p className="text-xs font-bold uppercase tracking-wider mb-0.5" style={{ color: "var(--text-soft)" }}>팀 점수</p>
                 <p className="text-2xl font-black" style={{ color: "var(--primary)" }}>82</p>
               </motion.div>
 
@@ -370,27 +374,27 @@ export default function LandingPage() {
                 transition={{ ...STANDARD_SPRING, delay: 0.52 }}
                 className="absolute bottom-8 left-0 md:-left-6 rounded-[1.5rem] px-4 py-3 flex items-center gap-3"
                 style={{
-                  background: "rgba(255,255,255,0.85)",
-                  backdropFilter: "blur(20px)",
-                  boxShadow: "0 8px 24px rgba(37,50,40,0.1)",
+                  background: "var(--surface-elevated)",
+                  backdropFilter: "var(--glass-blur)",
+                  boxShadow: "var(--glass-shadow)",
                 }}
               >
                 <div
                   className="w-10 h-10 rounded-[1rem] flex items-center justify-center shrink-0"
-                  style={{ background: "rgba(245,166,35,0.12)" }}
+                  style={{ background: "color-mix(in srgb, var(--weather-radiant-blob-2) 16%, var(--surface-overlay))" }}
                 >
                   <IconSunny size={24} />
                 </div>
                 <div>
                   <p className="text-sm font-bold" style={{ color: "var(--on-surface)" }}>오늘 맑음 3명</p>
-                  <p className="text-xs font-medium" style={{ color: "rgba(37,50,40,0.5)" }}>전원 체크인 완료</p>
+                  <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>전원 체크인 완료</p>
                 </div>
               </motion.div>
 
               {/* Orbit ring */}
               <div
                 className="absolute w-[260px] h-[260px] md:w-[340px] md:h-[340px] rounded-full pointer-events-none"
-                style={{ border: "1.5px dashed rgba(0,102,104,0.15)" }}
+                style={{ border: "1.5px dashed color-mix(in srgb, var(--primary) 20%, transparent)" }}
               />
             </motion.div>
           </div>
@@ -402,7 +406,7 @@ export default function LandingPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2 }}
           className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-          style={{ color: "rgba(37,50,40,0.3)" }}
+          style={{ color: "var(--text-soft)" }}
         >
           <p className="text-xs font-bold uppercase tracking-[0.2em]">스크롤</p>
           <motion.div
@@ -431,7 +435,7 @@ export default function LandingPage() {
                   <br />
                   <span style={{ color: "var(--primary)" }}>날씨로 관측</span>해요
                 </h2>
-                <p className="text-base font-medium leading-relaxed max-w-sm" style={{ color: "rgba(37,50,40,0.6)" }}>
+                <p className="text-base font-medium leading-relaxed max-w-sm" style={{ color: "var(--text-muted)" }}>
                   막연한 감정은 추적하기 어려워요. 날씨 메타포는 팀의 분위기를 누구나 즉시 이해할 수 있게 만들어줘요.
                 </p>
               </FadeIn>
@@ -443,17 +447,17 @@ export default function LandingPage() {
                 <FadeIn key={step.num} delay={i * 0.1}>
                   <div
                     className="flex gap-5 rounded-[2rem] px-6 py-5"
-                    style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(16px)", boxShadow: "0 20px 40px -10px rgba(37,50,40,0.06)" }}
+                    style={{ background: "var(--surface-overlay)", backdropFilter: "var(--glass-blur-low)", boxShadow: "var(--glass-shadow)" }}
                   >
                     <div
                       className="w-10 h-10 rounded-[1rem] flex items-center justify-center shrink-0 text-sm font-black"
-                      style={{ background: "rgba(0,102,104,0.1)", color: "var(--primary)" }}
+                      style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
                     >
                       {step.num}
                     </div>
                     <div>
                       <p className="font-bold text-base mb-1 tracking-tight" style={{ color: "var(--on-surface)" }}>{step.title}</p>
-                      <p className="text-sm font-medium leading-relaxed" style={{ color: "rgba(37,50,40,0.6)" }}>{step.desc}</p>
+                      <p className="text-sm font-medium leading-relaxed" style={{ color: "var(--text-muted)" }}>{step.desc}</p>
                     </div>
                   </div>
                 </FadeIn>
@@ -466,7 +470,7 @@ export default function LandingPage() {
       {/* ── Weather States ── */}
       <section
         className="py-24 md:py-32 px-6 md:px-10 xl:px-16"
-        style={{ background: "rgba(255,255,255,0.45)" }}
+        style={{ background: "color-mix(in srgb, var(--surface-elevated) 65%, transparent)" }}
       >
         <div className="max-w-[1280px] mx-auto">
           <FadeIn className="text-center mb-14">
@@ -476,7 +480,7 @@ export default function LandingPage() {
             <h2 className="text-3xl md:text-4xl font-black tracking-tight" style={{ fontFamily: "'Public Sans', sans-serif" }}>
               내 마음의 날씨를 읽어요
             </h2>
-            <p className="text-base font-medium mt-4 max-w-lg mx-auto" style={{ color: "rgba(37,50,40,0.6)" }}>
+            <p className="text-base font-medium mt-4 max-w-lg mx-auto" style={{ color: "var(--text-muted)" }}>
               기분 점수가 날씨 상태로 자동 변환돼요 — 팀 전체가 별도 설명 없이 바로 이해할 수 있어요.
             </p>
           </FadeIn>
@@ -486,24 +490,24 @@ export default function LandingPage() {
               <FadeIn key={state.status} delay={i * 0.06}>
                 <div
                   className="rounded-[2rem] p-5 md:p-6 flex flex-col gap-3 transition-transform hover:scale-[1.02] cursor-default"
-                  style={{
-                    background: state.bg,
-                    backdropFilter: "blur(12px)",
-                    boxShadow: "0 12px 32px -8px rgba(37,50,40,0.06)",
-                  }}
+                    style={{
+                      background: state.bg,
+                    backdropFilter: "var(--glass-blur-low)",
+                    boxShadow: "var(--glass-shadow)",
+                    }}
                 >
                   <div className="flex items-center justify-between">
                     <state.icon size={40} />
                     <span
                       className="text-xs font-black rounded-full px-3 py-1"
-                      style={{ background: "rgba(255,255,255,0.6)", color: state.accent }}
+                      style={{ background: "var(--surface-overlay)", color: state.accent }}
                     >
                       {state.range}
                     </span>
                   </div>
                   <div>
                     <p className="font-black text-base tracking-tight mb-1" style={{ color: "var(--on-surface)" }}>{statusToKo(state.status)}</p>
-                    <p className="text-xs font-medium leading-relaxed" style={{ color: "rgba(37,50,40,0.6)" }}>{state.desc}</p>
+                    <p className="text-xs font-medium leading-relaxed" style={{ color: "var(--text-muted)" }}>{state.desc}</p>
                   </div>
                 </div>
               </FadeIn>
@@ -521,36 +525,36 @@ export default function LandingPage() {
               <div
                 className="rounded-[2.5rem] overflow-hidden"
                 style={{
-                  background: "rgba(255,255,255,0.75)",
-                  backdropFilter: "blur(24px)",
-                  boxShadow: "0 32px 64px -16px rgba(37,50,40,0.12)",
+                  background: "var(--surface-elevated)",
+                  backdropFilter: "var(--glass-blur-medium)",
+                  boxShadow: "var(--glass-shadow)",
                 }}
               >
                 {/* Mock header */}
-                <div className="px-6 py-4 flex items-center gap-3" style={{ borderBottom: "1px solid rgba(37,50,40,0.06)" }}>
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#f5a623" }} />
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#52f2f5" }} />
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: "rgba(37,50,40,0.15)" }} />
-                  <span className="ml-2 text-xs font-bold" style={{ color: "rgba(37,50,40,0.4)" }}>팀 대시보드 — 이번 주</span>
+                <div className="px-6 py-4 flex items-center gap-3" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: "var(--weather-radiant-blob-1)" }} />
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: "var(--primary)" }} />
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: "var(--track-bg)" }} />
+                  <span className="ml-2 text-xs font-bold" style={{ color: "var(--text-soft)" }}>팀 대시보드 — 이번 주</span>
                 </div>
 
                 {/* Mini stats row */}
-                <div className="grid grid-cols-3 gap-px" style={{ background: "rgba(37,50,40,0.04)" }}>
+                <div className="grid grid-cols-3 gap-px" style={{ background: "var(--border-subtle)" }}>
                   {[
                     { label: "팀 점수", value: "78", color: "var(--primary)" },
                     { label: "체크인", value: "8/10", color: "var(--secondary)" },
-                    { label: "추이", value: "+12%", color: "#27ae60" },
+                    { label: "추이", value: "+12%", color: "color-mix(in srgb, var(--primary) 56%, #27ae60)" },
                   ].map((s) => (
-                    <div key={s.label} className="flex flex-col items-center py-4 px-3" style={{ background: "rgba(255,255,255,0.8)" }}>
+                    <div key={s.label} className="flex flex-col items-center py-4 px-3" style={{ background: "var(--surface-overlay)" }}>
                       <p className="text-xl font-black" style={{ color: s.color }}>{s.value}</p>
-                      <p className="text-[10px] font-bold uppercase tracking-wide mt-0.5" style={{ color: "rgba(37,50,40,0.45)" }}>{s.label}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wide mt-0.5" style={{ color: "var(--text-soft)" }}>{s.label}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Mock bar chart */}
                 <div className="px-6 py-6">
-                  <p className="text-xs font-bold uppercase tracking-wider mb-4" style={{ color: "rgba(37,50,40,0.4)" }}>주간 추이</p>
+                  <p className="text-xs font-bold uppercase tracking-wider mb-4" style={{ color: "var(--text-soft)" }}>주간 추이</p>
                   <div className="flex items-end gap-2 h-[80px]">
                     {[55, 62, 71, 68, 78, 74, 82].map((val, i) => (
                       <motion.div
@@ -562,8 +566,8 @@ export default function LandingPage() {
                         className="flex-1 rounded-t-lg"
                         style={{
                           background: i === 6
-                            ? "linear-gradient(180deg, #006668, #1a9d9f)"
-                            : "rgba(0,102,104,0.15)",
+                            ? "linear-gradient(180deg, var(--primary), color-mix(in srgb, var(--primary) 72%, white))"
+                            : "color-mix(in srgb, var(--primary) 18%, transparent)",
                           minHeight: 4,
                         }}
                       />
@@ -571,7 +575,7 @@ export default function LandingPage() {
                   </div>
                   <div className="flex justify-between mt-2">
                     {["월", "화", "수", "목", "금", "토", "일"].map((d) => (
-                      <p key={d} className="flex-1 text-center text-[9px] font-bold" style={{ color: "rgba(37,50,40,0.3)" }}>{d}</p>
+                      <p key={d} className="flex-1 text-center text-[9px] font-bold" style={{ color: "var(--text-soft)" }}>{d}</p>
                     ))}
                   </div>
                 </div>
@@ -579,11 +583,11 @@ export default function LandingPage() {
                 {/* Mock member list */}
                 <div className="px-6 pb-6 flex flex-col gap-2">
                   {[
-                    { name: "상우", status: "Sunny" as const, score: 82, Icon: IconSunny, color: "rgba(245,166,35,0.15)" },
-                    { name: "지연", status: "Foggy" as const, score: 58, Icon: IconFoggy, color: "rgba(154,165,180,0.15)" },
-                    { name: "민호", status: "Rainy" as const, score: 18, Icon: IconRainy, color: "rgba(91,155,213,0.12)" },
+                    { name: "상우", status: "Sunny" as const, score: 82, Icon: IconSunny, color: "color-mix(in srgb, var(--weather-sunny-blob-2) 18%, var(--surface-overlay))" },
+                    { name: "지연", status: "Foggy" as const, score: 58, Icon: IconFoggy, color: "color-mix(in srgb, var(--weather-foggy-blob-2) 18%, var(--surface-overlay))" },
+                    { name: "민호", status: "Rainy" as const, score: 18, Icon: IconRainy, color: "color-mix(in srgb, var(--weather-rainy-blob-2) 14%, var(--surface-overlay))" },
                   ].map((m) => (
-                    <div key={m.name} className="flex items-center gap-3 rounded-[1.2rem] px-4 py-2.5" style={{ background: "rgba(37,50,40,0.03)" }}>
+                    <div key={m.name} className="flex items-center gap-3 rounded-[1.2rem] px-4 py-2.5" style={{ background: "var(--button-subtle-bg)" }}>
                       <div className="w-8 h-8 rounded-[0.75rem] flex items-center justify-center shrink-0" style={{ background: m.color }}>
                         <m.Icon size={18} />
                       </div>
@@ -605,7 +609,7 @@ export default function LandingPage() {
                   스마트{" "}
                   <span style={{ color: "var(--primary)" }}>팀 기후 분석</span>
                 </h2>
-                <p className="text-base font-medium leading-relaxed max-w-sm" style={{ color: "rgba(37,50,40,0.6)" }}>
+                <p className="text-base font-medium leading-relaxed max-w-sm" style={{ color: "var(--text-muted)" }}>
                   Niko-Niko 캘린더와 주간 추이를 통해 리더가 문제가 되기 전에 패턴을 먼저 발견할 수 있어요.
                 </p>
               </FadeIn>
@@ -618,17 +622,17 @@ export default function LandingPage() {
                   <FadeIn key={feat.title} delay={0.1 + i * 0.1}>
                     <div
                       className="flex gap-4 rounded-[1.75rem] px-6 py-5"
-                      style={{ background: "rgba(255,255,255,0.7)", backdropFilter: "blur(16px)", boxShadow: "0 12px 28px -8px rgba(37,50,40,0.06)" }}
+                      style={{ background: "var(--surface-overlay)", backdropFilter: "var(--glass-blur-low)", boxShadow: "var(--glass-shadow)" }}
                     >
                       <div
                         className="w-10 h-10 rounded-[1rem] flex items-center justify-center shrink-0 text-lg"
-                        style={{ background: "rgba(0,102,104,0.08)" }}
+                        style={{ background: "var(--highlight-soft)" }}
                       >
                         {feat.icon}
                       </div>
                       <div>
                         <p className="font-bold text-sm mb-1" style={{ color: "var(--on-surface)" }}>{feat.title}</p>
-                        <p className="text-sm font-medium" style={{ color: "rgba(37,50,40,0.6)" }}>{feat.desc}</p>
+                        <p className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>{feat.desc}</p>
                       </div>
                     </div>
                   </FadeIn>
@@ -640,9 +644,9 @@ export default function LandingPage() {
                   href="/dashboard"
                   className="inline-flex items-center gap-2 h-14 px-8 rounded-[1.5rem] text-base font-bold transition-all hover:opacity-90 hover:scale-[1.01]"
                   style={{
-                    background: "linear-gradient(135deg, #006668, #1a9d9f)",
-                    color: "#fff",
-                    boxShadow: "0 8px 24px rgba(0,102,104,0.28)",
+                    background: "var(--button-primary-gradient)",
+                    color: "var(--on-primary)",
+                    boxShadow: "var(--button-primary-shadow)",
                   }}
                 >
                   대시보드 둘러보기 →
@@ -660,36 +664,36 @@ export default function LandingPage() {
             <div
               className="rounded-[3rem] px-8 md:px-16 py-12 md:py-16 text-center relative overflow-hidden"
               style={{
-                background: "linear-gradient(135deg, #006668 0%, #0a8a8c 50%, #1fa8a8 100%)",
-                boxShadow: "0 32px 64px -16px rgba(0,102,104,0.35)",
+                background: "linear-gradient(135deg, var(--primary-container) 0%, color-mix(in srgb, var(--primary) 64%, var(--primary-container)) 50%, var(--primary) 100%)",
+                boxShadow: "var(--button-primary-shadow)",
               }}
             >
               {/* Background circles */}
-              <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full" style={{ background: "rgba(82,242,245,0.12)" }} />
-              <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full" style={{ background: "rgba(82,242,245,0.08)" }} />
+              <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full" style={{ background: "color-mix(in srgb, var(--primary) 14%, transparent)" }} />
+              <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full" style={{ background: "color-mix(in srgb, var(--primary) 10%, transparent)" }} />
 
               <div className="relative z-10">
-                <p className="text-xs font-extrabold uppercase tracking-[0.2em] mb-4" style={{ color: "rgba(255,255,255,0.6)" }}>
+                <p className="text-xs font-extrabold uppercase tracking-[0.2em] mb-4" style={{ color: "color-mix(in srgb, var(--on-primary) 64%, transparent)" }}>
                   지금 시작해요
                 </p>
-                <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4" style={{ fontFamily: "'Public Sans', sans-serif", color: "#fff" }}>
+                <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4" style={{ fontFamily: "'Public Sans', sans-serif", color: "var(--on-primary)" }}>
                   오늘 나의 기후는 어때요?
                 </h2>
-                <p className="text-base md:text-lg font-medium mb-10 max-w-md mx-auto" style={{ color: "rgba(255,255,255,0.7)" }}>
+                <p className="text-base md:text-lg font-medium mb-10 max-w-md mx-auto" style={{ color: "color-mix(in srgb, var(--on-primary) 72%, transparent)" }}>
                   10초면 충분해요. 팀이 고마워할 거예요.
                 </p>
                 <div className="flex flex-wrap gap-4 justify-center">
                   <Link
                     href="/input"
                     className="inline-flex items-center gap-2 h-14 px-10 rounded-[1.5rem] text-base font-bold transition-all hover:scale-[1.02] active:scale-95"
-                    style={{ background: "#fff", color: "var(--primary)", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}
+                    style={{ background: "var(--surface-lowest)", color: "var(--primary)", boxShadow: "var(--glass-shadow)" }}
                   >
                     Let's Clima ☀️
                   </Link>
                   <Link
                     href="/admin"
-                    className="inline-flex items-center gap-2 h-14 px-10 rounded-[1.5rem] text-base font-bold transition-all hover:bg-white/20 active:scale-95"
-                    style={{ background: "rgba(255,255,255,0.15)", color: "#fff", backdropFilter: "blur(12px)" }}
+                    className="inline-flex items-center gap-2 h-14 px-10 rounded-[1.5rem] text-base font-bold transition-all hover:opacity-90 active:scale-95"
+                    style={{ background: "color-mix(in srgb, var(--on-primary) 14%, transparent)", color: "var(--on-primary)", backdropFilter: "var(--glass-blur-low)" }}
                   >
                     관리자 로그인
                   </Link>
@@ -701,7 +705,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="px-6 md:px-10 xl:px-16 py-10" style={{ borderTop: "1px solid rgba(37,50,40,0.06)" }}>
+      <footer className="px-6 md:px-10 xl:px-16 py-10" style={{ borderTop: "1px solid var(--border-subtle)" }}>
         <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <ClimaLogo />
           <nav className="flex flex-wrap justify-center gap-4 md:gap-6">
@@ -710,13 +714,13 @@ export default function LandingPage() {
                 key={item.label}
                 href={item.href}
                 className="text-sm font-semibold transition-colors hover:opacity-80"
-                style={{ color: "rgba(37,50,40,0.5)" }}
+                style={{ color: "var(--text-muted)" }}
               >
                 {item.label}
               </Link>
             ))}
           </nav>
-          <p className="text-xs font-medium" style={{ color: "rgba(37,50,40,0.35)" }}>
+          <p className="text-xs font-medium" style={{ color: "var(--text-soft)" }}>
             © 2026 Clima · Region: Horizon-01
           </p>
         </div>

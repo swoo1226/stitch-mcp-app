@@ -11,14 +11,12 @@ interface DynamicBackgroundProps {
 export default function DynamicBackground({ score = 85 }: DynamicBackgroundProps) {
   const { shouldLimitMotion } = useMotionPreferences();
 
-  // 날씨별 느낌 색상과 일치하도록 조정
-  // Radiant: 황금/크림   Sunny: 따뜻한 복숭아   Foggy: 서늘한 회청   Rainy: 차분한 청남   Stormy: 어두운 남회색
-  let bgColor = "#fdf8ec";
-  if (score >= 81) bgColor = "#fdf8ec";      // Radiant — 크림 황금
-  else if (score >= 61) bgColor = "#fef3e8"; // Sunny   — 복숭아 크림
-  else if (score >= 41) bgColor = "#eef1f5"; // Foggy   — 서늘한 회청백
-  else if (score >= 21) bgColor = "#e4ecf7"; // Rainy   — 청남 미스트
-  else bgColor = "#e8eaf2";                  // Stormy  — 어두운 남회색
+  let bgColor = "var(--weather-radiant-bg)";
+  if (score >= 81) bgColor = "var(--weather-radiant-bg)";
+  else if (score >= 61) bgColor = "var(--weather-sunny-bg)";
+  else if (score >= 41) bgColor = "var(--weather-foggy-bg)";
+  else if (score >= 21) bgColor = "var(--weather-rainy-bg)";
+  else bgColor = "var(--weather-stormy-bg)";
 
   return (
     <motion.div
@@ -32,17 +30,17 @@ export default function DynamicBackground({ score = 85 }: DynamicBackgroundProps
       {/* Organic Blobs — 날씨별 색조 */}
       {(() => {
         const blob1 =
-          score >= 81 ? "#e6a800" // Radiant — 황금
-          : score >= 61 ? "#f97316" // Sunny   — 주황
-          : score >= 41 ? "#94a3b8" // Foggy   — 회청
-          : score >= 21 ? "#3b82f6" // Rainy   — 파랑
-          : "#4b5577";              // Stormy  — 남색
+          score >= 81 ? "var(--weather-radiant-blob-1)"
+          : score >= 61 ? "var(--weather-sunny-blob-1)"
+          : score >= 41 ? "var(--weather-foggy-blob-1)"
+          : score >= 21 ? "var(--weather-rainy-blob-1)"
+          : "var(--weather-stormy-blob-1)";
         const blob2 =
-          score >= 81 ? "#fbbf24" // Radiant — 노랑
-          : score >= 61 ? "#fb923c" // Sunny   — 살구
-          : score >= 41 ? "#cbd5e1" // Foggy   — 연회
-          : score >= 21 ? "#60a5fa" // Rainy   — 하늘
-          : "#334155";              // Stormy  — 어두운 청회
+          score >= 81 ? "var(--weather-radiant-blob-2)"
+          : score >= 61 ? "var(--weather-sunny-blob-2)"
+          : score >= 41 ? "var(--weather-foggy-blob-2)"
+          : score >= 21 ? "var(--weather-rainy-blob-2)"
+          : "var(--weather-stormy-blob-2)";
         return (
           <>
             <motion.div

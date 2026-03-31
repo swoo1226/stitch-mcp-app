@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import ClimaLogo from "../components/WetherLogo";
+import ThemeToggleButton from "../components/ThemeToggleButton";
 import HeaderNav, { type HeaderNavItem } from "../components/HeaderNav";
 import { ClimaButton, SectionLabel, PrimaryTabToggle, TabToggle, NikoCalendar, type NikoCalendarMember } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
@@ -305,16 +306,14 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
   return (
     <div
       className="min-h-screen"
-      style={{
-        background:
-          "radial-gradient(circle at top right, rgba(197, 242, 237, 0.42) 0%, rgba(235, 250, 236, 0.96) 38%, rgba(228, 245, 229, 1) 100%)",
-      }}
+      style={{ background: "var(--hero-gradient)" }}
     >
         <motion.header
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={STANDARD_SPRING}
-          className="fixed top-0 left-0 w-full z-50 flex items-center justify-between h-16 px-4 md:px-8 bg-white/70 backdrop-blur-[20px] shadow-[0_40px_40px_-10px_rgba(37,50,40,0.06)]"
+          className="fixed top-0 left-0 w-full z-50 flex items-center justify-between h-16 px-4 md:px-8"
+          style={{ background: "var(--header-bg)", backdropFilter: "var(--glass-blur)", boxShadow: "var(--header-shadow)" }}
         >
           <div className="flex items-center gap-4 md:gap-8">
             <Link href="/" className="flex shrink-0 items-center">
@@ -324,7 +323,8 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
               <HeaderNav items={NAV_ITEMS} />
             </nav>
           </div>
-          <div className="flex items-center gap-2" style={{ color: "rgba(37, 50, 40, 0.7)" }}>
+          <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
+            <ThemeToggleButton />
             <button className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
               <TopIcon type="bell" />
             </button>
@@ -357,7 +357,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                 exit={{ opacity: 0 }}
                 onClick={() => setMobileNavOpen(false)}
                 className="fixed inset-0 z-[60]"
-                style={{ background: "rgba(37,50,40,0.15)", backdropFilter: "blur(4px)" }}
+                style={{ background: "var(--drawer-scrim)", backdropFilter: "blur(4px)" }}
               />
               <motion.div
                 initial={{ x: "100%" }}
@@ -365,14 +365,14 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                 exit={{ x: "100%" }}
                 transition={STANDARD_SPRING}
                 className="fixed right-0 top-0 h-full w-72 z-[70] flex flex-col"
-                style={{ background: "rgba(255,255,255,0.96)", backdropFilter: "blur(20px)" }}
+                style={{ background: "var(--drawer-bg)", backdropFilter: "var(--glass-blur)" }}
               >
                 <div className="flex items-center justify-between px-6 h-16 shrink-0">
                   <ClimaLogo />
                   <button
                     onClick={() => setMobileNavOpen(false)}
                     className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-low transition-colors"
-                    style={{ color: "rgba(37,50,40,0.5)" }}
+                    style={{ color: "var(--text-soft)" }}
                   >
                     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
                       <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
@@ -393,15 +393,16 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ ...STANDARD_SPRING, delay: 0.05 }}
-            className="hidden xl:block rounded-[2rem] bg-white/72 px-5 py-5 shadow-[0_20px_42px_rgba(37,50,40,0.05)]"
+            className="hidden xl:block rounded-[2rem] px-5 py-5"
+            style={{ background: "var(--surface-overlay)", boxShadow: "var(--glass-shadow)" }}
           >
             <div className="mb-10 flex items-center gap-4 rounded-[1.8rem] bg-surface-low px-4 py-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-[var(--primary-container)] text-white shadow-[0_16px_28px_rgba(0,102,104,0.22)]">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-[var(--primary-container)] text-[var(--on-primary)] shadow-[var(--button-primary-shadow)]">
                 {statusToEmoji("Foggy" as WeatherStatus)}
               </div>
               <div>
                 <div className="text-[2rem] font-black tracking-tight leading-none text-primary">Clima</div>
-                <div className="mt-1 text-sm font-medium" style={{ color: "rgba(37, 50, 40, 0.6)" }}>팀 마음 건강</div>
+                <div className="mt-1 text-sm font-medium" style={{ color: "var(--text-muted)" }}>팀 마음 건강</div>
               </div>
             </div>
 
@@ -416,15 +417,15 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                   key={item.label}
                   href={item.href}
                   className={`flex items-center gap-4 rounded-full px-5 py-4 text-[1.05rem] font-medium tracking-tight transition-all ${
-                    item.active ? "text-white shadow-[0_18px_36px_rgba(0,102,104,0.24)]" : ""
+                    item.active ? "shadow-[var(--button-primary-shadow)]" : ""
                   }`}
                   style={
                     item.active
-                      ? { background: "linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%)" }
-                      : { color: "rgba(37, 50, 40, 0.82)" }
+                      ? { background: "linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%)", color: "var(--on-primary)" }
+                      : { color: "var(--on-surface)" }
                   }
                 >
-                  <span style={item.active ? { color: "#ffffff" } : { color: "rgba(37, 50, 40, 0.7)" }}>
+                  <span style={item.active ? { color: "var(--on-primary)" } : { color: "var(--text-muted)" }}>
                     <SidebarIcon type={item.icon} />
                   </span>
                   <span>{item.label}</span>
@@ -444,13 +445,13 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ ...STANDARD_SPRING, delay: 0.08 }}
             className="rounded-[1.8rem] md:rounded-[2rem] px-3 py-3 md:px-5 md:py-5"
-            style={{ background: "rgba(235, 250, 236, 0.88)" }}
+            style={{ background: "var(--panel-tint)" }}
           >
             <section
               className="mb-5 rounded-[1.9rem] px-4 py-5 md:rounded-[2.25rem] md:px-7 md:py-8"
               style={{
                 background:
-                  "linear-gradient(90deg, rgba(228,245,229,0.92) 0%, rgba(235,250,236,0.96) 50%, rgba(228,245,229,0.92) 100%)",
+                  "linear-gradient(90deg, color-mix(in srgb, var(--surface-container-low) 92%, transparent) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 50%, color-mix(in srgb, var(--surface-container-low) 92%, transparent) 100%)",
               }}
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -458,10 +459,10 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                   <h1 className="mb-2 text-[2rem] font-black tracking-tight text-primary md:text-[3.1rem]">
                     팀 기후
                   </h1>
-                  <p className="mb-3 text-sm font-bold" style={{ color: "rgba(37,50,40,0.4)" }}>
+                  <p className="mb-3 text-sm font-bold" style={{ color: "var(--text-soft)" }}>
                     {today.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "short" })}
                   </p>
-                  <p className="max-w-xl text-base leading-relaxed md:text-lg" style={{ color: "rgba(37, 50, 40, 0.72)" }}>
+                  <p className="max-w-xl text-base leading-relaxed md:text-lg" style={{ color: "var(--text-muted)" }}>
                     이번 주 팀의 감정 대기를 함께 들여다봐요. 연결되어 있고, 서로를 살피며 나아가요.
                   </p>
                 </div>
@@ -487,8 +488,8 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
             </section>
 
             <section
-              className="mb-6 rounded-[2rem] px-3 py-4 shadow-[0_24px_48px_rgba(37,50,40,0.04)] md:rounded-[2.5rem] md:px-6 md:py-6"
-              style={{ background: "rgba(255,255,255,0.86)" }}
+              className="mb-6 rounded-[2rem] px-3 py-4 md:rounded-[2.5rem] md:px-6 md:py-6"
+              style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
             >
               <div className="mb-5 flex flex-col gap-4 lg:mb-7 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-center gap-3">
@@ -539,8 +540,8 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
 
             <section className="mb-6 grid gap-5 xl:grid-cols-3">
               <article
-                className="rounded-[2rem] px-5 py-6 shadow-[0_24px_48px_rgba(37,50,40,0.04)] md:rounded-[2.3rem] md:px-7 md:py-7"
-                style={{ background: "rgba(255,255,255,0.86)" }}
+                className="rounded-[2rem] px-5 py-6 md:rounded-[2.3rem] md:px-7 md:py-7"
+                style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
               >
                 <div className="mb-7 text-center">
                   <SectionLabel color="muted">팀 평균</SectionLabel>
@@ -562,7 +563,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                   <div className="mb-2 text-[2.2rem] font-black tracking-tight" style={{ color: "var(--primary)" }}>
                     {statusToKo(averageStatus)}
                   </div>
-                  <div className="text-base leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.62)" }}>
+                  <div className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
                     {averageScore !== null
                       ? averageScore >= 80
                         ? "팀 전체 분위기가 밝고 편안하게 이어지고 있어요."
@@ -578,8 +579,8 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
               </article>
 
               <article
-                className="rounded-[2rem] px-5 py-6 shadow-[0_24px_48px_rgba(37,50,40,0.04)] md:rounded-[2.3rem] md:px-7 md:py-7"
-                style={{ background: "rgba(255,255,255,0.86)" }}
+                className="rounded-[2rem] px-5 py-6 md:rounded-[2.3rem] md:px-7 md:py-7"
+                style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
               >
                 <div className="mb-7 text-center">
                   <SectionLabel color="muted">가장 많은 날씨</SectionLabel>
@@ -593,7 +594,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                   <div className="mb-2 text-[2.2rem] font-black tracking-tight" style={{ color: "var(--tertiary)" }}>
                     {statusToKo(mostFrequent)}
                   </div>
-                  <div className="text-base leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.62)" }}>
+                  <div className="text-base leading-relaxed" style={{ color: "var(--text-muted)" }}>
                     {mostFrequentPct > 0
                       ? `이번 주 체크인의 ${mostFrequentPct}%를 차지해요.`
                       : "아직 이번 주 체크인 데이터가 없어요."}
@@ -602,15 +603,16 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
               </article>
 
               <article
-                className="rounded-[2rem] px-5 py-6 shadow-[0_24px_48px_rgba(37,50,40,0.04)] md:rounded-[2.3rem] md:px-7 md:py-7"
+                className="rounded-[2rem] px-5 py-6 md:rounded-[2.3rem] md:px-7 md:py-7"
                 style={{
-                  background: "linear-gradient(135deg, rgba(255,255,255,0.88) 0%, rgba(189,244,255,0.82) 100%)",
+                  background: "linear-gradient(135deg, color-mix(in srgb, var(--surface-elevated) 92%, transparent) 0%, color-mix(in srgb, var(--primary) 18%, var(--surface-container-high) 82%) 100%)",
+                  boxShadow: "var(--glass-shadow)",
                 }}
               >
                 <div className="mb-6 flex items-center gap-3 text-primary">
                   <div
                     className="flex h-9 w-9 items-center justify-center rounded-2xl"
-                    style={{ background: "rgba(255,255,255,0.75)" }}
+                    style={{ background: "var(--surface-overlay)" }}
                   >
                     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
                       <path d="M7 9.5A2.5 2.5 0 0 1 9.5 7h5A2.5 2.5 0 0 1 17 9.5v5A2.5 2.5 0 0 1 14.5 17h-5A2.5 2.5 0 0 1 7 14.5v-5Z" />
@@ -630,15 +632,15 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
             </section>
 
             <section
-              className="rounded-[2rem] px-5 py-6 md:rounded-[2.5rem] md:px-7 md:py-8 shadow-[0_24px_48px_rgba(37,50,40,0.04)]"
-              style={{ background: "rgba(228, 245, 229, 0.6)" }}
+              className="rounded-[2rem] px-5 py-6 md:rounded-[2.5rem] md:px-7 md:py-8"
+              style={{ background: "var(--panel-soft)", boxShadow: "var(--glass-shadow)" }}
             >
               <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
                 <div className="max-w-2xl">
                   <h2 className="mb-3 text-[1.6rem] font-black tracking-tight md:text-[2rem]" style={{ color: "var(--tertiary)" }}>
                     오늘 폭풍 같은 기분인가요?
                   </h2>
-                  <p className="text-base leading-relaxed md:text-lg" style={{ color: "rgba(37, 50, 40, 0.72)" }}>
+                  <p className="text-base leading-relaxed md:text-lg" style={{ color: "var(--text-muted)" }}>
                     괜찮지 않아도 괜찮아요. 빠른 1:1 대화를 신청하거나 웰니스 브레이크를 한 번의 클릭으로 요청해보세요.
                   </p>
                 </div>
