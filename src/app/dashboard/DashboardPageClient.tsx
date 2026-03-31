@@ -564,7 +564,13 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                   </div>
                   <div className="text-base leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.62)" }}>
                     {averageScore !== null
-                      ? `팀 전체 분위기는 ${averageScore >= 60 ? "안정적" : "혼조"}이에요.`
+                      ? averageScore >= 80
+                        ? "팀 전체 분위기가 밝고 편안하게 이어지고 있어요."
+                        : averageScore >= 60
+                          ? "팀 전체 분위기가 무난하고 안정된 편이에요."
+                          : averageScore >= 40
+                            ? "팀 분위기에 조금 잔잔한 흔들림이 보여요."
+                            : "팀 전체 에너지가 다소 낮아 보여서 천천히 살펴보면 좋겠어요."
                       : `오늘 ${checkedInMembers.length} / ${visibleMembers.length}명 체크인했어요.`
                     }
                   </div>
