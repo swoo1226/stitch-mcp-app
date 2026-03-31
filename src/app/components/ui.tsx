@@ -954,7 +954,6 @@ const WEATHER_LEGEND_ITEMS: Array<{ status: WeatherStatus; label: string }> = [
   { status: "Stormy",  label: "번개" },
   { status: "Rainy",   label: "비" },
   { status: "Foggy",   label: "안개" },
-  { status: "Cloudy",  label: "구름" },
   { status: "Sunny",   label: "맑음" },
   { status: "Radiant", label: "쨍함" },
 ];

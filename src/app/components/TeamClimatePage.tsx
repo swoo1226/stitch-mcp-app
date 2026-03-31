@@ -36,10 +36,9 @@ function getFallbackStatuses(score: number): WeatherStatus[] {
   const base = scoreToStatus(score);
   const variants: Record<WeatherStatus, WeatherStatus[]> = {
     Radiant: ["Sunny", "Radiant", "Sunny", "Radiant", "Sunny"],
-    Sunny: ["Cloudy", "Sunny", "Sunny", "Radiant", "Sunny"],
-    Cloudy: ["Sunny", "Cloudy", "Cloudy", "Sunny", "Cloudy"],
-    Foggy: ["Cloudy", "Foggy", "Foggy", "Cloudy", "Foggy"],
-    Rainy: ["Foggy", "Rainy", "Foggy", "Rainy", "Cloudy"],
+    Sunny: ["Foggy", "Sunny", "Sunny", "Radiant", "Sunny"],
+    Foggy: ["Sunny", "Foggy", "Foggy", "Sunny", "Foggy"],
+    Rainy: ["Foggy", "Rainy", "Foggy", "Rainy", "Foggy"],
     Stormy: ["Rainy", "Stormy", "Rainy", "Foggy", "Rainy"],
   };
 
@@ -222,7 +221,6 @@ export default function TeamClimatePage() {
     {
       Radiant: 0,
       Sunny: 0,
-      Cloudy: 0,
       Foggy: 0,
       Rainy: 0,
       Stormy: 0,

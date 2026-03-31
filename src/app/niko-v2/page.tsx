@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import ClimaLogo from "../components/WetherLogo";
+import HeaderNav, { type HeaderNavItem } from "../components/HeaderNav";
 import {
   ClimaButton,
   GlassCard,
@@ -64,10 +65,10 @@ function isoDate(d: Date): string {
 
 const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI"];
 const COL_TEMPLATE = "280px repeat(5, minmax(128px, 1fr))";
-const NAV_ITEMS = [
+const NAV_ITEMS: HeaderNavItem[] = [
   { label: "Current Niko", href: "/niko" },
-  { label: "Niko v2", href: "/niko-v2", active: true },
-  { label: "Current Dashboard", href: "/dashboard" },
+  { label: "Niko v2", href: "/niko-v2" },
+  { label: "Current Dashboard", href: "/dashboard", matchPaths: ["/dashboard", "/team"] },
   { label: "Dashboard v2", href: "/dashboard-v2" },
 ];
 
@@ -186,20 +187,7 @@ export default function NikoV2Page() {
                 <ClimaLogo />
               </Link>
               <nav className="flex flex-wrap items-center gap-1 md:gap-2">
-                {NAV_ITEMS.map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="rounded-full px-3 py-2 text-sm font-semibold tracking-tight transition-colors"
-                    style={
-                      item.active
-                        ? { color: "var(--primary)", background: "rgba(0,102,104,0.08)" }
-                        : { color: "rgba(37,50,40,0.65)" }
-                    }
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                <HeaderNav items={NAV_ITEMS} />
               </nav>
             </div>
           </div>

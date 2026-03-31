@@ -6,7 +6,7 @@ import { useState, useRef } from "react";
 import ClimaLogo from "./components/WetherLogo";
 import { STANDARD_SPRING } from "./constants/springs";
 import {
-  IconSunny, IconCloudy, IconFoggy, IconRainy, IconStormy, IconRadiant,
+  IconSunny, IconFoggy, IconRainy, IconStormy, IconRadiant,
 } from "./components/WeatherIcons";
 import { statusToKo } from "../lib/mood";
 
@@ -24,7 +24,7 @@ const WEATHER_STATES = [
   {
     icon: IconRadiant,
     status: "Radiant" as const,
-    range: "91–100",
+    range: "81–100",
     desc: "에너지가 넘쳐흘러요 — 아이디어가 쏟아지고 팀 전체가 들떠 있어요.",
     bg: "rgba(255,220,80,0.12)",
     accent: "#F5A623",
@@ -32,23 +32,15 @@ const WEATHER_STATES = [
   {
     icon: IconSunny,
     status: "Sunny" as const,
-    range: "71–90",
+    range: "61–80",
     desc: "집중력이 좋고 긍정적인 하루예요 — 맑고 생산적인 기운이 가득해요.",
     bg: "rgba(245,166,35,0.1)",
     accent: "#E8972B",
   },
   {
-    icon: IconCloudy,
-    status: "Cloudy" as const,
-    range: "41–70",
-    desc: "균형을 잡고 있지만 마음 한켠이 조금 무거운 날이에요.",
-    bg: "rgba(116,185,232,0.12)",
-    accent: "#5b9bd5",
-  },
-  {
     icon: IconFoggy,
     status: "Foggy" as const,
-    range: "21–40",
+    range: "41–60",
     desc: "앞이 잘 보이지 않아요 — 에너지가 낮고 방향감이 흐릿한 상태예요.",
     bg: "rgba(154,165,180,0.12)",
     accent: "#9aa5b4",
@@ -56,7 +48,7 @@ const WEATHER_STATES = [
   {
     icon: IconRainy,
     status: "Rainy" as const,
-    range: "6–20",
+    range: "21–40",
     desc: "오늘은 많이 힘들어요 — 지지와 관심이 필요한 상태예요.",
     bg: "rgba(91,155,213,0.12)",
     accent: "#4a8bc4",
@@ -64,7 +56,7 @@ const WEATHER_STATES = [
   {
     icon: IconStormy,
     status: "Stormy" as const,
-    range: "1–5",
+    range: "0–20",
     desc: "위기 상태예요 — 즉각적인 보살핌과 체크인이 필요해요.",
     bg: "rgba(45,52,54,0.08)",
     accent: "#2d3436",
@@ -588,7 +580,7 @@ export default function LandingPage() {
                 <div className="px-6 pb-6 flex flex-col gap-2">
                   {[
                     { name: "상우", status: "Sunny" as const, score: 82, Icon: IconSunny, color: "rgba(245,166,35,0.15)" },
-                    { name: "지연", status: "Cloudy" as const, score: 58, Icon: IconCloudy, color: "rgba(116,185,232,0.15)" },
+                    { name: "지연", status: "Foggy" as const, score: 58, Icon: IconFoggy, color: "rgba(154,165,180,0.15)" },
                     { name: "민호", status: "Rainy" as const, score: 18, Icon: IconRainy, color: "rgba(91,155,213,0.12)" },
                   ].map((m) => (
                     <div key={m.name} className="flex items-center gap-3 rounded-[1.2rem] px-4 py-2.5" style={{ background: "rgba(37,50,40,0.03)" }}>

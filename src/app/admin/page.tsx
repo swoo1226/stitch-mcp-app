@@ -24,16 +24,15 @@ import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 
 const WEATHER_METAPHORS = [
   { score: 0, label: "Stormy", ko: "번개" },
-  { score: 20, label: "Rainy", ko: "비" },
-  { score: 40, label: "Foggy", ko: "안개" },
-  { score: 60, label: "Sunny", ko: "맑음" },
-  { score: 100, label: "Radiant", ko: "쨍함" },
+  { score: 21, label: "Rainy", ko: "비" },
+  { score: 41, label: "Foggy", ko: "안개" },
+  { score: 61, label: "Sunny", ko: "맑음" },
+  { score: 81, label: "Radiant", ko: "쨍함" },
 ] as const;
 
 function currentMetaphorFromScore(score: number) {
-  return WEATHER_METAPHORS.reduce((prev, curr) =>
-    Math.abs(curr.score - score) < Math.abs(prev.score - score) ? curr : prev
-  );
+  const status = scoreToStatus(score);
+  return WEATHER_METAPHORS.find((metaphor) => metaphor.label === status) ?? WEATHER_METAPHORS[0];
 }
 
 interface MoodLog {
