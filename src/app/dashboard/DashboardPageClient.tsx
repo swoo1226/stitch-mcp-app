@@ -314,9 +314,9 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={STANDARD_SPRING}
-          className="fixed top-0 left-0 w-full z-50 flex items-center justify-between h-16 px-10 bg-white/70 backdrop-blur-[20px] shadow-[0_40px_40px_-10px_rgba(37,50,40,0.06)]"
+          className="fixed top-0 left-0 w-full z-50 flex items-center justify-between h-16 px-4 md:px-8 bg-white/70 backdrop-blur-[20px] shadow-[0_40px_40px_-10px_rgba(37,50,40,0.06)]"
         >
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4 md:gap-8">
             <Link href="/" className="flex shrink-0 items-center">
               <ClimaLogo />
             </Link>
@@ -388,12 +388,12 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
         </AnimatePresence>
 
         <div className="pt-16">
-        <div className="grid gap-4 xl:grid-cols-[260px_minmax(0,1fr)] px-4 md:px-8 py-6 max-w-[1440px] mx-auto">
+        <div className="grid gap-4 xl:grid-cols-[260px_minmax(0,1fr)] px-3 py-4 md:px-8 md:py-6 max-w-[1440px] mx-auto">
           <motion.aside
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ ...STANDARD_SPRING, delay: 0.05 }}
-            className="rounded-[2rem] bg-white/72 px-5 py-5 shadow-[0_20px_42px_rgba(37,50,40,0.05)]"
+            className="hidden xl:block rounded-[2rem] bg-white/72 px-5 py-5 shadow-[0_20px_42px_rgba(37,50,40,0.05)]"
           >
             <div className="mb-10 flex items-center gap-4 rounded-[1.8rem] bg-surface-low px-4 py-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-[var(--primary-container)] text-white shadow-[0_16px_28px_rgba(0,102,104,0.22)]">
@@ -443,11 +443,11 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ ...STANDARD_SPRING, delay: 0.08 }}
-            className="rounded-[2rem] px-4 py-4 md:px-5 md:py-5"
+            className="rounded-[1.8rem] md:rounded-[2rem] px-3 py-3 md:px-5 md:py-5"
             style={{ background: "rgba(235, 250, 236, 0.88)" }}
           >
             <section
-              className="mb-5 rounded-[2.25rem] px-6 py-7 md:px-7 md:py-8"
+              className="mb-5 rounded-[1.9rem] px-4 py-5 md:rounded-[2.25rem] md:px-7 md:py-8"
               style={{
                 background:
                   "linear-gradient(90deg, rgba(228,245,229,0.92) 0%, rgba(235,250,236,0.96) 50%, rgba(228,245,229,0.92) 100%)",
@@ -455,18 +455,18 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-2xl">
-                  <h1 className="mb-2 text-[2.4rem] font-black tracking-tight text-primary md:text-[3.1rem]">
+                  <h1 className="mb-2 text-[2rem] font-black tracking-tight text-primary md:text-[3.1rem]">
                     팀 기후
                   </h1>
                   <p className="mb-3 text-sm font-bold" style={{ color: "rgba(37,50,40,0.4)" }}>
                     {today.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "short" })}
                   </p>
-                  <p className="max-w-xl text-lg leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.72)" }}>
+                  <p className="max-w-xl text-base leading-relaxed md:text-lg" style={{ color: "rgba(37, 50, 40, 0.72)" }}>
                     이번 주 팀의 감정 대기를 함께 들여다봐요. 연결되어 있고, 서로를 살피며 나아가요.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-[-0.5rem] self-start">
+                <div className="flex items-center self-start">
                   {visibleMembers.slice(0, 3).map((member, index) => (
                     <div
                       key={member.id}
@@ -487,10 +487,10 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
             </section>
 
             <section
-              className="mb-6 rounded-[2.5rem] px-5 py-5 shadow-[0_24px_48px_rgba(37,50,40,0.04)] md:px-6 md:py-6"
+              className="mb-6 rounded-[2rem] px-3 py-4 shadow-[0_24px_48px_rgba(37,50,40,0.04)] md:rounded-[2.5rem] md:px-6 md:py-6"
               style={{ background: "rgba(255,255,255,0.86)" }}
             >
-              <div className="mb-7 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="mb-5 flex flex-col gap-4 lg:mb-7 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-low text-primary">
                     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -498,7 +498,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                       <path d="M7.5 3.5v4M16.5 3.5v4M3.5 10.5h17" />
                     </svg>
                   </div>
-                  <div className="text-[1.1rem] md:text-[1.2rem] font-black tracking-tight text-primary">
+                  <div className="text-base font-black tracking-tight text-primary md:text-[1.2rem]">
                     Niko-Niko 캘린더
                   </div>
                 </div>
@@ -533,13 +533,13 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                 todayIso={isoDate(today)}
                 loading={loading}
                 pageSize={NIKO_PAGE_SIZE}
-                colTemplate="220px repeat(5, minmax(90px, 1fr))"
+                colTemplate="180px repeat(5, minmax(72px, 1fr))"
               />
             </section>
 
             <section className="mb-6 grid gap-5 xl:grid-cols-3">
               <article
-                className="rounded-[2.3rem] px-7 py-7 shadow-[0_24px_48px_rgba(37,50,40,0.04)]"
+                className="rounded-[2rem] px-5 py-6 shadow-[0_24px_48px_rgba(37,50,40,0.04)] md:rounded-[2.3rem] md:px-7 md:py-7"
                 style={{ background: "rgba(255,255,255,0.86)" }}
               >
                 <div className="mb-7 text-center">
@@ -572,7 +572,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
               </article>
 
               <article
-                className="rounded-[2.3rem] px-7 py-7 shadow-[0_24px_48px_rgba(37,50,40,0.04)]"
+                className="rounded-[2rem] px-5 py-6 shadow-[0_24px_48px_rgba(37,50,40,0.04)] md:rounded-[2.3rem] md:px-7 md:py-7"
                 style={{ background: "rgba(255,255,255,0.86)" }}
               >
                 <div className="mb-7 text-center">
@@ -596,7 +596,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
               </article>
 
               <article
-                className="rounded-[2.3rem] px-7 py-7 shadow-[0_24px_48px_rgba(37,50,40,0.04)]"
+                className="rounded-[2rem] px-5 py-6 shadow-[0_24px_48px_rgba(37,50,40,0.04)] md:rounded-[2.3rem] md:px-7 md:py-7"
                 style={{
                   background: "linear-gradient(135deg, rgba(255,255,255,0.88) 0%, rgba(189,244,255,0.82) 100%)",
                 }}
@@ -624,24 +624,24 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
             </section>
 
             <section
-              className="rounded-[2.5rem] px-6 py-7 md:px-7 md:py-8 shadow-[0_24px_48px_rgba(37,50,40,0.04)]"
+              className="rounded-[2rem] px-5 py-6 md:rounded-[2.5rem] md:px-7 md:py-8 shadow-[0_24px_48px_rgba(37,50,40,0.04)]"
               style={{ background: "rgba(228, 245, 229, 0.6)" }}
             >
               <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
                 <div className="max-w-2xl">
-                  <h2 className="mb-3 text-[2rem] font-black tracking-tight" style={{ color: "var(--tertiary)" }}>
+                  <h2 className="mb-3 text-[1.6rem] font-black tracking-tight md:text-[2rem]" style={{ color: "var(--tertiary)" }}>
                     오늘 폭풍 같은 기분인가요?
                   </h2>
-                  <p className="text-lg leading-relaxed" style={{ color: "rgba(37, 50, 40, 0.72)" }}>
+                  <p className="text-base leading-relaxed md:text-lg" style={{ color: "rgba(37, 50, 40, 0.72)" }}>
                     괜찮지 않아도 괜찮아요. 빠른 1:1 대화를 신청하거나 웰니스 브레이크를 한 번의 클릭으로 요청해보세요.
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4">
-                  <ClimaButton className="min-w-[170px] justify-center px-8">
+                <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+                  <ClimaButton className="w-full justify-center px-6 sm:min-w-[170px] sm:w-auto sm:px-8">
                     1:1 대화 신청
                   </ClimaButton>
-                  <ClimaButton variant="secondary" className="min-w-[170px] justify-center px-8">
+                  <ClimaButton variant="secondary" className="w-full justify-center px-6 sm:min-w-[170px] sm:w-auto sm:px-8">
                     브레이크 요청
                   </ClimaButton>
                 </div>

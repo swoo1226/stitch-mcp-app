@@ -85,6 +85,25 @@ function LinkIcon() {
   );
 }
 
+function CopyIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="9" y="9" width="10" height="10" rx="2" />
+      <path d="M15 9V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+    </svg>
+  );
+}
+
+function ExternalLinkIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M14 5h5v5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 14 19 5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M19 13v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 
 interface Team {
   id: string;
@@ -1181,6 +1200,12 @@ export default function AdminPage() {
                     const param = `?team=${t.id}`;
                     const dashUrl = `${origin}/dashboard${param}`;
                     const nikoUrl = `${origin}/niko${param}`;
+
+                    const actions = [
+                      { key: "dash", label: "Dashboard", href: dashUrl },
+                      { key: "niko", label: "Niko-Niko", href: nikoUrl },
+                    ];
+
                     return (
                       <div
                         key={t.id}
@@ -1188,32 +1213,40 @@ export default function AdminPage() {
                         style={{ background: "var(--surface-container-low)" }}
                       >
                         <p className="font-black text-sm tracking-tight" style={{ color: "var(--primary)" }}>{t.name}</p>
-                        <div className="flex items-center gap-3">
-                          <span className="text-[10px] font-black uppercase tracking-widest w-16 shrink-0" style={{ color: "rgba(37,50,40,0.4)" }}>Dashboard</span>
-                          <code className="text-xs truncate flex-1" style={{ color: "rgba(37,50,40,0.4)" }}>{dashUrl}</code>
-                          <motion.button
-                            type="button"
-                            onClick={() => copyWithFeedback(dashUrl, `${t.id}-dash`, "link")}
-                            animate={{ color: copiedLinkKey === `${t.id}-dash` ? "var(--secondary)" : "var(--primary)" }}
-                            transition={{ duration: 0.2 }}
-                            className="text-xs font-extrabold shrink-0"
-                          >
-                            {copiedLinkKey === `${t.id}-dash` ? "✓ Copied" : "Copy"}
-                          </motion.button>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-[10px] font-black uppercase tracking-widest w-16 shrink-0" style={{ color: "rgba(37,50,40,0.4)" }}>Niko-Niko</span>
-                          <code className="text-xs truncate flex-1" style={{ color: "rgba(37,50,40,0.4)" }}>{nikoUrl}</code>
-                          <motion.button
-                            type="button"
-                            onClick={() => copyWithFeedback(nikoUrl, `${t.id}-niko`, "link")}
-                            animate={{ color: copiedLinkKey === `${t.id}-niko` ? "var(--secondary)" : "var(--primary)" }}
-                            transition={{ duration: 0.2 }}
-                            className="text-xs font-extrabold shrink-0"
-                          >
-                            {copiedLinkKey === `${t.id}-niko` ? "✓ Copied" : "Copy"}
-                          </motion.button>
-                        </div>
+                        {actions.map((action) => (
+                          <div key={action.key} className="flex items-center justify-between gap-3 rounded-[1.1rem] px-3 py-3" style={{ background: "rgba(255,255,255,0.62)" }}>
+                            <div>
+                              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "rgba(37,50,40,0.38)" }}>
+                                {action.label}
+                              </p>
+                              <p className="mt-1 text-sm font-bold" style={{ color: "rgba(37,50,40,0.72)" }}>
+                                팀 전용 링크
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <motion.button
+                                type="button"
+                                title={`${action.label} 링크 복사`}
+                                onClick={() => copyWithFeedback(action.href, `${t.id}-${action.key}`, "link")}
+                                animate={{ color: copiedLinkKey === `${t.id}-${action.key}` ? "var(--secondary)" : "var(--primary)" }}
+                                transition={{ duration: 0.2 }}
+                                className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
+                              >
+                                <CopyIcon />
+                              </motion.button>
+                              <Link
+                                href={action.href}
+                                target="_blank"
+                                rel="noreferrer"
+                                title={`${action.label} 새 탭 열기`}
+                                className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
+                                style={{ color: "var(--primary)" }}
+                              >
+                                <ExternalLinkIcon />
+                              </Link>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     );
                   })}
