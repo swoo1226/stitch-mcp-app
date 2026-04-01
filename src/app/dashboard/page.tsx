@@ -1,6 +1,7 @@
-import { notFound } from "next/navigation";
 import DashboardPageClient from "./DashboardPageClient";
+import AuthGuard from "../components/AuthGuard";
 import { getRequiredSearchParam } from "../lib/requiredSearchParam";
+import { DEMO_TEAM_ID } from "../../lib/demo-data";
 
 export default async function DashboardPage({
   searchParams,
@@ -8,10 +9,15 @@ export default async function DashboardPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await searchParams;
-  const teamId = getRequiredSearchParam(params.team);
+  const teamId = getRequiredSearchParam(params.team) ?? DEMO_TEAM_ID;
+  const needsAuth = teamId !== DEMO_TEAM_ID;
 
-  if (!teamId) {
-    notFound();
+  if (needsAuth) {
+    return (
+      <AuthGuard>
+        <DashboardPageClient teamId={teamId} />
+      </AuthGuard>
+    );
   }
 
   return <DashboardPageClient teamId={teamId} />;

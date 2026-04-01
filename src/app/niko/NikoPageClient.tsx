@@ -20,6 +20,7 @@ import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { STANDARD_SPRING } from "../constants/springs";
 import { supabase } from "../../lib/supabase";
 import { scoreToStatus, type WeatherStatus } from "../../lib/mood";
+import { DEMO_TEAM_ID, DEMO_PARTS, getDemoMembers } from "../../lib/demo-data";
 
 // ─── 날짜 유틸 ──────────────────────────────────────────────────────────────
 function getWeekStart(date: Date): Date {
@@ -68,6 +69,7 @@ const COL_TEMPLATE = "180px repeat(5, minmax(80px, 1fr))";
 interface MoodLogRow {
   user_id: string;
   score: number;
+  message: string | null;
   logged_at: string;
 }
 
@@ -88,7 +90,7 @@ interface MemberRow {
   name: string;
   avatar: string;
   part_id: string | null;
-  week: Array<{ status: WeatherStatus | null; score: number | null }>;
+  week: Array<{ status: WeatherStatus | null; score: number | null; message: string | null }>;
   todayScore: number | null;
 }
 
@@ -98,7 +100,7 @@ const NAV_ITEMS: HeaderNavItem[] = [
   { label: "개인 현황", href: "/personal" },
   { label: "팀", href: "/dashboard", matchPaths: ["/dashboard", "/team"] },
   { label: "Niko-Niko", href: "/niko", matchPaths: ["/niko"] },
-  { label: "알림", href: "/alerts" },
+  { label: "알림", href: "/alerts", disabled: true },
 ];
 
 function CalendarIcon() {
@@ -163,6 +165,14 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
   const todayIndex = weekDays.findIndex((d) => isoDate(d) === todayIso);
 
   useEffect(() => {
+    if (teamId === DEMO_TEAM_ID) {
+      const demoMembers = getDemoMembers(weekOffset);
+      setMembers(demoMembers);
+      setParts(DEMO_PARTS);
+      setLoading(false);
+      return;
+    }
+
     async function fetchData() {
       setLoading(true);
 
@@ -182,7 +192,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
       const userIds = (users as UserRow[]).map((u) => u.id);
       const { data: logs } = await supabase
         .from("mood_logs")
-        .select("user_id, score, logged_at")
+        .select("user_id, score, message, logged_at")
         .in("user_id", userIds)
         .gte("logged_at", kstDayStart(rangeStart))
         .lte("logged_at", kstDayEnd(rangeEnd))
@@ -196,9 +206,9 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
         const week = weekDays.map((day) => {
           const dayIso = isoDate(day);
           const dayLogs = userLogs.filter((l) => utcToKstDate(l.logged_at) === dayIso);
-          if (dayLogs.length === 0) return { status: null, score: null };
+          if (dayLogs.length === 0) return { status: null, score: null, message: null };
           const latest = dayLogs[dayLogs.length - 1];
-          return { status: scoreToStatus(latest.score), score: latest.score };
+          return { status: scoreToStatus(latest.score), score: latest.score, message: latest.message ?? null };
         });
 
         const todayScore = todayIndex >= 0 ? (week[todayIndex]?.score ?? null) : null;

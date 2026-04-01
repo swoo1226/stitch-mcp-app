@@ -222,8 +222,8 @@ function ClimaInputInner() {
           {/* 모드 토글 */}
           <PrimaryTabToggle
             tabs={[
-              { value: "tile" as const, label: "빠르게" },
-              { value: "range" as const, label: "정밀하게" },
+              { value: "tile" as const, label: "빠른 선택" },
+              { value: "range" as const, label: "직접 입력" },
             ]}
             active={mode}
             onChange={setMode}
@@ -563,7 +563,7 @@ function CelebrationModal({
           }}
         >
           나의 예보 보러가기
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 14L14 4M14 4H7M14 4V11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 14L14 4M14 4H7M14 4V11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </Link>
         <button
           onClick={onClose}

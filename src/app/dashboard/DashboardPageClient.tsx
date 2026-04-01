@@ -11,6 +11,7 @@ import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { STANDARD_SPRING } from "../constants/springs";
 import { supabase } from "../../lib/supabase";
 import { scoreToStatus, statusToEmoji, statusToKo, type WeatherStatus } from "../../lib/mood";
+import { DEMO_TEAM_ID, DEMO_PARTS, getDemoMembers } from "../../lib/demo-data";
 
 type DisplayWeather = WeatherStatus | null;
 
@@ -91,7 +92,8 @@ const NAV_ITEMS: HeaderNavItem[] = [
   { label: "홈", href: "/" },
   { label: "개인 현황", href: "/personal" },
   { label: "팀", href: "/dashboard", matchPaths: ["/dashboard", "/team"] },
-  { label: "알림", href: "/alerts" },
+  { label: "Niko-Niko", href: "/niko" },
+  { label: "알림", href: "/alerts", disabled: true },
 ];
 
 
@@ -148,6 +150,14 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
 
 
   useEffect(() => {
+    if (teamId === DEMO_TEAM_ID) {
+      const demoMembers = getDemoMembers(weekOffset);
+      setMembers(demoMembers);
+      setParts(DEMO_PARTS);
+      setLoading(false);
+      return;
+    }
+
     async function fetchData() {
       setLoading(true);
       const rangeStart = isoDate(weekDays[0]);
@@ -375,8 +385,8 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                   <p className="mb-3 text-sm font-bold" style={{ color: "var(--text-soft)" }}>
                     {today.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "short" })}
                   </p>
-                  <p className="max-w-xl text-base leading-relaxed md:text-lg" style={{ color: "var(--text-muted)" }}>
-                    이번 주 팀의 감정 대기를 함께 들여다봐요. 연결되어 있고, 서로를 살피며 나아가요.
+                  <p className="text-base leading-relaxed md:text-lg" style={{ color: "var(--text-muted)" }}>
+                    오늘 팀의 날씨는 어떤가요? 서로의 기후를 살피며 함께 나아가요.
                   </p>
                 </div>
 

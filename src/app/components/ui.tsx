@@ -677,38 +677,53 @@ interface WeatherCellProps {
   isToday?: boolean;
 }
 
-// ─── SmartTooltip (Pretext Powered) ───────────────────────────────────────────
-function SmartTooltip({ text, score, status }: { text: string; score?: number | null, status: WeatherStatus }) {
-  // Pretext를 사용하여 텍스트 레이아웃 미리 측정
-  // maxWidth를 220px로 설정하여 너무 길어지지 않게 함
+// ─── SmartTooltip (Portal 기반, fixed 포지셔닝) ──────────────────────────────
+function SmartTooltip({
+  text, score, status, anchorRect,
+}: {
+  text: string;
+  score?: number | null;
+  status: WeatherStatus;
+  anchorRect: DOMRect;
+}) {
   const layout = useTextLayout({
     text: text || statusToKo(status),
     fontSize: 13,
     fontFamily: "'Public Sans', sans-serif",
     maxWidth: 200,
-    lineHeight: 1.5
+    lineHeight: 1.5,
   });
 
-  // 툴팁의 실제 너비와 높이를 기반으로 컨테이너 크기 결정
   const tooltipWidth = Math.max(layout.width + 32, 120);
-  const tooltipHeight = layout.height + 48; // 상단 상태 영역 + 여백
+  const tooltipHeight = layout.height + 48;
 
-  return (
+  // 셀 중앙 기준으로 툴팁을 위에 띄움
+  const left = anchorRect.left + anchorRect.width / 2 - tooltipWidth / 2;
+  const top = anchorRect.top - tooltipHeight - 10; // 10px gap + arrow
+
+  // 뷰포트 좌우 범위를 벗어나지 않도록 클램핑
+  const clampedLeft = Math.max(8, Math.min(left, window.innerWidth - tooltipWidth - 8));
+
+  return createPortal(
     <motion.div
       initial={{ opacity: 0, scale: 0.9, y: 8 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9, y: 8 }}
       transition={RESPONSIVE_SPRING}
-      className="absolute bottom-full left-1/2 z-[1000] mb-3 -translate-x-1/2 p-4"
       style={{
+        position: "fixed",
+        top,
+        left: clampedLeft,
         width: tooltipWidth,
         height: tooltipHeight,
+        zIndex: 9999,
         background: "var(--glass-bg-high)",
         backdropFilter: "var(--glass-blur-high)",
         WebkitBackdropFilter: "var(--glass-blur-high)",
         borderRadius: "1.25rem",
         boxShadow: "0 12px 40px -10px rgba(0,0,0,0.25)",
-        pointerEvents: "none"
+        pointerEvents: "none",
+        padding: "1rem",
       }}
     >
       <div className="flex items-center justify-between mb-2">
@@ -717,29 +732,44 @@ function SmartTooltip({ text, score, status }: { text: string; score?: number | 
           <span className="text-[10px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">{score}pt</span>
         )}
       </div>
-      <div
-        className="text-[13px] font-medium leading-[1.5] text-on-surface"
-        style={{
-          fontFamily: "'Public Sans', sans-serif",
-        }}
-      >
+      <div className="text-[13px] font-medium leading-[1.5] text-on-surface" style={{ fontFamily: "'Public Sans', sans-serif" }}>
         <MarkdownRenderer content={text || `${statusToKo(status)} 하루예요.`} color="var(--on-surface)" />
       </div>
-      {/* Tooltip arrow */}
+      {/* Arrow: 툴팁 하단 중앙 → 셀 방향 */}
       <div
-        className="absolute top-full left-1/2 -ml-2 h-2 w-4"
+        className="absolute top-full h-2 w-4"
         style={{
+          left: anchorRect.left + anchorRect.width / 2 - clampedLeft - 8,
           clipPath: "polygon(0 0, 50% 100%, 100% 0)",
           background: "var(--glass-bg-high)",
-          backdropFilter: "var(--glass-blur-high)",
         }}
       />
-    </motion.div>
+    </motion.div>,
+    document.body,
   );
 }
 
 export function WeatherCell({ status, score, message, isToday = false }: WeatherCellProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const cellRef = useRef<HTMLDivElement>(null);
+
+  // Dismiss on outside click (mobile tap-away)
+  useEffect(() => {
+    if (!showTooltip) return;
+    function onPointerDown(e: PointerEvent) {
+      if (cellRef.current && !cellRef.current.contains(e.target as Node)) {
+        setShowTooltip(false);
+      }
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [showTooltip]);
+
+  function openTooltip() {
+    if (cellRef.current) setAnchorRect(cellRef.current.getBoundingClientRect());
+    setShowTooltip(true);
+  }
 
   if (status === null) {
     return (
@@ -756,10 +786,12 @@ export function WeatherCell({ status, score, message, isToday = false }: Weather
   return (
     <div className="flex h-full items-center justify-center">
       <div
-        className="relative flex h-12 w-12 items-center justify-center rounded-[1.5rem] cursor-help"
+        ref={cellRef}
+        className="relative flex h-12 w-12 items-center justify-center rounded-[1.5rem] cursor-pointer select-none"
         style={{ background: isToday ? "rgba(0,102,104,0.08)" : "transparent" }}
-        onMouseEnter={() => setShowTooltip(true)}
+        onMouseEnter={openTooltip}
         onMouseLeave={() => setShowTooltip(false)}
+        onClick={(e) => { e.stopPropagation(); if (showTooltip) { setShowTooltip(false); } else { openTooltip(); } }}
       >
         <Icon size={34} />
         {isToday && (
@@ -769,8 +801,8 @@ export function WeatherCell({ status, score, message, isToday = false }: Weather
           />
         )}
         <AnimatePresence>
-          {showTooltip && (
-            <SmartTooltip text={message || ""} score={score} status={status} />
+          {showTooltip && anchorRect && (
+            <SmartTooltip text={message || ""} score={score} status={status} anchorRect={anchorRect} />
           )}
         </AnimatePresence>
       </div>

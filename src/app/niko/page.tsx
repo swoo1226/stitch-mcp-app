@@ -1,6 +1,7 @@
-import { notFound } from "next/navigation";
 import NikoPageClient from "./NikoPageClient";
+import AuthGuard from "../components/AuthGuard";
 import { getRequiredSearchParam } from "../lib/requiredSearchParam";
+import { DEMO_TEAM_ID } from "../../lib/demo-data";
 
 export default async function NikoPage({
   searchParams,
@@ -8,10 +9,15 @@ export default async function NikoPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await searchParams;
-  const teamId = getRequiredSearchParam(params.team);
+  const teamId = getRequiredSearchParam(params.team) ?? DEMO_TEAM_ID;
+  const needsAuth = teamId !== DEMO_TEAM_ID;
 
-  if (!teamId) {
-    notFound();
+  if (needsAuth) {
+    return (
+      <AuthGuard>
+        <NikoPageClient teamId={teamId} />
+      </AuthGuard>
+    );
   }
 
   return <NikoPageClient teamId={teamId} />;

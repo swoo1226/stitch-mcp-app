@@ -13,11 +13,10 @@ import { statusToKo } from "../lib/mood";
 
 // ─── Nav ────────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
-  { label: "대시보드", href: "/dashboard" },
   { label: "개인 현황", href: "/personal" },
   { label: "팀", href: "/dashboard" },
   { label: "Niko-Niko", href: "/niko" },
-  { label: "알림", href: "/alerts" },
+  { label: "알림", href: "/alerts", disabled: true },
 ];
 
 // ─── Weather states data ────────────────────────────────────────────────────

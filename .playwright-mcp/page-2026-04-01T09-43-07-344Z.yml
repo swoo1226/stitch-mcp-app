@@ -1,0 +1,195 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - link "Clima" [ref=e6] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e7]:
+              - img [ref=e9]
+              - generic [ref=e21]: Clima
+          - navigation [ref=e22]:
+            - link "개인 현황" [ref=e23] [cursor=pointer]:
+              - /url: /personal
+            - link "팀" [ref=e24] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Niko-Niko" [ref=e25] [cursor=pointer]:
+              - /url: /niko
+            - link "알림" [ref=e26] [cursor=pointer]:
+              - /url: /alerts
+        - generic [ref=e27]:
+          - button "시스템 설정 사용 중 (라이트)" [ref=e28]:
+            - img [ref=e30]
+            - generic [ref=e33]: 시스템 설정 사용 중 (라이트)
+          - link "Let's Clima" [ref=e34] [cursor=pointer]:
+            - /url: /input
+      - generic [ref=e35]:
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - generic [ref=e39]: 팀 컨디션 대시보드
+            - heading "Check whether your mind is sunny." [level=1] [ref=e41]:
+              - text: Check whether
+              - text: your mind is
+              - text: sunny.
+            - paragraph [ref=e42]: 팀원의 감정을 직관적인 날씨 메타포로 변환해주는 Clima — 문제가 커지기 전에 리더가 팀의 컨디션을 알아채고, 이해하고, 행동할 수 있도록 도와줘요.
+            - generic [ref=e43]:
+              - link "오늘 날씨 기록하기" [ref=e44] [cursor=pointer]:
+                - /url: /input
+              - link "대시보드 보기" [ref=e45] [cursor=pointer]:
+                - /url: /dashboard
+          - generic [ref=e46]:
+            - img [ref=e49]
+            - generic [ref=e56]:
+              - paragraph [ref=e57]: 팀 점수
+              - paragraph [ref=e58]: "82"
+            - generic [ref=e59]:
+              - img [ref=e61]
+              - generic [ref=e68]:
+                - paragraph [ref=e69]: 오늘 맑음 3명
+                - paragraph [ref=e70]: 전원 체크인 완료
+        - generic [ref=e71]:
+          - paragraph [ref=e72]: 스크롤
+          - img [ref=e74]
+      - generic [ref=e78]:
+        - generic [ref=e80]:
+          - paragraph [ref=e81]: 사용 방법
+          - heading "마음 건강을 날씨로 관측해요" [level=2] [ref=e82]:
+            - text: 마음 건강을
+            - text: 날씨로 관측해요
+          - paragraph [ref=e83]: 막연한 감정은 추적하기 어려워요. 날씨 메타포는 팀의 분위기를 누구나 즉시 이해할 수 있게 만들어줘요.
+        - generic [ref=e84]:
+          - generic [ref=e86]:
+            - generic [ref=e87]: "01"
+            - generic [ref=e88]:
+              - paragraph [ref=e89]: 매일 아침 체크인
+              - paragraph [ref=e90]: 팀원이 1~100 사이의 점수를 입력하면 끝이에요. 10초면 충분해요.
+          - generic [ref=e92]:
+            - generic [ref=e93]: "02"
+            - generic [ref=e94]:
+              - paragraph [ref=e95]: 점수가 날씨로 변환돼요
+              - paragraph [ref=e96]: 숫자가 직관적인 날씨 메타포로 바뀌어요 — 해석 없이 바로 이해할 수 있어요.
+          - generic [ref=e98]:
+            - generic [ref=e99]: "03"
+            - generic [ref=e100]:
+              - paragraph [ref=e101]: 리더가 인사이트에 따라 행동해요
+              - paragraph [ref=e102]: 관리자는 실시간 팀 기후와 캘린더 추이를 보고 선제적으로 케어할 수 있어요.
+      - generic [ref=e104]:
+        - generic [ref=e105]:
+          - paragraph [ref=e106]: 6가지 날씨 상태
+          - heading "내 마음의 날씨를 읽어요" [level=2] [ref=e107]
+          - paragraph [ref=e108]: 기분 점수가 날씨 상태로 자동 변환돼요 — 팀 전체가 별도 설명 없이 바로 이해할 수 있어요.
+        - generic [ref=e109]:
+          - generic [ref=e111]:
+            - generic [ref=e112]:
+              - img [ref=e113]
+              - generic [ref=e124]: 81–100
+            - generic [ref=e125]:
+              - paragraph [ref=e126]: 쨍함
+              - paragraph [ref=e127]: 에너지가 넘쳐흘러요 — 아이디어가 쏟아지고 팀 전체가 들떠 있어요.
+          - generic [ref=e129]:
+            - generic [ref=e130]:
+              - img [ref=e131]
+              - generic [ref=e138]: 61–80
+            - generic [ref=e139]:
+              - paragraph [ref=e140]: 맑음
+              - paragraph [ref=e141]: 집중력이 좋고 긍정적인 하루예요 — 맑고 생산적인 기운이 가득해요.
+          - generic [ref=e143]:
+            - generic [ref=e144]:
+              - img [ref=e145]
+              - generic [ref=e152]: 41–60
+            - generic [ref=e153]:
+              - paragraph [ref=e154]: 안개
+              - paragraph [ref=e155]: 앞이 잘 보이지 않아요 — 에너지가 낮고 방향감이 흐릿한 상태예요.
+          - generic [ref=e157]:
+            - generic [ref=e158]:
+              - img [ref=e159]
+              - generic [ref=e167]: 21–40
+            - generic [ref=e168]:
+              - paragraph [ref=e169]: 비
+              - paragraph [ref=e170]: 오늘은 많이 힘들어요 — 지지와 관심이 필요한 상태예요.
+          - generic [ref=e172]:
+            - generic [ref=e173]:
+              - img [ref=e174]
+              - generic [ref=e180]: 0–20
+            - generic [ref=e181]:
+              - paragraph [ref=e182]: 번개
+              - paragraph [ref=e183]: 위기 상태예요 — 즉각적인 보살핌과 체크인이 필요해요.
+      - generic [ref=e186]:
+        - generic [ref=e188]:
+          - generic [ref=e193]: 팀 대시보드 — 이번 주
+          - generic [ref=e194]:
+            - generic [ref=e195]:
+              - paragraph [ref=e196]: "78"
+              - paragraph [ref=e197]: 팀 점수
+            - generic [ref=e198]:
+              - paragraph [ref=e199]: 8/10
+              - paragraph [ref=e200]: 체크인
+            - generic [ref=e201]:
+              - paragraph [ref=e202]: +12%
+              - paragraph [ref=e203]: 추이
+          - generic [ref=e204]:
+            - paragraph [ref=e205]: 주간 추이
+            - generic [ref=e214]:
+              - paragraph [ref=e215]: 월
+              - paragraph [ref=e216]: 화
+              - paragraph [ref=e217]: 수
+              - paragraph [ref=e218]: 목
+              - paragraph [ref=e219]: 금
+              - paragraph [ref=e220]: 토
+              - paragraph [ref=e221]: 일
+          - generic [ref=e222]:
+            - generic [ref=e223]:
+              - img [ref=e225]
+              - paragraph [ref=e232]: 상우
+              - generic [ref=e233]: 82pt
+            - generic [ref=e234]:
+              - img [ref=e236]
+              - paragraph [ref=e243]: 지연
+              - generic [ref=e244]: 58pt
+            - generic [ref=e245]:
+              - img [ref=e247]
+              - paragraph [ref=e255]: 민호
+              - generic [ref=e256]: 18pt
+        - generic [ref=e257]:
+          - generic [ref=e258]:
+            - paragraph [ref=e259]: 스마트 인사이트
+            - heading "스마트 팀 기후 분석" [level=2] [ref=e260]
+            - paragraph [ref=e261]: Niko-Niko 캘린더와 주간 추이를 통해 리더가 문제가 되기 전에 패턴을 먼저 발견할 수 있어요.
+          - generic [ref=e262]:
+            - generic [ref=e264]:
+              - generic [ref=e265]: 📅
+              - generic [ref=e266]:
+                - paragraph [ref=e267]: 주간 체크인 기록
+                - paragraph [ref=e268]: 팀 전체의 일별 체크인 패턴을 한눈에 파악해요.
+            - generic [ref=e270]:
+              - generic [ref=e271]: ⚡
+              - generic [ref=e272]:
+                - paragraph [ref=e273]: 즉각 알림
+                - paragraph [ref=e274]: 팀원의 날씨가 비 또는 번개로 떨어지면 바로 알려줘요.
+          - link "대시보드 둘러보기 →" [ref=e276] [cursor=pointer]:
+            - /url: /dashboard
+      - generic [ref=e283]:
+        - paragraph [ref=e284]: 지금 시작해요
+        - heading "오늘 나의 기후는 어때요?" [level=2] [ref=e285]
+        - paragraph [ref=e286]: 10초면 충분해요. 팀이 고마워할 거예요.
+        - generic [ref=e287]:
+          - link "Let's Clima ☀️" [ref=e288] [cursor=pointer]:
+            - /url: /input
+          - link "관리자 로그인" [ref=e289] [cursor=pointer]:
+            - /url: /admin
+      - generic [ref=e291]:
+        - generic [ref=e292]:
+          - img [ref=e294]
+          - generic [ref=e306]: Clima
+        - navigation [ref=e307]:
+          - link "개인 현황" [ref=e308] [cursor=pointer]:
+            - /url: /personal
+          - link "팀" [ref=e309] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Niko-Niko" [ref=e310] [cursor=pointer]:
+            - /url: /niko
+          - link "알림" [ref=e311] [cursor=pointer]:
+            - /url: /alerts
+        - paragraph [ref=e312]: "© 2026 Clima · Region: Horizon-01"
+  - button "Open Next.js Dev Tools" [ref=e318] [cursor=pointer]:
+    - img [ref=e319]

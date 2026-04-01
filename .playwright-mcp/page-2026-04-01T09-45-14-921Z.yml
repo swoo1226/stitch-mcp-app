@@ -1,0 +1,81 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - link "Clima" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e7]:
+            - img [ref=e9]
+            - generic [ref=e21]: Clima
+        - navigation [ref=e22]:
+          - link "홈" [ref=e23] [cursor=pointer]:
+            - /url: /
+          - link "개인 현황" [ref=e24] [cursor=pointer]:
+            - /url: /personal
+          - link "팀" [ref=e25] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Niko-Niko" [ref=e26] [cursor=pointer]:
+            - /url: /niko
+          - generic [ref=e27]:
+            - text: 알림
+            - generic [ref=e28]: SOON
+      - generic [ref=e29]:
+        - button "시스템 설정 사용 중 (라이트)" [ref=e30]:
+          - img [ref=e32]
+          - generic [ref=e35]: 시스템 설정 사용 중 (라이트)
+        - button [ref=e36]:
+          - img [ref=e37]
+        - button [ref=e40]:
+          - img [ref=e41]
+        - link [ref=e44] [cursor=pointer]:
+          - /url: /personal
+          - img [ref=e45]
+    - main [ref=e49]:
+      - generic [ref=e51]:
+        - generic [ref=e52]:
+          - heading "팀 기후" [level=1] [ref=e53]
+          - paragraph [ref=e54]: 2026년 4월 1일 수
+          - paragraph [ref=e55]: 오늘 팀의 날씨는 어떤가요? 서로의 기후를 살피며 함께 나아가요.
+        - generic [ref=e57]: "+0"
+      - generic [ref=e58]:
+        - generic [ref=e59]:
+          - generic [ref=e60]:
+            - img [ref=e62]
+            - generic [ref=e65]: Niko-Niko 캘린더
+          - generic [ref=e67]:
+            - button "ICONS" [ref=e68]:
+              - img [ref=e69]
+              - text: ICONS
+            - button "CHART" [ref=e74]:
+              - img [ref=e75]
+              - text: CHART
+        - generic [ref=e80]:
+          - paragraph [ref=e82]: TEAM MEMBER
+          - generic [ref=e83]:
+            - paragraph [ref=e84]: MON
+            - generic [ref=e85]: 03. 30.
+          - generic [ref=e86]:
+            - paragraph [ref=e87]: TUE
+            - generic [ref=e88]: 03. 31.
+          - generic [ref=e89]:
+            - paragraph [ref=e90]: WED
+            - generic [ref=e91]: 04. 01.
+          - generic [ref=e92]:
+            - paragraph [ref=e93]: THU
+            - generic [ref=e94]: 04. 02.
+          - generic [ref=e95]:
+            - paragraph [ref=e96]: FRI
+            - generic [ref=e97]: 04. 03.
+      - generic [ref=e169]:
+        - article [ref=e170]:
+          - paragraph [ref=e172]: 팀 평균
+          - generic [ref=e175]: 🌫️
+          - generic [ref=e176]:
+            - generic [ref=e177]: —
+            - generic [ref=e178]: 오늘 0 / 0명 체크인했어요.
+        - article [ref=e179]:
+          - paragraph [ref=e181]: 가장 많은 날씨
+          - img [ref=e184]
+          - generic [ref=e191]:
+            - generic [ref=e192]: 안개
+            - generic [ref=e193]: 아직 이번 주 체크인 데이터가 없어요.
