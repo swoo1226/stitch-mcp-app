@@ -871,7 +871,7 @@ export default function AdminPage() {
                       <motion.div
                         key={m.id}
                         layout
-                        className="flex flex-col gap-4 rounded-[2rem] p-5 shrink-0 group"
+                        className="relative flex flex-col gap-4 rounded-[2rem] p-5 shrink-0 group"
                         onMouseLeave={() => {
                           if (activeThoughtId === m.id) setActiveThoughtId(null);
                         }}
@@ -883,6 +883,7 @@ export default function AdminPage() {
                           backdropFilter: "var(--glass-blur-low)",
                           WebkitBackdropFilter: "var(--glass-blur-low)",
                           boxShadow: "var(--glass-shadow)",
+                          zIndex: activeThoughtId === m.id ? 50 : 1,
                         }}
                       >
                         {/* 통합: 아이콘 + 이름/파트 + 날씨상태 */}
