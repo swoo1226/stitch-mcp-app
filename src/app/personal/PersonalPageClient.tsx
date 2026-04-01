@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import DynamicBackground from "../components/DynamicBackground";
-import { PageHeadline, SanctuaryCard, Badge } from "../components/ui";
+import { PageHeadline, SanctuaryCard, Badge, ViewModeToggle } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
+import { MoodTrendChart } from "../components/MoodTrendChart";
 import { supabase } from "../../lib/supabase";
 import { scoreToStatus, type WeatherStatus } from "../../lib/mood";
 import { STANDARD_SPRING } from "../constants/springs";
@@ -49,6 +50,7 @@ function getWeeklyLogs(logs: MoodLog[]): (MoodLog | null)[] {
 export default function PersonalPageClient({ userId }: { userId: string }) {
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<"icon" | "chart">("icon");
 
   useEffect(() => {
     supabase
@@ -157,35 +159,53 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
           </section>
 
           <section className="mb-8 rounded-[2rem] bg-surface-container p-6 md:p-8">
-            <p className="mb-6 text-[10px] font-black uppercase tracking-widest opacity-40">이번 주 기후</p>
-            <div className="grid grid-cols-7 gap-1 text-center">
-              {WEEK_DAYS.map((day) => (
-                <span key={day} className="mb-3 block text-[10px] font-bold opacity-40">{day}</span>
-              ))}
-              {weeklyLogs.map((log, i) => {
-                const isToday = i === (new Date().getDay() + 6) % 7;
-                const status = log ? scoreToStatus(log.score) : null;
-                const Icon = status ? WEATHER_ICON_MAP[status] : null;
-
-                return (
-                  <div
-                    key={i}
-                    className="aspect-square rounded-[1rem] flex items-center justify-center"
-                    style={{
-                      background: isToday ? "var(--highlight-soft)" : "transparent",
-                      outline: isToday ? "2px solid var(--primary)" : "none",
-                      outlineOffset: "-2px",
-                    }}
-                  >
-                    {Icon ? (
-                      <Icon size={22} />
-                    ) : (
-                      <span className="block h-5 w-5 rounded-full" style={{ background: "var(--track-bg)" }} />
-                    )}
-                  </div>
-                );
-              })}
+            <div className="mb-6 flex items-center justify-between">
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-40">이번 주 기후</p>
+              <ViewModeToggle mode={viewMode} onChange={setViewMode} />
             </div>
+            {viewMode === "icon" ? (
+              <div className="grid grid-cols-7 gap-1 text-center">
+                {WEEK_DAYS.map((day) => (
+                  <span key={day} className="mb-3 block text-[10px] font-bold opacity-40">{day}</span>
+                ))}
+                {weeklyLogs.map((log, i) => {
+                  const isToday = i === (new Date().getDay() + 6) % 7;
+                  const status = log ? scoreToStatus(log.score) : null;
+                  const Icon = status ? WEATHER_ICON_MAP[status] : null;
+
+                  return (
+                    <div
+                      key={i}
+                      className="aspect-square rounded-[1rem] flex items-center justify-center"
+                      style={{
+                        background: isToday ? "var(--highlight-soft)" : "transparent",
+                        outline: isToday ? "2px solid var(--primary)" : "none",
+                        outlineOffset: "-2px",
+                      }}
+                    >
+                      {Icon ? (
+                        <Icon size={22} />
+                      ) : (
+                        <span className="block h-5 w-5 rounded-full" style={{ background: "var(--track-bg)" }} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="h-32 px-2 py-4">
+                <div className="grid grid-cols-7 gap-1 text-center mb-4">
+                  {WEEK_DAYS.map((day) => (
+                    <span key={day} className="block text-[10px] font-bold opacity-40">{day}</span>
+                  ))}
+                </div>
+                <MoodTrendChart 
+                  scores={weeklyLogs.map(l => l?.score ?? null)} 
+                  height={80} 
+                  className="w-full" 
+                />
+              </div>
+            )}
           </section>
 
           {bestLog && bestDayIndex >= 0 && (

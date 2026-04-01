@@ -8,7 +8,7 @@ import ClimaLogo from "../components/WetherLogo";
 import { RESPONSIVE_SPRING, STANDARD_SPRING, HEAVY_SPRING } from "../constants/springs";
 import DynamicBackground from "../components/DynamicBackground";
 import AtmosphericEffects from "../components/AtmosphericEffects";
-import { ClimaButton, FAB, WeatherTile, PrimaryTabToggle } from "../components/ui";
+import { ClimaButton, FAB, WeatherTile, PrimaryTabToggle, ClimaTextarea } from "../components/ui";
 import GlassModal from "../components/GlassModal";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { supabase } from "../../lib/supabase";
@@ -94,6 +94,7 @@ function ClimaInputInner() {
   const token = searchParams.get("token");
 
   const [score, setScore] = useState(75);
+  const [message, setMessage] = useState("");
   const [mode, setMode] = useState<"tile" | "range">("tile");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -116,7 +117,7 @@ function ClimaInputInner() {
 
   async function doInsert(userId: string) {
     const loggedAt = new Date().toLocaleString("sv-SE", { timeZone: "Asia/Seoul" }).replace(" ", "T") + "+09:00";
-    const { error } = await supabase.from("mood_logs").insert({ user_id: userId, score, logged_at: loggedAt });
+    const { error } = await supabase.from("mood_logs").insert({ user_id: userId, score, message, logged_at: loggedAt });
     if (error) {
       if (error.code === "23505") {
         // unique violation — 오늘 이미 기록 존재
@@ -160,7 +161,7 @@ function ClimaInputInner() {
     const todayIso = `${nowKst.getUTCFullYear()}-${String(nowKst.getUTCMonth() + 1).padStart(2, "0")}-${String(nowKst.getUTCDate()).padStart(2, "0")}`;
     await supabase
       .from("mood_logs")
-      .update({ score })
+      .update({ score, message })
       .eq("user_id", pendingUserId)
       .gte("logged_at", `${todayIso}T00:00:00+09:00`)
       .lte("logged_at", `${todayIso}T23:59:59+09:00`);
@@ -339,6 +340,21 @@ function ClimaInputInner() {
               )}
             </AnimatePresence>
           </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="w-full max-w-[18rem] md:max-w-sm mx-auto mb-16"
+          >
+            <ClimaTextarea
+              label="오늘의 한마디 (선택)"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="따뜻한 한마디를 남겨주세요..."
+              className="bg-white/30 backdrop-blur-sm"
+            />
+          </motion.div>
         </main>
       </motion.div>
 

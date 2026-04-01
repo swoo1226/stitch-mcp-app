@@ -19,6 +19,7 @@ import {
   WeatherTile,
   PrimaryTabToggle,
   PortalSelect,
+  MarkdownRenderer,
 } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 
@@ -86,18 +87,18 @@ function LinkIcon() {
   );
 }
 
-function CopyIcon() {
+function CopyIcon({ size = 16 }: { size?: number }) {
   return (
-    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg viewBox="0 0 24 24" style={{ width: size, height: size }} fill="none" stroke="currentColor" strokeWidth="1.8">
       <rect x="9" y="9" width="10" height="10" rx="2" />
       <path d="M15 9V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
     </svg>
   );
 }
 
-function ExternalLinkIcon() {
+function ExternalLinkIcon({ size = 16 }: { size?: number }) {
   return (
-    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg viewBox="0 0 24 24" style={{ width: size, height: size }} fill="none" stroke="currentColor" strokeWidth="1.8">
       <path d="M14 5h5v5" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M10 14 19 5" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M19 13v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4" strokeLinecap="round" />
@@ -954,9 +955,7 @@ export default function AdminPage() {
                                         <p className="mb-1 text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--primary)" }}>
                                           Thought
                                         </p>
-                                        <p className="text-xs font-medium leading-relaxed break-words" style={{ color: "var(--on-surface)" }}>
-                                          {thought}
-                                        </p>
+                                        <MarkdownRenderer content={thought || ""} color="var(--on-surface)" />
                                       </motion.div>
                                     )}
                                   </AnimatePresence>
@@ -1316,80 +1315,102 @@ export default function AdminPage() {
                     return (
                       <div
                         key={t.id}
-                        className="rounded-[1.5rem] px-5 py-4 flex flex-col gap-3"
+                        className="rounded-[2rem] px-6 py-6 flex flex-col md:flex-row md:items-center justify-between gap-6"
                         style={{ background: "var(--surface-container-low)" }}
                       >
-                        <p className="font-black text-sm tracking-tight" style={{ color: "var(--primary)" }}>{t.name}</p>
-                        <div className="grid grid-cols-2 gap-3">
-                          {actions.map((action) => (
-                            <div
-                              key={action.key}
-                              className="rounded-[1.2rem] px-3 py-3"
-                              style={{ background: "var(--surface-overlay)" }}
-                            >
-                              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--text-soft)" }}>
-                                {action.label}
-                              </p>
-                              <div className="mt-3 flex items-center justify-between gap-2">
-                                <p className="text-sm font-bold" style={{ color: "var(--text-muted)" }}>
-                                  팀 전용 링크
-                                </p>
-                                <div className="flex items-center gap-2 shrink-0">
-                                  <motion.button
-                                    type="button"
-                                    title={`${action.label} 링크 복사`}
-                                    onClick={() => copyWithFeedback(action.href, `${t.id}-${action.key}`, "link")}
-                                    animate={copiedLinkKey === `${t.id}-${action.key}`
-                                      ? { scale: [1, 1.2, 1], backgroundColor: "var(--highlight-soft)" }
-                                      : { scale: 1, backgroundColor: "var(--surface-container)" }
-                                    }
-                                    transition={{ duration: 0.3 }}
-                                    className="flex w-12 h-12 items-center justify-center rounded-full shrink-0"
-                                    style={{ color: copiedLinkKey === `${t.id}-${action.key}` ? "var(--primary)" : "var(--text-soft)" }}
-                                  >
-                                    <AnimatePresence mode="wait">
-                                      {copiedLinkKey === `${t.id}-${action.key}` ? (
-                                        <motion.svg
-                                          key="check"
-                                          viewBox="0 0 24 24"
-                                          className="w-5 h-5"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          strokeWidth="2.5"
-                                          initial={{ scale: 0, opacity: 0 }}
-                                          animate={{ scale: 1, opacity: 1 }}
-                                          exit={{ scale: 0, opacity: 0 }}
-                                          transition={{ duration: 0.2 }}
-                                        >
-                                          <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
-                                        </motion.svg>
-                                      ) : (
-                                        <motion.div
-                                          key="copy"
-                                          initial={{ scale: 0, opacity: 0 }}
-                                          animate={{ scale: 1, opacity: 1 }}
-                                          exit={{ scale: 0, opacity: 0 }}
-                                          transition={{ duration: 0.2 }}
-                                        >
-                                          <CopyIcon />
-                                        </motion.div>
-                                      )}
-                                    </AnimatePresence>
-                                  </motion.button>
-                                  <Link
-                                    href={action.href}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    title={`${action.label} 새 탭 열기`}
-                                    className="flex w-12 h-12 items-center justify-center rounded-full shrink-0 transition-colors active:scale-95"
-                                    style={{ background: "var(--surface-container)", color: "var(--text-soft)" }}
-                                  >
-                                    <ExternalLinkIcon />
-                                  </Link>
-                                </div>
-                              </div>
+                        <div className="flex items-center gap-4">
+                          <div
+                            className="w-12 h-12 rounded-[1.2rem] flex items-center justify-center shrink-0"
+                            style={{ background: "var(--primary-container)", color: "var(--primary)" }}
+                          >
+                            <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+                          </div>
+                          <div>
+                            <p className="font-black text-lg tracking-tight leading-tight">{t.name}</p>
+                            <p className="text-xs font-bold mt-1" style={{ color: "var(--text-soft)" }}>Team Access Portal</p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row items-center gap-6">
+                          {/* Dashboard Access */}
+                          <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--text-soft)" }}>Dashboard</span>
+                            <div className="flex items-center gap-1.5 p-1 rounded-full" style={{ background: "var(--surface-overlay)", boxShadow: "var(--button-subtle-shadow)" }}>
+                              <motion.button
+                                type="button"
+                                title="Dashboard 링크 복사"
+                                onClick={() => copyWithFeedback(dashUrl, `${t.id}-dash`, "link")}
+                                animate={copiedLinkKey === `${t.id}-dash`
+                                  ? { scale: [1, 1.15, 1], backgroundColor: "var(--highlight-soft)" }
+                                  : { scale: 1, backgroundColor: "var(--surface-container-low)" }
+                                }
+                                className="w-11 h-11 flex items-center justify-center rounded-full shrink-0 transition-all"
+                                style={{ color: copiedLinkKey === `${t.id}-dash` ? "var(--primary)" : "var(--text-soft)" }}
+                              >
+                                <AnimatePresence mode="wait">
+                                  {copiedLinkKey === `${t.id}-dash` ? (
+                                    <motion.svg key="check" viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5"
+                                      initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}>
+                                      <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+                                    </motion.svg>
+                                  ) : (
+                                    <motion.div key="link" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}>
+                                      <LinkIcon />
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </motion.button>
+                              <Link
+                                href={dashUrl}
+                                target="_blank"
+                                title="Dashboard 새 탭 열기"
+                                className="w-11 h-11 flex items-center justify-center rounded-full transition-all active:scale-90"
+                                style={{ background: "var(--surface-container-low)", color: "var(--text-soft)" }}
+                              >
+                                <ExternalLinkIcon />
+                              </Link>
                             </div>
-                          ))}
+                          </div>
+
+                          {/* Niko-Niko Access */}
+                          <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--text-soft)" }}>Niko</span>
+                            <div className="flex items-center gap-1.5 p-1 rounded-full" style={{ background: "var(--surface-overlay)", boxShadow: "var(--button-subtle-shadow)" }}>
+                              <motion.button
+                                type="button"
+                                title="Niko-Niko 링크 복사"
+                                onClick={() => copyWithFeedback(nikoUrl, `${t.id}-niko`, "link")}
+                                animate={copiedLinkKey === `${t.id}-niko`
+                                  ? { scale: [1, 1.15, 1], backgroundColor: "var(--highlight-soft)" }
+                                  : { scale: 1, backgroundColor: "var(--surface-container-low)" }
+                                }
+                                className="w-11 h-11 flex items-center justify-center rounded-full shrink-0 transition-all"
+                                style={{ color: copiedLinkKey === `${t.id}-niko` ? "var(--tertiary)" : "var(--text-soft)" }}
+                              >
+                                <AnimatePresence mode="wait">
+                                  {copiedLinkKey === `${t.id}-niko` ? (
+                                    <motion.svg key="check" viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5"
+                                      initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}>
+                                      <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+                                    </motion.svg>
+                                  ) : (
+                                    <motion.div key="link" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}>
+                                      <LinkIcon />
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </motion.button>
+                              <Link
+                                href={nikoUrl}
+                                target="_blank"
+                                title="Niko-Niko 새 탭 열기"
+                                className="w-11 h-11 flex items-center justify-center rounded-full transition-all active:scale-90"
+                                style={{ background: "var(--surface-container-low)", color: "var(--text-soft)" }}
+                              >
+                                <ExternalLinkIcon />
+                              </Link>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     );

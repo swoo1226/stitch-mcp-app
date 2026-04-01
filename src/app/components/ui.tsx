@@ -1,12 +1,15 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { RESPONSIVE_SPRING, STANDARD_SPRING } from "../constants/springs";
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import ReactMarkdown, { type Components } from "react-markdown";
 import { createPortal } from "react-dom";
 import { WEATHER_ICON_MAP } from "./WeatherIcons";
 import { statusToKo, type WeatherStatus } from "../../lib/mood";
+import { useTextLayout } from "../../lib/pretext-utils";
+import { MoodTrendChart } from "./MoodTrendChart";
 
 // ─── GlassCard ────────────────────────────────────────────────────────────────
 // 공식 glassmorphism 카드. DESIGN.md "Glass & Gradient Rule" 준수.
@@ -417,13 +420,66 @@ interface ClimaTextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextA
 export function ClimaTextarea({ label, className = "", ...props }: ClimaTextareaProps) {
   return (
     <div className="w-full flex flex-col gap-2">
-      {label && <SectionLabel color="muted">{label}</SectionLabel>}
+      <div className="flex items-center justify-between">
+        {label && <SectionLabel color="muted">{label}</SectionLabel>}
+        <div className="flex items-center gap-1 opacity-20 hover:opacity-100 transition-opacity cursor-help" title="마크다운 문법을 지원합니다 (예: **굵게**, [링크](url))">
+          <svg viewBox="0 0 16 16" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4.5 12V4l3 3 3-3v8" />
+            <rect x="2" y="2" width="12" height="12" rx="2" />
+          </svg>
+          <span className="text-[9px] font-black tracking-widest uppercase">Markdown</span>
+        </div>
+      </div>
       <textarea
         className={`${SANCTUARY_INPUT_CLASS} resize-none ${className}`}
         style={{ background: "var(--surface-container-low)", color: "var(--on-surface)", border: "1.5px solid transparent" }}
         rows={3}
         {...props}
       />
+    </div>
+  );
+}
+
+// ─── MarkdownRenderer ─────────────────────────────────────────────────────────
+// 한마디(Thought) 등에 마크다운을 적용하기 위한 렌더러.
+// 여백을 최소화하고 Atmosperic 감성을 유지합니다.
+interface MarkdownRendererProps {
+  content: string;
+  className?: string;
+  color?: string;
+}
+
+export function MarkdownRenderer({ content, className = "", color = "var(--on-surface)" }: MarkdownRendererProps) {
+  const components: Components = {
+    p: ({ children }) => <p className="mb-0 leading-relaxed last:mb-0 inline">{children}</p>,
+    a: ({ href, children }) => (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-bold underline decoration-primary/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary"
+      >
+        {children}
+      </a>
+    ),
+    strong: ({ children }) => <strong className="font-black" style={{ color: "var(--primary)" }}>{children}</strong>,
+    em: ({ children }) => <em className="italic opacity-80">{children}</em>,
+    // 한마디이므로 헤딩이나 리스트는 최소화하여 표현
+    h1: ({ children }) => <span className="text-sm font-black block">{children}</span>,
+    h2: ({ children }) => <span className="text-sm font-black block">{children}</span>,
+    h3: ({ children }) => <span className="text-sm font-black block">{children}</span>,
+    ul: ({ children }) => <ul className="list-disc list-inside ml-1">{children}</ul>,
+    ol: ({ children }) => <ol className="list-decimal list-inside ml-1">{children}</ol>,
+    code: ({ children }) => (
+      <code className="text-[10px] bg-primary/5 px-1.5 py-0.5 rounded font-mono border border-primary/10">
+        {children}
+      </code>
+    ),
+  };
+
+  return (
+    <div className={`markdown-body text-xs font-medium ${className}`} style={{ color }}>
+      <ReactMarkdown components={components}>{content}</ReactMarkdown>
     </div>
   );
 }
@@ -617,17 +673,80 @@ export function SectionHeader({ icon, title, subtitle, className = "" }: Section
 interface WeatherCellProps {
   status: WeatherStatus | null;
   score?: number | null;
+  message?: string | null;
   isToday?: boolean;
 }
 
-export function WeatherCell({ status, score, isToday = false }: WeatherCellProps) {
+// ─── SmartTooltip (Pretext Powered) ───────────────────────────────────────────
+function SmartTooltip({ text, score, status }: { text: string; score?: number | null, status: WeatherStatus }) {
+  // Pretext를 사용하여 텍스트 레이아웃 미리 측정
+  // maxWidth를 220px로 설정하여 너무 길어지지 않게 함
+  const layout = useTextLayout({
+    text: text || statusToKo(status),
+    fontSize: 13,
+    fontFamily: "'Public Sans', sans-serif",
+    maxWidth: 200,
+    lineHeight: 1.5
+  });
+
+  // 툴팁의 실제 너비와 높이를 기반으로 컨테이너 크기 결정
+  const tooltipWidth = Math.max(layout.width + 32, 120);
+  const tooltipHeight = layout.height + 48; // 상단 상태 영역 + 여백
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9, y: 8 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9, y: 8 }}
+      transition={RESPONSIVE_SPRING}
+      className="absolute bottom-full left-1/2 z-[1000] mb-3 -translate-x-1/2 p-4"
+      style={{
+        width: tooltipWidth,
+        height: tooltipHeight,
+        background: "var(--glass-bg-high)",
+        backdropFilter: "var(--glass-blur-high)",
+        WebkitBackdropFilter: "var(--glass-blur-high)",
+        borderRadius: "1.25rem",
+        boxShadow: "0 12px 40px -10px rgba(0,0,0,0.25)",
+        pointerEvents: "none"
+      }}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] font-black uppercase tracking-widest opacity-40">{statusToKo(status)}</span>
+        {score != null && (
+          <span className="text-[10px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">{score}pt</span>
+        )}
+      </div>
+      <div
+        className="text-[13px] font-medium leading-[1.5] text-on-surface"
+        style={{
+          fontFamily: "'Public Sans', sans-serif",
+        }}
+      >
+        <MarkdownRenderer content={text || `${statusToKo(status)} 하루예요.`} color="var(--on-surface)" />
+      </div>
+      {/* Tooltip arrow */}
+      <div
+        className="absolute top-full left-1/2 -ml-2 h-2 w-4"
+        style={{
+          clipPath: "polygon(0 0, 50% 100%, 100% 0)",
+          background: "var(--glass-bg-high)",
+          backdropFilter: "var(--glass-blur-high)",
+        }}
+      />
+    </motion.div>
+  );
+}
+
+export function WeatherCell({ status, score, message, isToday = false }: WeatherCellProps) {
+  const [showTooltip, setShowTooltip] = useState(false);
+
   if (status === null) {
     return (
-      <div className="flex justify-center">
+      <div className="flex h-full items-center justify-center">
         <div
           className="h-9 w-9 rounded-full"
           style={{ background: "rgba(37,50,40,0.07)" }}
-          title="기록 없음"
         />
       </div>
     );
@@ -635,19 +754,25 @@ export function WeatherCell({ status, score, isToday = false }: WeatherCellProps
 
   const Icon = WEATHER_ICON_MAP[status];
   return (
-    <div className="flex justify-center">
+    <div className="flex h-full items-center justify-center">
       <div
-        className="relative flex h-12 w-12 items-center justify-center rounded-[1.5rem]"
+        className="relative flex h-12 w-12 items-center justify-center rounded-[1.5rem] cursor-help"
         style={{ background: isToday ? "rgba(0,102,104,0.08)" : "transparent" }}
-        title={score != null ? `${statusToKo(status)} (${score}점)` : statusToKo(status)}
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
       >
         <Icon size={34} />
         {isToday && (
           <div
-            className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full"
+            className="absolute -bottom-1.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full"
             style={{ background: "var(--primary)" }}
           />
         )}
+        <AnimatePresence>
+          {showTooltip && (
+            <SmartTooltip text={message || ""} score={score} status={status} />
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -665,11 +790,13 @@ interface NikoGridHeaderProps {
 
 export function NikoGridHeader({ days, todayIso, colTemplate, className = "" }: NikoGridHeaderProps) {
   return (
-    <div
-      className={`mb-5 grid px-3 ${className}`}
+    <div 
+      className={`mb-4 grid px-4 py-2 border-b border-[var(--border-subtle)] ${className}`} 
       style={{ gridTemplateColumns: colTemplate }}
     >
-      <SectionLabel color="muted">TEAM MEMBER</SectionLabel>
+      <div className="sticky left-0 z-10 bg-[var(--surface-lowest)] transition-colors duration-200 pl-14">
+        <SectionLabel color="primary" className="opacity-70">TEAM MEMBER</SectionLabel>
+      </div>
       {days.map(({ label, date }, i) => {
         const y = date.getFullYear();
         const mo = String(date.getMonth() + 1).padStart(2, "0");
@@ -677,14 +804,9 @@ export function NikoGridHeader({ days, todayIso, colTemplate, className = "" }: 
         const iso = `${y}-${mo}-${dy}`;
         const isToday = iso === todayIso;
         return (
-          <div key={i} className="flex flex-col items-center gap-0.5">
-            <SectionLabel color={isToday ? "primary" : "muted"}>{label}</SectionLabel>
-            <span
-              className="text-xs font-bold"
-              style={{ color: isToday ? "var(--primary)" : "rgba(37,50,40,0.4)" }}
-            >
-              {date.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}
-            </span>
+          <div key={i} className="flex flex-col items-center justify-center">
+            <SectionLabel color={isToday ? "primary" : "muted"} className={`text-[0.62rem] tracking-widest ${isToday ? "font-black opacity-100" : ""}`}>{label}</SectionLabel>
+            <div className={`text-[0.8rem] font-bold ${isToday ? "opacity-100 text-primary" : "opacity-40"}`}>{mo}. {dy}.</div>
           </div>
         );
       })}
@@ -698,6 +820,7 @@ export function NikoGridHeader({ days, todayIso, colTemplate, className = "" }: 
 interface NikoMemberRowCell {
   status: WeatherStatus | null;
   score: number | null;
+  message?: string | null;
 }
 
 interface NikoMemberRowProps {
@@ -708,6 +831,7 @@ interface NikoMemberRowProps {
   todayIndex: number; // 오늘 열 인덱스 (0-4), 해당 없으면 -1
   colTemplate: string;
   loading?: boolean;
+  viewMode?: "icon" | "chart";
 }
 
 export function NikoMemberRow({
@@ -718,6 +842,7 @@ export function NikoMemberRow({
   todayIndex,
   colTemplate,
   loading = false,
+  viewMode = "icon",
 }: NikoMemberRowProps) {
   if (loading) {
     return (
@@ -725,7 +850,7 @@ export function NikoMemberRow({
         className="grid items-center rounded-[1.5rem] px-3 py-5"
         style={{ gridTemplateColumns: colTemplate, background: "rgba(37,50,40,0.04)" }}
       >
-        <div className="flex items-center gap-3">
+        <div className="sticky left-0 z-10 -ml-3 flex items-center gap-3 bg-[var(--surface-container-low)] pl-3 pr-4">
           <div className="h-11 w-11 animate-pulse rounded-full" style={{ background: "rgba(37,50,40,0.08)" }} />
           <div className="h-4 w-24 animate-pulse rounded-full" style={{ background: "rgba(37,50,40,0.08)" }} />
         </div>
@@ -742,12 +867,17 @@ export function NikoMemberRow({
     <motion.div
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ backgroundColor: "rgba(0,102,104,0.05)" }}
+      whileHover={{ "--row-bg": "color-mix(in srgb, var(--primary) 8%, transparent)" } as any}
       transition={STANDARD_SPRING}
-      className="grid items-center rounded-[1.5rem] px-3 py-5"
-      style={{ gridTemplateColumns: colTemplate }}
+      className="grid items-stretch px-4 transition-colors duration-200 border-b border-[var(--border-subtle)] last:border-0"
+      style={{ 
+        gridTemplateColumns: colTemplate,
+        backgroundColor: "var(--row-bg, transparent)" 
+      }}
     >
-      <div className="flex items-center gap-3">
+      {/* Sticky Column with Opaque Base to hide scrolling content underneath */}
+      <div className="sticky left-0 z-10 flex items-center gap-3 pr-4 py-4 transition-colors duration-200 bg-[var(--surface-lowest)] isolate">
+        <div className="absolute inset-0 z-[-1] bg-[var(--row-bg)]" />
         <div
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-lg"
           style={{ background: "rgba(37,50,40,0.07)" }}
@@ -778,14 +908,25 @@ export function NikoMemberRow({
           )}
         </div>
       </div>
-      {week.map((cell, dayIdx) => (
-        <WeatherCell
-          key={dayIdx}
-          status={cell.status}
-          score={cell.score}
-          isToday={dayIdx === todayIndex}
-        />
-      ))}
+      {viewMode === "icon" ? (
+        week.map((cell, dayIdx) => (
+          <WeatherCell
+            key={dayIdx}
+            status={cell.status}
+            score={cell.score}
+            message={cell.message}
+            isToday={dayIdx === todayIndex}
+          />
+        ))
+      ) : (
+        <div className="col-span-5 h-16 flex items-center pr-4">
+          <MoodTrendChart 
+            scores={week.map(w => w.score)} 
+            height={60} 
+            className="w-full opacity-80"
+          />
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -830,7 +971,7 @@ export interface NikoCalendarMember {
   name: string;
   avatar?: string;
   subtitle?: string;
-  week: Array<{ status: WeatherStatus | null; score: number | null }>;
+  week: Array<{ status: WeatherStatus | null; score: number | null; message?: string | null }>;
 }
 
 interface NikoCalendarProps {
@@ -840,6 +981,7 @@ interface NikoCalendarProps {
   loading?: boolean;
   pageSize?: number;        // 미설정 시 전체 표시 (페이지네이션 없음)
   colTemplate?: string;
+  viewMode?: "icon" | "chart";
 }
 
 export function NikoCalendar({
@@ -849,6 +991,7 @@ export function NikoCalendar({
   loading = false,
   pageSize,
   colTemplate = "200px repeat(5, minmax(80px, 1fr))",
+  viewMode = "icon",
 }: NikoCalendarProps) {
   const [page, setPage] = useState(0);
 
@@ -883,7 +1026,7 @@ export function NikoCalendar({
                   key={i}
                   avatar=""
                   name=""
-                  week={Array.from({ length: 5 }, () => ({ status: null, score: null }))}
+                  week={Array.from({ length: 5 }, () => ({ status: null, score: null, message: null }))}
                   todayIndex={todayIndex}
                   colTemplate={colTemplate}
                   loading
@@ -898,6 +1041,7 @@ export function NikoCalendar({
                   week={member.week}
                   todayIndex={todayIndex}
                   colTemplate={colTemplate}
+                  viewMode={viewMode}
                 />
               ))
           }
@@ -1162,5 +1306,46 @@ export function PortalSelect({
       </button>
       {typeof window !== "undefined" && panel ? createPortal(panel, document.body) : null}
     </>
+  );
+}
+// ─── ViewModeToggle ──────────────────────────────────────────────────────────
+export function ViewModeToggle({ 
+  mode, 
+  onChange 
+}: { 
+  mode: "icon" | "chart"; 
+  onChange: (m: "icon" | "chart") => void 
+}) {
+  return (
+    <div 
+      className="inline-flex p-1 rounded-full bg-surface-low"
+      style={{ border: "1px solid rgba(37,50,40,0.06)" }}
+    >
+      <button
+        onClick={() => onChange("icon")}
+        className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+          mode === "icon" ? "bg-white shadow-sm text-primary" : "text-text-soft hover:text-text-muted"
+        }`}
+      >
+        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <rect x="3" y="3" width="7" height="7" rx="1.5" />
+          <rect x="14" y="3" width="7" height="7" rx="1.5" />
+          <rect x="3" y="14" width="7" height="7" rx="1.5" />
+          <rect x="14" y="14" width="7" height="7" rx="1.5" />
+        </svg>
+        ICONS
+      </button>
+      <button
+        onClick={() => onChange("chart")}
+        className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+          mode === "chart" ? "bg-white shadow-sm text-primary" : "text-text-soft hover:text-text-muted"
+        }`}
+      >
+        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <path d="M3 18v-2l4-4 4 4 6-6 4 4v4" />
+        </svg>
+        CHART
+      </button>
+    </div>
   );
 }

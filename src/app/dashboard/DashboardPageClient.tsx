@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import ClimaLogo from "../components/WetherLogo";
 import ThemeToggleButton from "../components/ThemeToggleButton";
 import HeaderNav, { type HeaderNavItem } from "../components/HeaderNav";
-import { ClimaButton, SectionLabel, PrimaryTabToggle, TabToggle, NikoCalendar, type NikoCalendarMember } from "../components/ui";
+import { ClimaButton, SectionLabel, PrimaryTabToggle, TabToggle, NikoCalendar, type NikoCalendarMember, ViewModeToggle } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { STANDARD_SPRING } from "../constants/springs";
 import { supabase } from "../../lib/supabase";
@@ -17,6 +17,7 @@ type DisplayWeather = WeatherStatus | null;
 interface MoodLogRow {
   user_id: string;
   score: number;
+  message?: string | null;
   logged_at: string;
 }
 
@@ -36,7 +37,7 @@ interface Member {
   status: WeatherStatus | null;
   message: string;
   part_id: string | null;
-  week: Array<DisplayWeather>;
+  week: Array<{ status: WeatherStatus | null; score: number | null; message: string | null }>;
 }
 
 interface Part {
@@ -93,47 +94,6 @@ const NAV_ITEMS: HeaderNavItem[] = [
   { label: "알림", href: "/alerts" },
 ];
 
-function SidebarIcon({ type }: { type: "dashboard" | "personal" | "team" | "alerts" }) {
-  const stroke = "currentColor";
-
-  if (type === "dashboard") {
-    return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke={stroke} strokeWidth="1.8">
-        <rect x="3.5" y="3.5" width="7" height="7" rx="1.6" />
-        <rect x="13.5" y="3.5" width="7" height="7" rx="1.6" />
-        <rect x="3.5" y="13.5" width="7" height="7" rx="1.6" />
-        <rect x="13.5" y="13.5" width="7" height="7" rx="1.6" />
-      </svg>
-    );
-  }
-
-  if (type === "personal") {
-    return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke={stroke} strokeWidth="1.8">
-        <circle cx="12" cy="8" r="3.2" />
-        <path d="M5.5 20a6.5 6.5 0 0 1 13 0" />
-      </svg>
-    );
-  }
-
-  if (type === "team") {
-    return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke={stroke} strokeWidth="1.8">
-        <circle cx="8" cy="9" r="2.5" />
-        <circle cx="16" cy="9" r="2.5" />
-        <path d="M3.5 19a4.5 4.5 0 0 1 9 0" />
-        <path d="M11.5 19a4.5 4.5 0 0 1 9 0" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke={stroke} strokeWidth="1.8">
-      <path d="M12 3.8 4.7 16.3a1.1 1.1 0 0 0 .95 1.7h12.7a1.1 1.1 0 0 0 .95-1.7L12 3.8Z" />
-      <path d="M12 9v3.8M12 16h.01" />
-    </svg>
-  );
-}
 
 function TopIcon({ type }: { type: "bell" | "settings" | "profile" }) {
   if (type === "bell") {
@@ -173,6 +133,7 @@ function SearchIcon() {
 
 export default function DashboardPageClient({ teamId }: { teamId: string }) {
   const [members, setMembers] = useState<Member[]>([]);
+  const [viewMode, setViewMode] = useState<"icon" | "chart">("icon");
   const [parts, setParts] = useState<Part[]>([]);
   const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -209,7 +170,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
       const userIds = (users as RawUser[]).map((u) => u.id);
       const { data: weekLogs } = await supabase
         .from("mood_logs")
-        .select("user_id, score, logged_at")
+        .select("user_id, score, message, logged_at")
         .in("user_id", userIds)
         .gte("logged_at", kstDayStart(rangeStart))
         .lte("logged_at", kstDayEnd(rangeEnd))
@@ -226,12 +187,16 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
         const score = isToday ? latest!.score : null;
 
         const userWeekLogs = logRows.filter((l) => l.user_id === user.id);
-        const week: DisplayWeather[] = weekDays.map((day) => {
+        const week = weekDays.map((day) => {
           const dayIso = isoDate(day);
           const dayLogs = userWeekLogs.filter((l) => utcToKstDate(l.logged_at) === dayIso);
-          if (dayLogs.length === 0) return null;
+          if (dayLogs.length === 0) return { status: null as WeatherStatus | null, score: null as number | null, message: null as string | null };
           const latestLog = dayLogs[dayLogs.length - 1];
-          return scoreToStatus(latestLog.score);
+          return {
+            status: scoreToStatus(latestLog.score),
+            score: latestLog.score,
+            message: latestLog.message ?? null,
+          };
         });
 
         return {
@@ -270,9 +235,9 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
     const counts = new Map<WeatherStatus, number>();
     let total = 0;
     visibleMembers.forEach((member) => {
-      member.week.forEach((status) => {
-        if (status) {
-          counts.set(status, (counts.get(status) ?? 0) + 1);
+      member.week.forEach((entry) => {
+        if (entry.status) {
+          counts.set(entry.status, (counts.get(entry.status) ?? 0) + 1);
           total++;
         }
       });
@@ -387,59 +352,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
           )}
         </AnimatePresence>
 
-        <div className="pt-16">
-        <div className="grid gap-4 xl:grid-cols-[260px_minmax(0,1fr)] px-3 py-4 md:px-8 md:py-6 max-w-[1440px] mx-auto">
-          <motion.aside
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ ...STANDARD_SPRING, delay: 0.05 }}
-            className="hidden xl:block rounded-[2rem] px-5 py-5"
-            style={{ background: "var(--surface-overlay)", boxShadow: "var(--glass-shadow)" }}
-          >
-            <div className="mb-10 flex items-center gap-4 rounded-[1.8rem] bg-surface-low px-4 py-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-[var(--primary-container)] text-[var(--on-primary)] shadow-[var(--button-primary-shadow)]">
-                {statusToEmoji("Foggy" as WeatherStatus)}
-              </div>
-              <div>
-                <div className="text-[2rem] font-black tracking-tight leading-none text-primary">Clima</div>
-                <div className="mt-1 text-sm font-medium" style={{ color: "var(--text-muted)" }}>팀 마음 건강</div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              {[
-                { label: "홈", href: "/", icon: "dashboard" as const },
-                { label: "개인 현황", href: "/personal", icon: "personal" as const },
-                { label: "팀", href: "/dashboard", icon: "team" as const, active: true },
-                { label: "알림", href: "/alerts", icon: "alerts" as const },
-              ].map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className={`flex items-center gap-4 rounded-full px-5 py-4 text-[1.05rem] font-medium tracking-tight transition-all ${
-                    item.active ? "shadow-[var(--button-primary-shadow)]" : ""
-                  }`}
-                  style={
-                    item.active
-                      ? { background: "linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%)", color: "var(--on-primary)" }
-                      : { color: "var(--on-surface)" }
-                  }
-                >
-                  <span style={item.active ? { color: "var(--on-primary)" } : { color: "var(--text-muted)" }}>
-                    <SidebarIcon type={item.icon} />
-                  </span>
-                  <span>{item.label}</span>
-                </Link>
-              ))}
-            </div>
-
-            <div className="mt-10 rounded-[2rem] bg-surface-low px-4 py-4">
-              <ClimaButton href="/input" className="w-full justify-center">
-                오늘 기록하기
-              </ClimaButton>
-            </div>
-          </motion.aside>
-
+        <div className="pt-20 px-4 md:px-8 max-w-[1200px] mx-auto pb-12">
           <motion.main
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -505,40 +418,28 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  {teamParts.length > 0 && (
-                    <TabToggle
-                      variant="filter"
-                      tabs={teamParts.map(p => ({ value: p.id, label: p.name }))}
-                      active={selectedPartId}
-                      onChange={setSelectedPartId}
-                    />
-                  )}
-                  <PrimaryTabToggle
-                    tabs={[
-                      { value: "this", label: "이번 주" },
-                      { value: "last", label: "지난 주" },
-                    ]}
-                    active={weekTab}
-                    onChange={setWeekTab}
-                  />
+                  <ViewModeToggle mode={viewMode} onChange={setViewMode} />
                 </div>
               </div>
 
-              <NikoCalendar
-                members={visibleMembers.map((m): NikoCalendarMember => ({
-                  id: m.id,
-                  name: m.name,
-                  week: m.week.map(status => ({ status, score: null })),
-                }))}
-                weekDays={weekDays}
-                todayIso={isoDate(today)}
-                loading={loading}
-                pageSize={NIKO_PAGE_SIZE}
-                colTemplate="180px repeat(5, minmax(72px, 1fr))"
-              />
+              <section className="mb-4 min-h-[400px]">
+                <NikoCalendar
+                  members={visibleMembers.map((m): NikoCalendarMember => ({
+                    id: m.id,
+                    name: m.name,
+                    week: m.week,
+                  }))}
+                  weekDays={weekDays}
+                  todayIso={isoDate(today)}
+                  loading={loading}
+                  pageSize={NIKO_PAGE_SIZE}
+                  colTemplate="180px repeat(5, minmax(72px, 1fr))"
+                  viewMode={viewMode}
+                />
+              </section>
             </section>
 
-            <section className="mb-6 grid gap-5 xl:grid-cols-3">
+            <section className="mb-6 grid gap-5 xl:grid-cols-2">
               <article
                 className="rounded-[2rem] px-5 py-6 md:rounded-[2.3rem] md:px-7 md:py-7"
                 style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
@@ -601,63 +502,9 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                   </div>
                 </div>
               </article>
-
-              <article
-                className="rounded-[2rem] px-5 py-6 md:rounded-[2.3rem] md:px-7 md:py-7"
-                style={{
-                  background: "linear-gradient(135deg, color-mix(in srgb, var(--surface-elevated) 92%, transparent) 0%, color-mix(in srgb, var(--primary) 18%, var(--surface-container-high) 82%) 100%)",
-                  boxShadow: "var(--glass-shadow)",
-                }}
-              >
-                <div className="mb-6 flex items-center gap-3 text-primary">
-                  <div
-                    className="flex h-9 w-9 items-center justify-center rounded-2xl"
-                    style={{ background: "var(--surface-overlay)" }}
-                  >
-                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                      <path d="M7 9.5A2.5 2.5 0 0 1 9.5 7h5A2.5 2.5 0 0 1 17 9.5v5A2.5 2.5 0 0 1 14.5 17h-5A2.5 2.5 0 0 1 7 14.5v-5Z" />
-                      <path d="M4.5 10.5h2M17.5 10.5h2M10.5 4.5v2M10.5 17.5v2M13.5 4.5v2M13.5 17.5v2" />
-                    </svg>
-                  </div>
-                  <div className="text-[1.05rem] font-black tracking-tight">기후 인사이트</div>
-                </div>
-                <p className="mb-8 text-[1.1rem] italic leading-[1.7] text-on-surface">
-                  "{insightText}"
-                </p>
-                <div className="flex items-center gap-3 text-[0.95rem] font-black uppercase tracking-[0.18em] text-primary">
-                  <span className="h-2.5 w-2.5 rounded-full bg-primary" />
-                  AI 기반 분석
-                </div>
-              </article>
-            </section>
-
-            <section
-              className="rounded-[2rem] px-5 py-6 md:rounded-[2.5rem] md:px-7 md:py-8"
-              style={{ background: "var(--panel-soft)", boxShadow: "var(--glass-shadow)" }}
-            >
-              <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-                <div className="max-w-2xl">
-                  <h2 className="mb-3 text-[1.6rem] font-black tracking-tight md:text-[2rem]" style={{ color: "var(--tertiary)" }}>
-                    오늘 폭풍 같은 기분인가요?
-                  </h2>
-                  <p className="text-base leading-relaxed md:text-lg" style={{ color: "var(--text-muted)" }}>
-                    괜찮지 않아도 괜찮아요. 빠른 1:1 대화를 신청하거나 웰니스 브레이크를 한 번의 클릭으로 요청해보세요.
-                  </p>
-                </div>
-
-                <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
-                  <ClimaButton className="w-full justify-center px-6 sm:min-w-[170px] sm:w-auto sm:px-8">
-                    1:1 대화 신청
-                  </ClimaButton>
-                  <ClimaButton variant="secondary" className="w-full justify-center px-6 sm:min-w-[170px] sm:w-auto sm:px-8">
-                    브레이크 요청
-                  </ClimaButton>
-                </div>
-              </div>
             </section>
           </motion.main>
         </div>
-        </div>
-    </div>
+      </div>
   );
 }

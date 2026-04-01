@@ -14,7 +14,9 @@ import {
   PrimaryTabToggle,
   SectionHeader,
   WeatherLegend,
+  ViewModeToggle,
 } from "../components/ui";
+import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { STANDARD_SPRING } from "../constants/springs";
 import { supabase } from "../../lib/supabase";
 import { scoreToStatus, type WeatherStatus } from "../../lib/mood";
@@ -60,7 +62,7 @@ function utcToKstDate(utcStr: string): string {
 }
 
 const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI"];
-const COL_TEMPLATE = "240px repeat(5, minmax(110px, 1fr))";
+const COL_TEMPLATE = "180px repeat(5, minmax(80px, 1fr))";
 
 // ─── 타입 ───────────────────────────────────────────────────────────────────
 interface MoodLogRow {
@@ -150,6 +152,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
   const [loading, setLoading] = useState(true);
   const [weekOffset, setWeekOffset] = useState(0);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"icon" | "chart">("icon");
 
   const today = new Date();
   const baseMonday = getWeekStart(today);
@@ -203,7 +206,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
         return {
           id: user.id,
           name: user.name,
-          avatar: "",
+          avatar: user.avatar_emoji || "",
           part_id: user.part_id ?? null,
           week,
           todayScore,
@@ -376,6 +379,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
                 active={weekOffset === 0 ? "this" : "last"}
                 onChange={(v) => setWeekOffset(v === "this" ? 0 : -1)}
               />
+              <ViewModeToggle mode={viewMode} onChange={setViewMode} />
             </div>
             <div className="flex flex-wrap gap-2 sm:justify-end">
               <MiniStatCard
@@ -393,21 +397,41 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
         </div>
 
         {/* 캘린더 그리드 */}
-        <GlassCard className="px-5 py-6 md:px-8 md:py-8" intensity="low">
-          <NikoCalendar
-            members={visibleMembers.map((m): NikoCalendarMember => ({
-              id: m.id,
-              name: m.name,
-              avatar: m.avatar,
-              subtitle: m.todayScore !== null ? `오늘 ${m.todayScore}pt` : "오늘 기록 없음",
-              week: m.week,
-            }))}
-            weekDays={weekDays}
-            todayIso={todayIso}
-            loading={loading}
-            colTemplate={COL_TEMPLATE}
-          />
-        </GlassCard>
+        <section
+          className="rounded-[2.5rem] px-4 py-5 md:px-7 md:py-8"
+          style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
+        >
+          <div className="mb-5 flex items-center justify-between">
+            {!loading && visibleMembers.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--primary)" }}>Active Squad</span>
+                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              </div>
+            )}
+            {!loading && members.length > 0 && (
+              <div className="text-[10px] font-black tracking-widest uppercase opacity-40 px-3 py-1 rounded-full border border-current" style={{ color: "var(--primary)" }}>
+                Total {members.length} Members
+              </div>
+            )}
+          </div>
+
+          <section className="min-h-[400px]">
+            <NikoCalendar
+              members={visibleMembers.map((m): NikoCalendarMember => ({
+                id: m.id,
+                name: m.name,
+                avatar: m.avatar,
+                subtitle: m.todayScore !== null ? `오늘 ${m.todayScore}pt` : "오늘 기록 없음",
+                week: m.week,
+              }))}
+              weekDays={weekDays}
+              todayIso={todayIso}
+              loading={loading}
+              colTemplate={COL_TEMPLATE}
+              viewMode={viewMode}
+            />
+          </section>
+        </section>
 
         {/* 범례 */}
         <WeatherLegend className="px-1" />
