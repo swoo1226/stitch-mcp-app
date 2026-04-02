@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "mcp": "node scripts/mcp-server.js"
+    "mcp": "node scripts/mcp-server.js",
+    "jira:backfill-users": "node scripts/backfill-jira-users.mjs",
+    "alerts:combined-risk:test": "node scripts/send-combined-risk-alert.mjs"
   },
   "dependencies": {
     "@chenglou/pretext": "^0.0.3",

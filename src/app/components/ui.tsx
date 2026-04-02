@@ -1460,10 +1460,11 @@ export function PortalSelect({
       ref={panelRef}
       style={{
         ...panelStyle,
-        background: "rgba(255,255,255,0.95)",
-        backdropFilter: "blur(20px)",
+        background: "var(--surface-elevated)",
+        backdropFilter: "var(--glass-blur-low)",
+        WebkitBackdropFilter: "var(--glass-blur-low)",
         borderRadius: "1.5rem",
-        boxShadow: "0 20px 60px -10px rgba(37,50,40,0.18)",
+        boxShadow: "var(--glass-shadow)",
         padding: "0.5rem",
         overflowY: "auto",
         maxHeight: 260,
@@ -1473,7 +1474,7 @@ export function PortalSelect({
         type="button"
         onClick={() => { onChange(""); setOpen(false); }}
         className="w-full text-left px-4 py-2.5 rounded-[1rem] text-sm font-semibold transition-colors hover:bg-surface-container-low"
-        style={{ color: "rgba(37,50,40,0.35)" }}
+        style={{ color: "var(--on-surface-variant)" }}
       >
         {placeholder}
       </button>
@@ -1485,7 +1486,7 @@ export function PortalSelect({
           className="w-full text-left px-4 py-2.5 rounded-[1rem] text-sm font-semibold transition-colors hover:bg-surface-container-low"
           style={{
             color: opt.value === value ? "var(--primary)" : "var(--on-surface)",
-            background: opt.value === value ? "rgba(0,102,104,0.06)" : "transparent",
+            background: opt.value === value ? "color-mix(in srgb, var(--primary) 10%, transparent)" : "transparent",
             fontWeight: opt.value === value ? 800 : 600,
           }}
         >
@@ -1500,12 +1501,12 @@ export function PortalSelect({
       <>
         <button
           ref={triggerRef}
-          type="button"
-          onClick={() => setOpen(v => !v)}
-          className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-surface-container ${className}`}
-          style={{ color: "rgba(37,50,40,0.4)", ...style }}
-          title="파트 변경"
-        >
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-surface-container ${className}`}
+        style={{ color: "var(--on-surface-variant)", ...style }}
+        title="파트 변경"
+      >
           <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
             <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
           </svg>
@@ -1524,7 +1525,7 @@ export function PortalSelect({
         className={`flex items-center justify-between gap-2 rounded-[1.5rem] px-4 py-3 text-sm font-semibold transition-colors ${className}`}
         style={{
           background: "var(--surface-container-low)",
-          color: value ? "var(--on-surface)" : "rgba(37,50,40,0.4)",
+          color: value ? "var(--on-surface)" : "var(--on-surface-variant)",
           minWidth: 140,
           ...style,
         }}
@@ -1533,7 +1534,7 @@ export function PortalSelect({
         <svg
           viewBox="0 0 24 24"
           className="w-4 h-4 shrink-0 transition-transform"
-          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", color: "rgba(37,50,40,0.4)" }}
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", color: "var(--on-surface-variant)" }}
           fill="none" stroke="currentColor" strokeWidth="2"
         >
           <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />

@@ -54,12 +54,30 @@ interface Part {
 interface Member {
   id: string;
   name: string;
+  email: string | null;
+  jira_account_id: string | null;
   avatar_emoji: string;
   access_token: string;
   team_id: string | null;
   part_id: string | null;
   parts: Part | null;
   mood_logs: MoodLog[];
+}
+
+interface JiraTicketPreview {
+  key: string;
+  summary: string;
+  status: string;
+  priority: string | null;
+  updated: string | null;
+  browseUrl: string;
+}
+
+interface JiraTicketSnapshot {
+  userId: string;
+  openTicketCount: number;
+  tickets: JiraTicketPreview[];
+  syncedAt: string | null;
 }
 
 function PlusIcon() {
@@ -264,8 +282,14 @@ export default function AdminPageClient() {
   const [parts, setParts] = useState<Part[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
+  const [jiraSnapshots, setJiraSnapshots] = useState<Record<string, JiraTicketSnapshot>>({});
+  const [jiraLoading, setJiraLoading] = useState(false);
+  const [jiraError, setJiraError] = useState<string | null>(null);
+  const [sendingTeamsAlert, setSendingTeamsAlert] = useState(false);
+  const [teamsAlertMessage, setTeamsAlertMessage] = useState<string | null>(null);
   const [memberAddOpen, setMemberAddOpen] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
   const [newTeamId, setNewTeamId] = useState<string>("");
   const [newPartId, setNewPartId] = useState<string>("");
   const [adding, setAdding] = useState(false);
@@ -314,6 +338,11 @@ export default function AdminPageClient() {
     }
   }, [authed]);
 
+  useEffect(() => {
+    if (!authed || activeTab !== "members") return;
+    fetchJiraSnapshots();
+  }, [authed, activeTab, members]);
+
   async function fetchAll() {
     await Promise.all([fetchTeams(), fetchParts(), fetchMembers()]);
   }
@@ -332,7 +361,7 @@ export default function AdminPageClient() {
     setLoading(true);
     const { data } = await supabase
       .from("users")
-      .select(`id, name, avatar_emoji, access_token, part_id, team_id, parts (id, name), mood_logs (score, message, logged_at)`)
+      .select(`id, name, email, jira_account_id, avatar_emoji, access_token, part_id, team_id, parts (id, name), mood_logs (score, message, logged_at)`)
       .order("logged_at", { referencedTable: "mood_logs", ascending: false });
     // mood_logs를 배열로 정규화하고, 최신 1개만 사용
     const normalized = (data ?? []).map((u: unknown) => {
@@ -345,15 +374,84 @@ export default function AdminPageClient() {
     setLoading(false);
   }
 
+  async function fetchJiraSnapshots() {
+    setJiraLoading(true);
+    setJiraError(null);
+    try {
+      const response = await fetch("/api/admin/jira/open-tickets", {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          members: members.map((member) => ({
+            userId: member.id,
+            name: member.name,
+            teamId: member.team_id ?? null,
+            jiraAccountId: member.jira_account_id ?? null,
+          })),
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Jira 티켓 정보를 불러오지 못했어요.");
+      }
+
+      const nextSnapshots = Object.fromEntries(
+        ((payload.snapshots ?? []) as JiraTicketSnapshot[]).map((snapshot) => [snapshot.userId, snapshot]),
+      );
+      setJiraSnapshots(nextSnapshots);
+    } catch (error) {
+      setJiraError(error instanceof Error ? error.message : "Jira 티켓 정보를 불러오지 못했어요.");
+    } finally {
+      setJiraLoading(false);
+    }
+  }
+
+  async function sendCombinedRiskAlert() {
+    setSendingTeamsAlert(true);
+    setTeamsAlertMessage(null);
+    try {
+      const response = await fetch("/api/admin/alerts/combined-risk", {
+        method: "POST",
+        cache: "no-store",
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Teams 알림 전송에 실패했어요.");
+      }
+
+      if (!payload.sent) {
+        if (payload.reason === "no_targets") {
+          setTeamsAlertMessage("현재 규칙에 걸리는 팀원이 없어 알림을 보내지 않았어요.");
+        } else if (payload.reason === "no_eligible_users") {
+          setTeamsAlertMessage("Jira 계정이 연결된 팀원이 없어 알림을 보내지 않았어요.");
+        } else {
+          setTeamsAlertMessage("알림을 보내지 않았어요.");
+        }
+        return;
+      }
+
+      setTeamsAlertMessage(`Teams 채널에 combined risk 알림을 전송했어요. 대상 ${payload.targetCount}명.`);
+    } catch (error) {
+      setTeamsAlertMessage(error instanceof Error ? error.message : "Teams 알림 전송에 실패했어요.");
+    } finally {
+      setSendingTeamsAlert(false);
+    }
+  }
+
   async function addMember() {
-    if (!newName.trim() || adding) return;
+    if (!newName.trim() || !newEmail.trim() || adding) return;
     setAdding(true);
     await supabase.from("users").insert({
       team_id: newTeamId || DEFAULT_TEAM_ID,
       name: newName.trim(),
+      email: newEmail.trim(),
       part_id: newPartId || null,
     });
     setNewName("");
+    setNewEmail("");
     setNewTeamId("");
     setNewPartId("");
     await fetchMembers();
@@ -744,20 +842,45 @@ export default function AdminPageClient() {
             <div className="text-sm font-black tracking-tight md:text-base" style={{ color: "var(--primary)" }}>
               {activeTab === "members" ? "팀원 관리" : "팀 · 파트 관리"}
             </div>
-            <div
-              className="flex items-center gap-1 rounded-full p-1"
-              style={{ background: "var(--surface-overlay)", boxShadow: "var(--button-subtle-shadow)" }}
-            >
-              <PrimaryTabToggle
-                tabs={[
-                  { value: "members" as const, label: "팀원" },
-                  { value: "teams" as const, label: "팀 · 파트" },
-                ]}
-                active={activeTab}
-                onChange={setActiveTab}
-              />
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {activeTab === "members" && (
+                <ClimaButton
+                  variant="secondary"
+                  onClick={sendCombinedRiskAlert}
+                  disabled={sendingTeamsAlert}
+                  className="px-4 py-2.5 text-xs font-black"
+                >
+                  {sendingTeamsAlert ? "Teams 전송 중..." : "Teams 알림 전송"}
+                </ClimaButton>
+              )}
+              <div
+                className="flex items-center gap-1 rounded-full p-1"
+                style={{ background: "var(--surface-overlay)", boxShadow: "var(--button-subtle-shadow)" }}
+              >
+                <PrimaryTabToggle
+                  tabs={[
+                    { value: "members" as const, label: "팀원" },
+                    { value: "teams" as const, label: "팀 · 파트" },
+                  ]}
+                  active={activeTab}
+                  onChange={setActiveTab}
+                />
+              </div>
             </div>
           </div>
+          {teamsAlertMessage && (
+            <div
+              className="rounded-[1.25rem] px-4 py-3 text-sm font-semibold"
+              style={{
+                background: "color-mix(in srgb, var(--primary) 10%, transparent)",
+                color: teamsAlertMessage.includes("실패") || teamsAlertMessage.includes("Missing") || teamsAlertMessage.includes("failed")
+                  ? "var(--tertiary)"
+                  : "var(--on-surface)",
+              }}
+            >
+              {teamsAlertMessage}
+            </div>
+          )}
 
           {activeTab === "members" && (<>
             {/* 1. 요약 Bento Grid */}
@@ -800,258 +923,358 @@ export default function AdminPageClient() {
             <GlassCard className="p-6 md:p-8" intensity="low">
               <div className="flex items-center justify-between mb-6">
                 <SectionHeader icon={<UsersIcon />} title="팀원 목록" />
-                {!loading && members.length > 0 && (
-                  <Badge variant="primary">총 {members.length}명</Badge>
-                )}
+                <div className="flex items-center gap-2">
+                  {jiraError && (
+                    <Badge variant="tertiary">Jira 조회 오류</Badge>
+                  )}
+                  {!loading && members.length > 0 && (
+                    <Badge variant="primary">총 {members.length}명</Badge>
+                  )}
+                </div>
               </div>
               {loading ? (
                 <p className="text-sm font-bold py-4" style={{ color: "var(--text-soft)" }}>불러오는 중...</p>
               ) : members.length === 0 ? (
                 <p className="text-sm font-bold py-4" style={{ color: "var(--text-soft)" }}>팀원이 없어요.</p>
               ) : (
-                <div
-                  className="flex gap-4 overflow-x-auto pb-3 -mx-1 px-1"
-                  style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", msOverflowStyle: "none", scrollbarWidth: "none" }}
-                >
-                  {members.map(m => {
-                    const raw = m.mood_logs?.[0];
-                    const isToday = raw?.logged_at
-                      ? new Date(raw.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === todayKST
-                      : false;
-                    const latest = isToday ? raw : undefined;
-                    const score = latest?.score ?? null;
-                    const status = score !== null ? scoreToStatus(score) : null;
-                    const thought = latest?.message?.trim() ?? "";
-                    const hasThought = thought.length > 0;
-                    const relativeTime = latest?.logged_at
-                      ? (() => {
-                        const diff = Math.max(0, Date.now() - new Date(latest.logged_at).getTime());
-                        const mins = Math.floor(diff / 60000);
-                        if (mins < 60) return `${mins}분 전`;
-                        const hrs = Math.floor(mins / 60);
-                        if (hrs < 24) return `${hrs}시간 전`;
-                        return `${Math.floor(hrs / 24)}일 전`;
-                      })()
-                      : null;
-                    return (
-                      <motion.div
-                        key={m.id}
-                        layout
-                        className="relative flex flex-col gap-4 rounded-[2rem] p-5 shrink-0 group"
-                        onMouseLeave={() => {
-                          if (activeThoughtId === m.id) closeThought();
-                        }}
-                        style={{
-                          width: 300,
-                          maxWidth: "calc(100vw - 3rem)",
-                          scrollSnapAlign: "start",
-                          background: "var(--surface-overlay)",
-                          backdropFilter: "var(--glass-blur-low)",
-                          WebkitBackdropFilter: "var(--glass-blur-low)",
-                          boxShadow: "var(--glass-shadow)",
-                          zIndex: activeThoughtId === m.id ? 50 : 1,
-                        }}
-                      >
-                        {/* 통합: 아이콘 + 이름/파트 + 날씨상태 */}
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-12 h-12 rounded-[1.2rem] flex items-center justify-center shrink-0"
-                            style={{ background: score !== null ? "var(--highlight-soft)" : "var(--surface-container)" }}
-                          >
-                            {score !== null
-                              ? (() => { const Icon = WEATHER_ICON_MAP[scoreToStatus(score)]; return <Icon size={26} />; })()
-                              : <span className="text-lg font-black" style={{ color: "var(--text-soft)" }}>{m.name.slice(0, 1)}</span>
-                            }
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-base tracking-tight leading-tight truncate">{m.name}</p>
-                            <div className="mt-1 flex items-center gap-2">
-                              <p className="text-xs font-medium min-w-0 truncate" style={{ color: "var(--text-soft)" }}>
-                                {score !== null
-                                  ? <><span className="font-black" style={{ color: "var(--primary)" }}>{statusToKo(status)}</span> · {score}pt</>
-                                  : (m.parts?.name ?? teams.find(t => t.id === m.team_id)?.name ?? "기록 없음")
-                                }
-                              </p>
-                              {hasThought && (
-                                <div
-                                  className="relative shrink-0"
-                                  onMouseEnter={(e) => openThought(m.id, e.currentTarget.getBoundingClientRect())}
-                                >
-                                  <motion.button
-                                    type="button"
-                                    className="flex h-8 items-center gap-1 rounded-full px-2.5 text-[11px] font-black tracking-tight"
-                                    style={{
-                                      background: activeThoughtId === m.id ? "var(--highlight-soft)" : "color-mix(in srgb, var(--primary) 10%, transparent)",
-                                      color: "var(--primary)",
-                                      boxShadow: activeThoughtId === m.id ? "var(--button-subtle-shadow)" : "none",
-                                    }}
-                                    animate={activeThoughtId === m.id ? { y: 0, scale: 1 } : { y: [0, -1.5, 0], scale: [1, 1.03, 1] }}
-                                    transition={activeThoughtId === m.id
-                                      ? { duration: 0.18 }
-                                      : { duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-                                    onTouchStart={(e) => beginThoughtPress(m.id, e.currentTarget.getBoundingClientRect())}
-                                    onTouchEnd={endThoughtPress}
-                                    onTouchCancel={endThoughtPress}
-                                    onClick={(e) => toggleThought(m.id, e.currentTarget.getBoundingClientRect())}
-                                    title="메시지 미리보기"
-                                  >
-                                    <ThoughtBubbleIcon />
-                                    한마디
-                                  </motion.button>
-                                  <AnimatePresence>
-                                    {activeThoughtId === m.id && activeThoughtRect && (
-                                      <ThoughtTooltip
-                                        anchorRect={activeThoughtRect}
-                                        content={thought || ""}
-                                      />
-                                    )}
-                                  </AnimatePresence>
-                                </div>
-                              )}
+                <>
+                  <div
+                    className="flex gap-4 overflow-x-auto pb-3 -mx-1 px-1"
+                    style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", msOverflowStyle: "none", scrollbarWidth: "none" }}
+                  >
+                    {members.map(m => {
+                      const raw = m.mood_logs?.[0];
+                      const isToday = raw?.logged_at
+                        ? new Date(raw.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === todayKST
+                        : false;
+                      const latest = isToday ? raw : undefined;
+                      const score = latest?.score ?? null;
+                      const status = score !== null ? scoreToStatus(score) : null;
+                      const thought = latest?.message?.trim() ?? "";
+                      const hasThought = thought.length > 0;
+                      const relativeTime = latest?.logged_at
+                        ? (() => {
+                          const diff = Math.max(0, Date.now() - new Date(latest.logged_at).getTime());
+                          const mins = Math.floor(diff / 60000);
+                          if (mins < 60) return `${mins}분 전`;
+                          const hrs = Math.floor(mins / 60);
+                          if (hrs < 24) return `${hrs}시간 전`;
+                          return `${Math.floor(hrs / 24)}일 전`;
+                        })()
+                        : null;
+                      return (
+                        <motion.div
+                          key={m.id}
+                          layout
+                          className="relative flex flex-col gap-4 rounded-[2rem] p-5 shrink-0 group"
+                          onMouseLeave={() => {
+                            if (activeThoughtId === m.id) closeThought();
+                          }}
+                          style={{
+                            width: 300,
+                            maxWidth: "calc(100vw - 3rem)",
+                            scrollSnapAlign: "start",
+                            background: "var(--surface-overlay)",
+                            backdropFilter: "var(--glass-blur-low)",
+                            WebkitBackdropFilter: "var(--glass-blur-low)",
+                            boxShadow: "var(--glass-shadow)",
+                            zIndex: activeThoughtId === m.id ? 50 : 1,
+                          }}
+                        >
+                          {/* 통합: 아이콘 + 이름/파트 + 날씨상태 */}
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-12 h-12 rounded-[1.2rem] flex items-center justify-center shrink-0"
+                              style={{ background: score !== null ? "var(--highlight-soft)" : "var(--surface-container)" }}
+                            >
+                              {score !== null
+                                ? (() => { const Icon = WEATHER_ICON_MAP[scoreToStatus(score)]; return <Icon size={26} />; })()
+                                : <span className="text-lg font-black" style={{ color: "var(--text-soft)" }}>{m.name.slice(0, 1)}</span>
+                              }
                             </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-base tracking-tight leading-tight truncate">{m.name}</p>
+                              <div className="mt-1 flex items-center gap-2">
+                                <p className="text-xs font-medium min-w-0 truncate" style={{ color: "var(--text-soft)" }}>
+                                  {score !== null
+                                    ? <><span className="font-black" style={{ color: "var(--primary)" }}>{statusToKo(status)}</span> · {score}pt</>
+                                    : (m.parts?.name ?? teams.find(t => t.id === m.team_id)?.name ?? "기록 없음")
+                                  }
+                                </p>
+                                {hasThought && (
+                                  <div
+                                    className="relative shrink-0"
+                                    onMouseEnter={(e) => openThought(m.id, e.currentTarget.getBoundingClientRect())}
+                                  >
+                                    <motion.button
+                                      type="button"
+                                      className="flex h-8 items-center gap-1 rounded-full px-2.5 text-[11px] font-black tracking-tight"
+                                      style={{
+                                        background: activeThoughtId === m.id ? "var(--highlight-soft)" : "color-mix(in srgb, var(--primary) 10%, transparent)",
+                                        color: "var(--primary)",
+                                        boxShadow: activeThoughtId === m.id ? "var(--button-subtle-shadow)" : "none",
+                                      }}
+                                      animate={activeThoughtId === m.id ? { y: 0, scale: 1 } : { y: [0, -1.5, 0], scale: [1, 1.03, 1] }}
+                                      transition={activeThoughtId === m.id
+                                        ? { duration: 0.18 }
+                                        : { duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+                                      onTouchStart={(e) => beginThoughtPress(m.id, e.currentTarget.getBoundingClientRect())}
+                                      onTouchEnd={endThoughtPress}
+                                      onTouchCancel={endThoughtPress}
+                                      onClick={(e) => toggleThought(m.id, e.currentTarget.getBoundingClientRect())}
+                                      title="메시지 미리보기"
+                                    >
+                                      <ThoughtBubbleIcon />
+                                      한마디
+                                    </motion.button>
+                                    <AnimatePresence>
+                                      {activeThoughtId === m.id && activeThoughtRect && (
+                                        <ThoughtTooltip
+                                          anchorRect={activeThoughtRect}
+                                          content={thought || ""}
+                                        />
+                                      )}
+                                    </AnimatePresence>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <PortalSelect
+                              compact
+                              value={m.part_id ?? ""}
+                              onChange={async (partId) => {
+                                const matched = parts.find(p => p.id === partId) ?? null;
+                                patchMember(m.id, { part_id: partId || null, parts: matched });
+                                await supabase.from("users").update({ part_id: partId || null }).eq("id", m.id);
+                              }}
+                              options={parts.map(p => ({ value: p.id, label: p.name }))}
+                            />
                           </div>
-                          <PortalSelect
-                            compact
-                            value={m.part_id ?? ""}
-                            onChange={async (partId) => {
-                              const matched = parts.find(p => p.id === partId) ?? null;
-                              patchMember(m.id, { part_id: partId || null, parts: matched });
-                              await supabase.from("users").update({ part_id: partId || null }).eq("id", m.id);
-                            }}
-                            options={parts.map(p => ({ value: p.id, label: p.name }))}
-                          />
-                        </div>
 
-                        {/* 하단: 액션 */}
-                        <div className="flex justify-between">
-                          <button
-                            type="button"
-                            onClick={() => { setMoodTarget(m.id); setMoodScore(score ?? 50); setMoodMessage(latest?.message ?? ""); setMoodError(null); setMoodDuplicate(false); }}
-                            className="flex w-12 h-12 items-center justify-center rounded-full shrink-0 transition-all active:scale-95"
-                            style={{ background: "var(--button-primary-gradient)", color: "var(--on-primary)", boxShadow: "var(--button-primary-shadow)" }}
-                            title="기록 입력"
+                          <div
+                            className="rounded-[1.4rem] px-4 py-3"
+                            style={{ background: "color-mix(in srgb, var(--surface-container) 72%, transparent)" }}
                           >
-                            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                              <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-                            </svg>
-                          </button>
-                          <motion.button
-                            type="button"
-                            onClick={() => copyWithFeedback(`${window.location.origin}/input?token=${m.access_token}`, m.id, "member")}
-                            animate={copiedId === m.id
-                              ? { scale: [1, 1.2, 1], backgroundColor: "var(--highlight-soft)" }
-                              : { scale: 1, backgroundColor: "var(--surface-container)" }
-                            }
-                            transition={{ duration: 0.3 }}
-                            className="flex w-12 h-12 items-center justify-center rounded-full shrink-0"
-                            style={{ color: copiedId === m.id ? "var(--primary)" : "var(--text-soft)" }}
-                            title="입력 링크 복사"
-                          >
-                            <AnimatePresence mode="wait">
-                              {copiedId === m.id ? (
-                                <motion.svg key="check" viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5"
-                                  initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.2 }}>
-                                  <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
-                                </motion.svg>
-                              ) : (
-                                <motion.div key="link" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.2 }}>
-                                  <LinkIcon />
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </motion.button>
-                          <Link
-                            href={`/personal?user=${m.id}`}
-                            className="flex w-12 h-12 items-center justify-center rounded-full shrink-0 transition-colors active:scale-95"
-                            style={{ background: "var(--surface-container)", color: "var(--text-soft)" }}
-                            title="개인 페이지 보기"
-                          >
-                            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                              <circle cx="12" cy="8" r="3.5" />
-                              <path d="M4.5 20c0-4 3.358-7 7.5-7s7.5 3 7.5 7" strokeLinecap="round" />
-                            </svg>
-                          </Link>
-                          {/* 초기화 버튼 — 확인 팝업은 위로 올라옴 */}
-                          <div className="relative w-12 h-12 shrink-0">
+                            {(() => {
+                              const snapshot = jiraSnapshots[m.id];
+                              const syncedLabel = snapshot?.syncedAt
+                                ? new Date(snapshot.syncedAt).toLocaleTimeString("ko-KR", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                                : null;
+
+                              if (jiraLoading && !snapshot) {
+                                return (
+                                  <p className="text-xs font-semibold" style={{ color: "var(--on-surface-variant)" }}>
+                                    Jira 미완료 티켓을 불러오는 중...
+                                  </p>
+                                );
+                              }
+
+                              if (jiraError && !snapshot) {
+                                return (
+                                  <p className="text-xs font-semibold" style={{ color: "var(--tertiary)" }}>
+                                    {jiraError}
+                                  </p>
+                                );
+                              }
+
+                              if (!snapshot) {
+                                return (
+                                  <p className="text-xs font-semibold" style={{ color: "var(--on-surface-variant)" }}>
+                                    Jira 계정 정보가 아직 연결되지 않았어요.
+                                  </p>
+                                );
+                              }
+
+                              return (
+                                <div className="flex flex-col gap-2">
+                                  <div className="flex items-center justify-between gap-3">
+                                    <div className="min-w-0">
+                                      <p className="text-[11px] font-black uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
+                                        Jira
+                                      </p>
+                                      <p className="text-sm font-bold tracking-tight" style={{ color: "var(--on-surface)" }}>
+                                        미완료 {snapshot.openTicketCount}건
+                                      </p>
+                                    </div>
+                                    <p className="text-[11px] font-semibold whitespace-nowrap" style={{ color: "var(--on-surface-variant)" }}>
+                                      {syncedLabel ? `${syncedLabel} 갱신` : "방금 갱신"}
+                                    </p>
+                                  </div>
+
+                                  {snapshot.tickets.length === 0 ? (
+                                    <p className="text-xs font-semibold" style={{ color: "var(--on-surface-variant)" }}>
+                                      현재 진행 중인 티켓이 없어요.
+                                    </p>
+                                  ) : (
+                                    <div className="flex flex-col gap-2">
+                                      {snapshot.tickets.map((ticket) => (
+                                        <a
+                                          key={ticket.key}
+                                          href={ticket.browseUrl}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="flex items-start justify-between gap-3 rounded-[1rem] px-3 py-2 transition-colors"
+                                          style={{ background: "color-mix(in srgb, var(--surface-elevated) 68%, transparent)" }}
+                                        >
+                                          <div className="min-w-0 flex-1">
+                                            <p className="text-[11px] font-black tracking-[0.08em]" style={{ color: "var(--primary)" }}>
+                                              {ticket.key}
+                                            </p>
+                                            <p className="mt-0.5 text-xs font-semibold leading-5" style={{ color: "var(--on-surface)" }}>
+                                              {ticket.summary}
+                                            </p>
+                                          </div>
+                                          <div className="shrink-0 text-right">
+                                            <p className="text-[11px] font-bold" style={{ color: "var(--on-surface-variant)" }}>
+                                              {ticket.status}
+                                            </p>
+                                            <span className="mt-1 inline-flex h-7 w-7 items-center justify-center rounded-full" style={{ background: "var(--surface-container)" }}>
+                                              <ExternalLinkIcon size={14} />
+                                            </span>
+                                          </div>
+                                        </a>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </div>
+
+                          {/* 하단: 액션 */}
+                          <div className="flex justify-between">
                             <button
                               type="button"
-                              onClick={() => { if (latest && isToday) setConfirmResetId(confirmResetId === m.id ? null : m.id); }}
-                              className="flex w-12 h-12 items-center justify-center rounded-full transition-colors"
-                              style={{
-                                background: confirmResetId === m.id ? "color-mix(in srgb, #ed8936 22%, transparent)" : latest && isToday ? "color-mix(in srgb, #ed8936 14%, transparent)" : "var(--button-subtle-bg)",
-                                color: latest && isToday ? "color-mix(in srgb, #ed8936 78%, var(--on-surface))" : "var(--text-soft)",
-                                cursor: latest && isToday ? "pointer" : "default",
-                              }}
-                              title="오늘 기록 초기화"
+                              onClick={() => { setMoodTarget(m.id); setMoodScore(score ?? 50); setMoodMessage(latest?.message ?? ""); setMoodError(null); setMoodDuplicate(false); }}
+                              className="flex w-12 h-12 items-center justify-center rounded-full shrink-0 transition-all active:scale-95"
+                              style={{ background: "var(--button-primary-gradient)", color: "var(--on-primary)", boxShadow: "var(--button-primary-shadow)" }}
+                              title="기록 입력"
                             >
                               <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M3 3v5h5" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M12 5v14M5 12h14" strokeLinecap="round" />
                               </svg>
                             </button>
-                            <AnimatePresence>
-                              {confirmResetId === m.id && (
-                                <motion.div
-                                  initial={{ opacity: 0, y: 6, scale: 0.9 }}
-                                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                                  exit={{ opacity: 0, y: 6, scale: 0.9 }}
-                                  transition={{ duration: 0.15 }}
-                                  className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1.5 p-1.5 rounded-2xl shadow-lg z-20"
-                                  style={{ background: "var(--surface-container-highest)", boxShadow: "var(--glass-shadow)" }}
-                                >
-                                  <button type="button" onClick={() => { resetTodayMood(m.id); setConfirmResetId(null); }}
-                                    className="flex w-10 h-10 items-center justify-center rounded-xl text-xs font-black"
-                                    style={{ background: "color-mix(in srgb, #ed8936 16%, transparent)", color: "color-mix(in srgb, #ed8936 78%, var(--on-surface))" }}>✓</button>
-                                  <button type="button" onClick={() => setConfirmResetId(null)}
-                                    className="flex w-10 h-10 items-center justify-center rounded-xl text-sm"
-                                    style={{ color: "var(--text-soft)", background: "var(--button-subtle-bg)" }}>✕</button>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
-
-                          {/* 삭제 버튼 — 확인 팝업은 위로 올라옴 */}
-                          <div className="relative w-12 h-12 shrink-0">
-                            <button
+                            <motion.button
                               type="button"
-                              onClick={() => setConfirmDeleteId(confirmDeleteId === m.id ? null : m.id)}
-                              className="flex w-12 h-12 items-center justify-center rounded-full transition-colors"
-                              style={{
-                                background: confirmDeleteId === m.id ? "var(--error-container)" : "color-mix(in srgb, var(--error) 12%, transparent)",
-                                color: "var(--error)",
-                              }}
-                              title="삭제"
+                              onClick={() => copyWithFeedback(`${window.location.origin}/input?token=${m.access_token}`, m.id, "member")}
+                              animate={copiedId === m.id
+                                ? { scale: [1, 1.2, 1], backgroundColor: "var(--highlight-soft)" }
+                                : { scale: 1, backgroundColor: "var(--surface-container)" }
+                              }
+                              transition={{ duration: 0.3 }}
+                              className="flex w-12 h-12 items-center justify-center rounded-full shrink-0"
+                              style={{ color: copiedId === m.id ? "var(--primary)" : "var(--text-soft)" }}
+                              title="입력 링크 복사"
                             >
-                              <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" strokeLinecap="round" />
-                                <path d="M10 11v6M14 11v6M9 6V4h6v2" strokeLinecap="round" />
+                              <AnimatePresence mode="wait">
+                                {copiedId === m.id ? (
+                                  <motion.svg key="check" viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5"
+                                    initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.2 }}>
+                                    <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+                                  </motion.svg>
+                                ) : (
+                                  <motion.div key="link" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.2 }}>
+                                    <LinkIcon />
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </motion.button>
+                            <Link
+                              href={`/personal?user=${m.id}`}
+                              className="flex w-12 h-12 items-center justify-center rounded-full shrink-0 transition-colors active:scale-95"
+                              style={{ background: "var(--surface-container)", color: "var(--text-soft)" }}
+                              title="개인 페이지 보기"
+                            >
+                              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                                <circle cx="12" cy="8" r="3.5" />
+                                <path d="M4.5 20c0-4 3.358-7 7.5-7s7.5 3 7.5 7" strokeLinecap="round" />
                               </svg>
-                            </button>
-                            <AnimatePresence>
-                              {confirmDeleteId === m.id && (
-                                <motion.div
-                                  initial={{ opacity: 0, y: 6, scale: 0.9 }}
-                                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                                  exit={{ opacity: 0, y: 6, scale: 0.9 }}
-                                  transition={{ duration: 0.15 }}
-                                  className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1.5 p-1.5 rounded-2xl shadow-lg z-20"
-                                  style={{ background: "var(--surface-container-highest)", boxShadow: "var(--glass-shadow)" }}
-                                >
-                                  <button type="button" onClick={() => { deleteMember(m.id); setConfirmDeleteId(null); }}
-                                    className="flex w-10 h-10 items-center justify-center rounded-xl text-xs font-black"
-                                    style={{ background: "var(--error-container)", color: "var(--error)" }}>✓</button>
-                                  <button type="button" onClick={() => setConfirmDeleteId(null)}
-                                    className="flex w-10 h-10 items-center justify-center rounded-xl text-sm"
-                                    style={{ color: "var(--text-soft)", background: "var(--button-subtle-bg)" }}>✕</button>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
+                            </Link>
+                            {/* 초기화 버튼 — 확인 팝업은 위로 올라옴 */}
+                            <div className="relative w-12 h-12 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => { if (latest && isToday) setConfirmResetId(confirmResetId === m.id ? null : m.id); }}
+                                className="flex w-12 h-12 items-center justify-center rounded-full transition-colors"
+                                style={{
+                                  background: confirmResetId === m.id ? "color-mix(in srgb, #ed8936 22%, transparent)" : latest && isToday ? "color-mix(in srgb, #ed8936 14%, transparent)" : "var(--button-subtle-bg)",
+                                  color: latest && isToday ? "color-mix(in srgb, #ed8936 78%, var(--on-surface))" : "var(--text-soft)",
+                                  cursor: latest && isToday ? "pointer" : "default",
+                                }}
+                                title="오늘 기록 초기화"
+                              >
+                                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" strokeLinecap="round" strokeLinejoin="round" />
+                                  <path d="M3 3v5h5" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              </button>
+                              <AnimatePresence>
+                                {confirmResetId === m.id && (
+                                  <motion.div
+                                    initial={{ opacity: 0, y: 6, scale: 0.9 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 6, scale: 0.9 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1.5 p-1.5 rounded-2xl shadow-lg z-20"
+                                    style={{ background: "var(--surface-container-highest)", boxShadow: "var(--glass-shadow)" }}
+                                  >
+                                    <button type="button" onClick={() => { resetTodayMood(m.id); setConfirmResetId(null); }}
+                                      className="flex w-10 h-10 items-center justify-center rounded-xl text-xs font-black"
+                                      style={{ background: "color-mix(in srgb, #ed8936 16%, transparent)", color: "color-mix(in srgb, #ed8936 78%, var(--on-surface))" }}>✓</button>
+                                    <button type="button" onClick={() => setConfirmResetId(null)}
+                                      className="flex w-10 h-10 items-center justify-center rounded-xl text-sm"
+                                      style={{ color: "var(--text-soft)", background: "var(--button-subtle-bg)" }}>✕</button>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+
+                            {/* 삭제 버튼 — 확인 팝업은 위로 올라옴 */}
+                            <div className="relative w-12 h-12 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => setConfirmDeleteId(confirmDeleteId === m.id ? null : m.id)}
+                                className="flex w-12 h-12 items-center justify-center rounded-full transition-colors"
+                                style={{
+                                  background: confirmDeleteId === m.id ? "var(--error-container)" : "color-mix(in srgb, var(--error) 12%, transparent)",
+                                  color: "var(--error)",
+                                }}
+                                title="삭제"
+                              >
+                                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" strokeLinecap="round" />
+                                  <path d="M10 11v6M14 11v6M9 6V4h6v2" strokeLinecap="round" />
+                                </svg>
+                              </button>
+                              <AnimatePresence>
+                                {confirmDeleteId === m.id && (
+                                  <motion.div
+                                    initial={{ opacity: 0, y: 6, scale: 0.9 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 6, scale: 0.9 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1.5 p-1.5 rounded-2xl shadow-lg z-20"
+                                    style={{ background: "var(--surface-container-highest)", boxShadow: "var(--glass-shadow)" }}
+                                  >
+                                    <button type="button" onClick={() => { deleteMember(m.id); setConfirmDeleteId(null); }}
+                                      className="flex w-10 h-10 items-center justify-center rounded-xl text-xs font-black"
+                                      style={{ background: "var(--error-container)", color: "var(--error)" }}>✓</button>
+                                    <button type="button" onClick={() => setConfirmDeleteId(null)}
+                                      className="flex w-10 h-10 items-center justify-center rounded-xl text-sm"
+                                      style={{ color: "var(--text-soft)", background: "var(--button-subtle-bg)" }}>✕</button>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </>
               )}
             </GlassCard>
 
@@ -1111,6 +1334,15 @@ export default function AdminPageClient() {
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewName(e.target.value)}
                         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && addMember()}
                         className="font-bold flex-1 min-w-[140px]"
+                      />
+                      <ClimaInput
+                        id="add-member-email"
+                        type="email"
+                        placeholder="이메일"
+                        value={newEmail}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewEmail(e.target.value)}
+                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && addMember()}
+                        className="font-bold flex-1 min-w-[180px]"
                       />
                       <PortalSelect
                         value={newTeamId}
