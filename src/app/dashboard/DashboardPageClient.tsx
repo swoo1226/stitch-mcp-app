@@ -319,6 +319,10 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
     ? selectedWeekAverage - previousWeekAverage
     : null;
   const selectedMonthLabel = `${baseMonday.getMonth() + 1}월 평균`;
+  const todayAverageLabel = selectedPart ? "오늘 파트 평균" : "오늘 팀 평균";
+  const weekAverageLabel = selectedPart
+    ? `${weekTab === "this" ? "이번 주" : "지난 주"} 파트 평균`
+    : weekTab === "this" ? "이번 주 평균" : "지난 주 평균";
   const partVsTeamDelta = selectedPart && selectedWeekAverage !== null && teamWeekAverage !== null
     ? selectedWeekAverage - teamWeekAverage
     : null;
@@ -497,13 +501,13 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
 
           <section className="mb-6 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-[1.5rem] px-4 py-4" style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}>
-              <SectionLabel color="muted">오늘 팀 평균</SectionLabel>
+              <SectionLabel color="muted">{todayAverageLabel}</SectionLabel>
               <div className="mt-1 text-xl font-black text-primary">
                 {averageScore !== null ? `${averageScore}pt` : "—"}
               </div>
             </div>
             <div className="rounded-[1.5rem] px-4 py-4" style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}>
-              <SectionLabel color="muted">{weekTab === "this" ? "이번 주 평균" : "지난 주 평균"}</SectionLabel>
+              <SectionLabel color="muted">{weekAverageLabel}</SectionLabel>
               <div className="mt-1 text-xl font-black text-primary">
                 {selectedWeekAverage !== null ? `${selectedWeekAverage}pt` : "—"}
               </div>

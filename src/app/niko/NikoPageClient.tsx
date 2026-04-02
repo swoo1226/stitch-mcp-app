@@ -317,12 +317,16 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
   const weeklyDelta = selectedWeekAverage !== null && previousWeekAverage !== null
     ? selectedWeekAverage - previousWeekAverage
     : null;
-  const selectedMonthLabel = `${baseMonday.getMonth() + 1}월 평균`;
+  const selectedMonthLabel = `${baseMonday.getMonth() + 1}월 파트 평균`;
+  const todayAverageLabel = selectedPart ? `오늘 파트 평균` : "오늘 팀 평균";
+  const weekAverageLabel = selectedPart
+    ? `${weekOffset === 0 ? "이번 주" : "지난 주"} 파트 평균`
+    : weekOffset === 0 ? "이번 주 평균" : "지난 주 평균";
   const partVsTeamDelta = selectedPart && selectedWeekAverage !== null && teamWeekAverage !== null
     ? selectedWeekAverage - teamWeekAverage
     : null;
   const partVsTeamSummary = selectedPart && partVsTeamDelta !== null
-    ? `${selectedPart.name} 평균은 ${weekOffset === 0 ? "이번 주" : "지난 주"} 팀 평균보다 ${partVsTeamDelta > 0 ? "+" : ""}${partVsTeamDelta}pt ${partVsTeamDelta > 0 ? "높아요" : partVsTeamDelta < 0 ? "낮아요" : "같아요"}`
+    ? `파트 평균은 ${weekOffset === 0 ? "이번 주" : "지난 주"} 팀 평균보다 ${partVsTeamDelta > 0 ? "+" : ""}${partVsTeamDelta}pt ${partVsTeamDelta > 0 ? "높아요" : partVsTeamDelta < 0 ? "낮아요" : "같아요"}`
     : null;
 
   const checkedInCount = visibleMembers.filter(
@@ -477,12 +481,12 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
                 valueColor="primary"
               />
               <MiniStatCard
-                label="오늘 팀 평균"
+                label={todayAverageLabel}
                 value={loading ? "—" : avgToday !== null ? `${avgToday}pt` : "—"}
                 valueColor="primary"
               />
               <MiniStatCard
-                label={weekOffset === 0 ? "이번 주 평균" : "지난 주 평균"}
+                label={weekAverageLabel}
                 value={loading ? "—" : selectedWeekAverage !== null ? `${selectedWeekAverage}pt` : "—"}
                 valueColor="primary"
               />
@@ -546,7 +550,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
               loading={loading}
               colTemplate={COL_TEMPLATE}
               viewMode={viewMode}
-              summaryLabel={selectedPart ? `${selectedPart.name} 평균` : "팀 평균"}
+              summaryLabel={selectedPart ? `파트 평균` : "팀 평균"}
               comparisonLabel="팀 평균"
             />
           </section>
