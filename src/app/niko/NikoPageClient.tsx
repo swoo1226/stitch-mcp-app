@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ClimaLogo from "../components/WetherLogo";
 import HeaderNav, { type HeaderNavItem } from "../components/HeaderNav";
 import ThemeToggleButton from "../components/ThemeToggleButton";
@@ -38,6 +38,14 @@ function getWeekDays(monday: Date): Date[] {
     d.setDate(monday.getDate() + i);
     return d;
   });
+}
+
+function getMonthStart(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function getMonthEnd(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0);
 }
 
 function isoDate(d: Date): string {
@@ -92,6 +100,34 @@ interface MemberRow {
   part_id: string | null;
   week: Array<{ status: WeatherStatus | null; score: number | null; message: string | null }>;
   todayScore: number | null;
+  logs: MoodLogRow[];
+}
+
+function buildWeekEntries(logs: MoodLogRow[], weekDays: Date[]) {
+  return weekDays.map((day) => {
+    const dayIso = isoDate(day);
+    const dayLogs = logs.filter((log) => utcToKstDate(log.logged_at) === dayIso);
+    if (dayLogs.length === 0) return { status: null, score: null, message: null };
+    const latest = dayLogs[dayLogs.length - 1];
+    return { status: scoreToStatus(latest.score), score: latest.score, message: latest.message ?? null };
+  });
+}
+
+function getAverageFromScores(scores: number[]) {
+  return scores.length ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length) : null;
+}
+
+function getDailyScoresInRange(logs: MoodLogRow[], startIso: string, endIso: string) {
+  const latestByDay = new Map<string, number>();
+
+  logs.forEach((log) => {
+    const dayIso = utcToKstDate(log.logged_at);
+    if (dayIso >= startIso && dayIso <= endIso) {
+      latestByDay.set(dayIso, log.score);
+    }
+  });
+
+  return Array.from(latestByDay.values());
 }
 
 // ─── Nav ────────────────────────────────────────────────────────────────────
@@ -166,7 +202,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
 
   useEffect(() => {
     if (teamId === DEMO_TEAM_ID) {
-      const demoMembers = getDemoMembers(weekOffset);
+      const demoMembers = getDemoMembers(weekOffset).map((member) => ({ ...member, logs: [] }));
       setMembers(demoMembers);
       setParts(DEMO_PARTS);
       setLoading(false);
@@ -175,9 +211,14 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
 
     async function fetchData() {
       setLoading(true);
-
-      const rangeStart = isoDate(weekDays[0]);
-      const rangeEnd = isoDate(weekDays[4]);
+      const previousMonday = new Date(baseMonday);
+      previousMonday.setDate(baseMonday.getDate() - 7);
+      const monthStart = getMonthStart(baseMonday);
+      const monthEnd = getMonthEnd(baseMonday);
+      const rangeStartDate = previousMonday < monthStart ? previousMonday : monthStart;
+      const rangeEndDate = monthEnd > weekDays[4] ? monthEnd : weekDays[4];
+      const rangeStart = isoDate(rangeStartDate);
+      const rangeEnd = isoDate(rangeEndDate);
 
       const [{ data: users, error: usersError }, { data: partsData }] = await Promise.all([
         supabase.from("users").select("id, name, avatar_emoji, part_id").eq("team_id", teamId),
@@ -202,14 +243,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
 
       const mapped: MemberRow[] = (users as UserRow[]).map((user) => {
         const userLogs = logRows.filter((l) => l.user_id === user.id);
-
-        const week = weekDays.map((day) => {
-          const dayIso = isoDate(day);
-          const dayLogs = userLogs.filter((l) => utcToKstDate(l.logged_at) === dayIso);
-          if (dayLogs.length === 0) return { status: null, score: null, message: null };
-          const latest = dayLogs[dayLogs.length - 1];
-          return { status: scoreToStatus(latest.score), score: latest.score, message: latest.message ?? null };
-        });
+        const week = buildWeekEntries(userLogs, weekDays);
 
         const todayScore = todayIndex >= 0 ? (week[todayIndex]?.score ?? null) : null;
 
@@ -220,6 +254,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
           part_id: user.part_id ?? null,
           week,
           todayScore,
+          logs: userLogs,
         };
       });
 
@@ -236,6 +271,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
   const dateRangeLabel = `${weekDays[0].toLocaleDateString("ko-KR", { month: "short", day: "numeric" })} — ${weekDays[4].toLocaleDateString("ko-KR", { month: "short", day: "numeric" })} · 오늘 ${todayLabel}`;
 
   const teamParts = parts.filter(p => members.some(m => m.part_id === p.id));
+  const selectedPart = teamParts.find((part) => part.id === selectedPartId) ?? null;
   const visibleMembers = selectedPartId
     ? members.filter(m => m.part_id === selectedPartId)
     : members;
@@ -243,6 +279,50 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
   const todayScores = visibleMembers.map((m) => m.todayScore).filter((s): s is number => s !== null);
   const avgToday = todayScores.length
     ? Math.round(todayScores.reduce((a, b) => a + b, 0) / todayScores.length)
+    : null;
+  const previousWeekDays = useMemo(() => {
+    const previousMonday = new Date(baseMonday);
+    previousMonday.setDate(baseMonday.getDate() - 7);
+    return getWeekDays(previousMonday);
+  }, [baseMonday]);
+  const selectedWeekAverage = useMemo(
+    () => getAverageFromScores(
+      visibleMembers.flatMap((member) => member.week.map((entry) => entry.score).filter((score): score is number => score !== null))
+    ),
+    [visibleMembers]
+  );
+  const teamWeekAverage = useMemo(
+    () => getAverageFromScores(
+      members.flatMap((member) => member.week.map((entry) => entry.score).filter((score): score is number => score !== null))
+    ),
+    [members]
+  );
+  const previousWeekAverage = useMemo(
+    () => getAverageFromScores(
+      visibleMembers.flatMap((member) =>
+        buildWeekEntries(member.logs, previousWeekDays)
+          .map((entry) => entry.score)
+          .filter((score): score is number => score !== null)
+      )
+    ),
+    [previousWeekDays, visibleMembers]
+  );
+  const monthAverage = useMemo(() => {
+    const monthStartIso = isoDate(getMonthStart(baseMonday));
+    const monthEndIso = isoDate(getMonthEnd(baseMonday));
+    return getAverageFromScores(
+      visibleMembers.flatMap((member) => getDailyScoresInRange(member.logs, monthStartIso, monthEndIso))
+    );
+  }, [baseMonday, visibleMembers]);
+  const weeklyDelta = selectedWeekAverage !== null && previousWeekAverage !== null
+    ? selectedWeekAverage - previousWeekAverage
+    : null;
+  const selectedMonthLabel = `${baseMonday.getMonth() + 1}월 평균`;
+  const partVsTeamDelta = selectedPart && selectedWeekAverage !== null && teamWeekAverage !== null
+    ? selectedWeekAverage - teamWeekAverage
+    : null;
+  const partVsTeamSummary = selectedPart && partVsTeamDelta !== null
+    ? `${selectedPart.name} 평균은 ${weekOffset === 0 ? "이번 주" : "지난 주"} 팀 평균보다 ${partVsTeamDelta > 0 ? "+" : ""}${partVsTeamDelta}pt ${partVsTeamDelta > 0 ? "높아요" : partVsTeamDelta < 0 ? "낮아요" : "같아요"}`
     : null;
 
   const checkedInCount = visibleMembers.filter(
@@ -401,6 +481,21 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
                 value={loading ? "—" : avgToday !== null ? `${avgToday}pt` : "—"}
                 valueColor="primary"
               />
+              <MiniStatCard
+                label={weekOffset === 0 ? "이번 주 평균" : "지난 주 평균"}
+                value={loading ? "—" : selectedWeekAverage !== null ? `${selectedWeekAverage}pt` : "—"}
+                valueColor="primary"
+              />
+              <MiniStatCard
+                label={selectedMonthLabel}
+                value={loading ? "—" : monthAverage !== null ? `${monthAverage}pt` : "—"}
+                valueColor="primary"
+              />
+              <MiniStatCard
+                label="전주 대비"
+                value={loading ? "—" : weeklyDelta !== null ? `${weeklyDelta > 0 ? "+" : ""}${weeklyDelta}pt` : "—"}
+                valueColor={weeklyDelta === null ? "default" : weeklyDelta < 0 ? "tertiary" : "primary"}
+              />
             </div>
           </div>
         </div>
@@ -416,6 +511,22 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
             </div>
           </div>
 
+          {partVsTeamSummary && (
+            <div
+              className="mb-4 inline-flex max-w-full items-center rounded-full px-3 py-2 text-xs font-black tracking-tight"
+              style={{
+                background: partVsTeamDelta! > 0
+                  ? "color-mix(in srgb, var(--primary-container) 40%, var(--surface-lowest))"
+                  : partVsTeamDelta! < 0
+                    ? "color-mix(in srgb, var(--tertiary-container) 42%, var(--surface-lowest))"
+                    : "color-mix(in srgb, var(--surface-container-high) 80%, var(--surface-lowest))",
+                color: partVsTeamDelta! > 0 ? "var(--primary)" : partVsTeamDelta! < 0 ? "var(--tertiary)" : "var(--on-surface)",
+              }}
+            >
+              {partVsTeamSummary}
+            </div>
+          )}
+
           <section className="min-h-[400px]">
             <NikoCalendar
               members={visibleMembers.map((m): NikoCalendarMember => ({
@@ -423,11 +534,20 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
                 name: m.name,
                 week: m.week,
               }))}
+              comparisonMembers={selectedPartId
+                ? members.map((m): NikoCalendarMember => ({
+                  id: m.id,
+                  name: m.name,
+                  week: m.week,
+                }))
+                : undefined}
               weekDays={weekDays}
               todayIso={todayIso}
               loading={loading}
               colTemplate={COL_TEMPLATE}
               viewMode={viewMode}
+              summaryLabel={selectedPart ? `${selectedPart.name} 평균` : "팀 평균"}
+              comparisonLabel="팀 평균"
             />
           </section>
         </section>

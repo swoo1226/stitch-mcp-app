@@ -7,7 +7,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { createPortal } from "react-dom";
 import { WEATHER_ICON_MAP } from "./WeatherIcons";
-import { statusToKo, type WeatherStatus } from "../../lib/mood";
+import { scoreToStatus, statusToKo, type WeatherStatus } from "../../lib/mood";
 import { useTextLayout } from "../../lib/pretext-utils";
 import { MoodTrendChart } from "./MoodTrendChart";
 
@@ -866,6 +866,142 @@ interface NikoMemberRowProps {
   viewMode?: "icon" | "chart";
 }
 
+interface NikoSummaryRowProps {
+  week: NikoMemberRowCell[];
+  comparisonWeek?: NikoMemberRowCell[] | null;
+  todayIndex: number;
+  colTemplate: string;
+  loading?: boolean;
+  viewMode?: "icon" | "chart";
+  label?: string;
+  subtitle?: string;
+  tone?: "primary" | "muted";
+}
+
+function NikoSummaryRow({
+  week,
+  comparisonWeek,
+  todayIndex,
+  colTemplate,
+  loading = false,
+  viewMode = "icon",
+  label = "팀 평균",
+  subtitle = "날짜별 평균 점수",
+  tone = "primary",
+}: NikoSummaryRowProps) {
+  const rowBackground = tone === "primary"
+    ? "color-mix(in srgb, var(--primary) 5%, var(--surface-lowest))"
+    : "color-mix(in srgb, var(--surface-container-high) 40%, var(--surface-lowest))";
+  const badgeBackground = tone === "primary"
+    ? "color-mix(in srgb, var(--primary-container) 60%, transparent)"
+    : "color-mix(in srgb, var(--surface-container-high) 85%, transparent)";
+  const accentColor = tone === "primary" ? "var(--primary)" : "var(--on-surface)";
+
+  if (loading) {
+    return (
+      <div
+        className="grid items-center rounded-[1.4rem] px-2 py-3"
+        style={{ gridTemplateColumns: colTemplate, background: rowBackground }}
+      >
+        <div className="sticky left-0 z-10 -ml-2 flex items-center gap-2 pl-2 pr-2">
+          <div className="h-9 w-9 animate-pulse rounded-full" style={{ background: badgeBackground }} />
+          <div className="h-4 w-16 animate-pulse rounded-full" style={{ background: badgeBackground }} />
+        </div>
+        {week.map((_, j) => (
+          <div key={j} className="flex justify-center">
+            <div className="h-10 w-14 animate-pulse rounded-[1rem]" style={{ background: badgeBackground }} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="grid items-stretch rounded-[1.4rem] px-2 border border-[color:var(--border-subtle)]"
+      style={{
+        gridTemplateColumns: colTemplate,
+        background: rowBackground,
+      }}
+    >
+      <div
+        className="sticky left-0 z-10 flex items-center gap-2 py-3 pr-2"
+        style={{ background: rowBackground }}
+      >
+        <div
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-black"
+          style={{ background: badgeBackground, color: accentColor }}
+        >
+          AVG
+        </div>
+        <div className="min-w-0">
+          <span className="block truncate text-[0.95rem] font-extrabold tracking-tight" style={{ color: accentColor }}>{label}</span>
+          <span className="block text-[11px] font-medium" style={{ color: "rgba(37,50,40,0.45)" }}>
+            {subtitle}
+          </span>
+        </div>
+      </div>
+
+      {viewMode === "icon" ? (
+        week.map((cell, dayIdx) => {
+          const isToday = dayIdx === todayIndex;
+          const Icon = cell.status ? WEATHER_ICON_MAP[cell.status] : null;
+          const comparisonScore = comparisonWeek?.[dayIdx]?.score ?? null;
+          const delta = cell.score !== null && comparisonScore !== null ? cell.score - comparisonScore : null;
+          const deltaColor = delta === null
+            ? "var(--on-surface)"
+            : delta > 0
+              ? "var(--primary)"
+              : delta < 0
+                ? "var(--tertiary)"
+                : "color-mix(in srgb, var(--on-surface) 56%, transparent)";
+          const deltaBackground = delta === null
+            ? "transparent"
+            : delta > 0
+              ? "color-mix(in srgb, var(--primary-container) 42%, var(--surface-lowest))"
+              : delta < 0
+                ? "color-mix(in srgb, var(--tertiary-container) 48%, var(--surface-lowest))"
+                : "color-mix(in srgb, var(--surface-container-high) 80%, var(--surface-lowest))";
+          return (
+            <div key={dayIdx} className="flex items-center justify-center py-2">
+              <div
+                className="flex min-w-[56px] flex-col items-center justify-center rounded-[1rem] px-2 py-2"
+                style={{
+                  background: isToday ? "rgba(0,102,104,0.08)" : "transparent",
+                  outline: isToday ? `2px solid ${tone === "primary" ? "color-mix(in srgb, var(--primary) 28%, transparent)" : "color-mix(in srgb, var(--on-surface) 18%, transparent)"}` : "none",
+                  outlineOffset: "-2px",
+                }}
+              >
+                {Icon ? <Icon size={24} /> : <span className="text-sm opacity-30">—</span>}
+                <span className="mt-1 text-[10px] font-black leading-none" style={{ color: "var(--on-surface)" }}>
+                  {cell.score !== null ? `${cell.score}pt` : "—"}
+                </span>
+                {delta !== null && (
+                  <span
+                    className="mt-1 inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-black leading-none"
+                    style={{ color: deltaColor, background: deltaBackground }}
+                  >
+                    {delta > 0 ? "+" : ""}
+                    {delta}
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })
+      ) : (
+        <div className="col-span-5 h-16 flex items-center pr-4">
+          <MoodTrendChart
+            scores={week.map((w) => w.score)}
+            height={60}
+            className="w-full opacity-90"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function NikoMemberRow({
   avatar,
   name,
@@ -1011,22 +1147,28 @@ export interface NikoCalendarMember {
 
 interface NikoCalendarProps {
   members: NikoCalendarMember[];
+  comparisonMembers?: NikoCalendarMember[];
   weekDays: Date[];         // 5개 날짜 (월~금)
   todayIso: string;         // "YYYY-MM-DD"
   loading?: boolean;
   pageSize?: number;        // 미설정 시 전체 표시 (페이지네이션 없음)
   colTemplate?: string;
   viewMode?: "icon" | "chart";
+  summaryLabel?: string;
+  comparisonLabel?: string;
 }
 
 export function NikoCalendar({
   members,
+  comparisonMembers,
   weekDays,
   todayIso,
   loading = false,
   pageSize,
   colTemplate = "120px repeat(5, minmax(80px, 1fr))",
   viewMode = "icon",
+  summaryLabel = "팀 평균",
+  comparisonLabel = "비교 평균",
 }: NikoCalendarProps) {
   const [page, setPage] = useState(0);
 
@@ -1045,6 +1187,40 @@ export function NikoCalendar({
 
   const totalPages = pageSize ? Math.ceil(members.length / pageSize) : 1;
   const pageMembers = pageSize ? members.slice(page * pageSize, (page + 1) * pageSize) : members;
+  const averageWeek = Array.from({ length: 5 }, (_, dayIndex) => {
+    const dayScores = members
+      .map((member) => member.week[dayIndex]?.score ?? null)
+      .filter((score): score is number => score !== null);
+
+    if (dayScores.length === 0) {
+      return { status: null, score: null, message: null };
+    }
+
+    const averageScore = Math.round(dayScores.reduce((sum, score) => sum + score, 0) / dayScores.length);
+    return {
+      status: scoreToStatus(averageScore),
+      score: averageScore,
+      message: `${dayScores.length}명 평균`,
+    };
+  });
+  const comparisonWeek = comparisonMembers?.length
+    ? Array.from({ length: 5 }, (_, dayIndex) => {
+      const dayScores = comparisonMembers
+        .map((member) => member.week[dayIndex]?.score ?? null)
+        .filter((score): score is number => score !== null);
+
+      if (dayScores.length === 0) {
+        return { status: null, score: null, message: null };
+      }
+
+      const averageScore = Math.round(dayScores.reduce((sum, score) => sum + score, 0) / dayScores.length);
+      return {
+        status: scoreToStatus(averageScore),
+        score: averageScore,
+        message: `${dayScores.length}명 평균`,
+      };
+    })
+    : null;
 
   return (
     <div>
@@ -1056,6 +1232,28 @@ export function NikoCalendar({
             colTemplate={colTemplate}
           />
           <div className="flex flex-col gap-2">
+            <NikoSummaryRow
+              week={averageWeek}
+              comparisonWeek={comparisonWeek}
+              todayIndex={todayIndex}
+              colTemplate={colTemplate}
+              loading={loading}
+              viewMode={viewMode}
+              label={summaryLabel}
+              subtitle="날짜별 평균 점수"
+            />
+            {comparisonWeek && (
+              <NikoSummaryRow
+                week={comparisonWeek}
+                todayIndex={todayIndex}
+                colTemplate={colTemplate}
+                loading={loading}
+                viewMode={viewMode}
+                label={comparisonLabel}
+                subtitle="전체 팀 기준 평균"
+                tone="muted"
+              />
+            )}
             {loading
               ? Array.from({ length: pageSize ?? 5 }, (_, i) => (
                 <NikoMemberRow

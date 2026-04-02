@@ -12,12 +12,12 @@ interface MoodTrendChartProps {
 
 type TrendDirection = "up" | "down" | "flat";
 
-function getDeltaToNext(scores: Array<number | null>, index: number) {
+function getDeltaFromPrevious(scores: Array<number | null>, index: number) {
+  const previous = scores[index - 1];
   const current = scores[index];
-  const next = scores[index + 1];
-  if (current === null || next === null) return null;
+  if (previous === null || current === null || previous === undefined) return null;
 
-  const delta = next - current;
+  const delta = current - previous;
   const direction: TrendDirection = delta > 0 ? "up" : delta < 0 ? "down" : "flat";
   return { delta, direction };
 }
@@ -85,19 +85,18 @@ export function MoodTrendChart({ scores, height = 40, className = "" }: MoodTren
         const hasScore = score !== null;
         const barHeight = hasScore ? Math.max(12, score) : 8;
         const barColor = getBarColor(score);
-        const placeRight = i < Math.ceil(scores.length / 2);
-        const deltaToNext = getDeltaToNext(scores, i);
-        const trendColor = deltaToNext
-          ? deltaToNext.direction === "up"
+        const deltaFromPrevious = getDeltaFromPrevious(scores, i);
+        const trendColor = deltaFromPrevious
+          ? deltaFromPrevious.direction === "up"
             ? "var(--primary-dim)"
-            : deltaToNext.direction === "down"
+            : deltaFromPrevious.direction === "down"
               ? "var(--tertiary)"
               : "color-mix(in srgb, var(--on-surface) 56%, transparent)"
           : "transparent";
-        const trendBackground = deltaToNext
-          ? deltaToNext.direction === "up"
+        const trendBackground = deltaFromPrevious
+          ? deltaFromPrevious.direction === "up"
             ? "color-mix(in srgb, var(--primary-container) 44%, var(--surface-lowest))"
-            : deltaToNext.direction === "down"
+            : deltaFromPrevious.direction === "down"
               ? "color-mix(in srgb, var(--tertiary-container) 48%, var(--surface-lowest))"
               : "color-mix(in srgb, var(--surface-container-high) 72%, var(--surface-lowest))"
           : "transparent";
@@ -123,7 +122,7 @@ export function MoodTrendChart({ scores, height = 40, className = "" }: MoodTren
               <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/20 to-transparent" />
             </motion.div>
 
-            {deltaToNext && (
+            {deltaFromPrevious && (
               <motion.div
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -133,19 +132,18 @@ export function MoodTrendChart({ scores, height = 40, className = "" }: MoodTren
                 }}
                 className="absolute z-10 flex items-center gap-1 rounded-full px-1.5 py-1 text-[9px] font-black shadow-sm md:text-[10px]"
                 style={{
-                  bottom: `calc(${barHeight}% - 0.15rem)`,
+                  left: "50%",
+                  bottom: `calc(${barHeight}% + 0.45rem)`,
+                  transform: "translateX(-50%)",
                   color: trendColor,
                   background: trendBackground,
-                  ...(placeRight
-                    ? { left: "calc(50% + 14px)" }
-                    : { right: "calc(50% + 14px)" }),
                 }}
               >
-                <TrendArrow direction={deltaToNext.direction} />
-                {deltaToNext.direction !== "flat" && (
+                <TrendArrow direction={deltaFromPrevious.direction} />
+                {deltaFromPrevious.direction !== "flat" && (
                   <span className="leading-none">
-                    {deltaToNext.delta > 0 ? "+" : ""}
-                    {deltaToNext.delta}
+                    {deltaFromPrevious.delta > 0 ? "+" : ""}
+                    {deltaFromPrevious.delta}
                   </span>
                 )}
               </motion.div>
@@ -155,10 +153,9 @@ export function MoodTrendChart({ scores, height = 40, className = "" }: MoodTren
               <div
                 className="absolute opacity-0 group-hover:opacity-100 transition-opacity bg-surface-elevated px-2 py-1 rounded-md text-[11px] md:text-xs font-black shadow-lg z-20 border border-white/10 leading-none"
                 style={{
-                  bottom: `calc(${barHeight}% + 1.6rem)`,
-                  ...(placeRight
-                    ? { left: "calc(50% + 12px)" }
-                    : { right: "calc(50% + 12px)" }),
+                  left: "50%",
+                  bottom: `calc(${barHeight}% + 2rem)`,
+                  transform: "translateX(-50%)",
                 }}
               >
                 {score}
