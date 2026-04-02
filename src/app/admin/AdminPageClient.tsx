@@ -9,6 +9,7 @@ import Link from "next/link";
 import { createPortal } from "react-dom";
 import ClimaLogo from "../components/WetherLogo";
 import ThemeToggleButton from "../components/ThemeToggleButton";
+import { BottomSheet, BottomSheetOverlay } from "../components/BottomSheet";
 import {
   ClimaButton,
   ClimaInput,
@@ -26,11 +27,11 @@ import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 
 
 const WEATHER_METAPHORS = [
-  { score: 0, label: "Stormy", ko: "번개" },
-  { score: 21, label: "Rainy", ko: "비" },
-  { score: 41, label: "Foggy", ko: "안개" },
-  { score: 61, label: "Sunny", ko: "맑음" },
-  { score: 81, label: "Radiant", ko: "쨍함" },
+  { score: 10, label: "Stormy", ko: "번개" },
+  { score: 30, label: "Rainy", ko: "비" },
+  { score: 50, label: "Foggy", ko: "안개" },
+  { score: 70, label: "Sunny", ko: "맑음" },
+  { score: 90, label: "Radiant", ko: "쨍함" },
 ] as const;
 
 function currentMetaphorFromScore(score: number) {
@@ -173,6 +174,7 @@ export default function AdminPageClient() {
   const [pwError, setPwError] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
 
   // 탭: "members" | "teams"
   const [activeTab, setActiveTab] = useState<"members" | "teams">("members");
@@ -287,6 +289,14 @@ export default function AdminPageClient() {
   const [newPartName, setNewPartName] = useState("");
   const [newPartTeamId, setNewPartTeamId] = useState<string>("");
   const [addingPart, setAddingPart] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+    const sync = () => setIsMobileViewport(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -1522,7 +1532,169 @@ export default function AdminPageClient() {
           const targetMember = members.find(m => m.id === moodTarget);
           const currentMetaphor = currentMetaphorFromScore(moodScore);
           const CurrentIcon = WEATHER_ICON_MAP[currentMetaphor.label];
-          return (
+          const moodContent = (
+            <>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentMetaphor.label}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  transition={STANDARD_SPRING}
+                  className="mx-auto"
+                >
+                  <CurrentIcon size={isMobileViewport ? 60 : 72} />
+                </motion.div>
+              </AnimatePresence>
+
+              <div className="text-center">
+                <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: "var(--text-soft)" }}>
+                  {targetMember?.name}의 오늘 날씨
+                </p>
+                <h3 className="text-2xl font-black tracking-tight" style={{ color: "var(--primary)" }}>
+                  {currentMetaphor.ko}
+                </h3>
+              </div>
+
+              <PrimaryTabToggle
+                tabs={[
+                  { value: "tile" as const, label: "빠른 선택" },
+                  { value: "range" as const, label: "직접 입력" },
+                ]}
+                active={moodMode}
+                onChange={setMoodMode}
+              />
+
+              <AnimatePresence mode="wait">
+                {moodMode === "tile" ? (
+                  <motion.div
+                    key="tile"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={STANDARD_SPRING}
+                    className="w-full"
+                  >
+                    <div className="grid grid-cols-3 gap-2 mb-2">
+                      {WEATHER_METAPHORS.slice(0, 3).map((m) => (
+                        <WeatherTile
+                          key={m.label}
+                          Icon={WEATHER_ICON_MAP[m.label]}
+                          label={m.ko}
+                          isSelected={currentMetaphor.label === m.label}
+                          onClick={() => setMoodScore(m.score)}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex justify-center gap-2">
+                      {WEATHER_METAPHORS.slice(3).map((m) => (
+                        <div key={m.label} className="w-[calc(33.333%-0.375rem)]">
+                          <WeatherTile
+                            Icon={WEATHER_ICON_MAP[m.label]}
+                            label={m.ko}
+                            isSelected={currentMetaphor.label === m.label}
+                            onClick={() => setMoodScore(m.score)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="range"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={STANDARD_SPRING}
+                    className="w-full flex flex-col gap-3"
+                  >
+                    <input
+                      type="range" min="0" max="100" value={moodScore}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMoodScore(Number(e.target.value))}
+                      className="w-full accent-primary"
+                    />
+                    <div className="flex justify-between text-xs font-black opacity-40">
+                      <span>번개</span>
+                      <span style={{ color: "var(--primary)", opacity: 1 }}>{moodScore}점</span>
+                      <span>쨍함</span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <ClimaTextarea
+                placeholder="한마디 (선택)"
+                value={moodMessage}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setMoodMessage(e.target.value)}
+                className="w-full"
+              />
+
+              {moodError && (
+                <p className="w-full text-center text-sm font-bold rounded-2xl px-4 py-3"
+                  style={{ background: "color-mix(in srgb, var(--error) 12%, transparent)", color: "var(--error)" }}>
+                  {moodError}
+                </p>
+              )}
+              {moodDuplicate && (
+                <div className="w-full rounded-2xl px-4 py-4 flex flex-col gap-3 text-center"
+                  style={{ background: "color-mix(in srgb, #ff9900 12%, transparent)" }}>
+                  <p className="text-sm font-bold" style={{ color: "var(--text-muted)" }}>
+                    오늘 이미 기록이 있어요.<br />현재 점수로 덮어쓸까요?
+                  </p>
+                  <div className="flex gap-2 justify-center">
+                    <button
+                      type="button"
+                      onClick={overwriteMood}
+                      disabled={submitting}
+                      className="px-5 py-2 rounded-full text-white font-black text-sm transition-opacity hover:opacity-80 disabled:opacity-50"
+                      style={{ background: "var(--primary)" }}
+                    >
+                      {submitting ? "저장 중..." : "덮어쓰기"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMoodDuplicate(false)}
+                      className="px-5 py-2 rounded-full font-bold text-sm"
+                      style={{ color: "var(--text-soft)", background: "var(--button-subtle-bg)" }}
+                    >
+                      취소
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {!moodDuplicate && (
+                <div className="flex gap-3 w-full">
+                  <ClimaButton
+                    onClick={submitMood}
+                    variant="primary"
+                    className="flex-1 py-4 text-sm"
+                  >
+                    {submitting ? "저장 중..." : "기록하기"}
+                  </ClimaButton>
+                  <ClimaButton
+                    variant="tertiary"
+                    onClick={() => setMoodTarget(null)}
+                    className="py-4 text-sm"
+                    style={{ paddingInline: "1.5rem" }}
+                  >
+                    취소
+                  </ClimaButton>
+                </div>
+              )}
+            </>
+          );
+
+          return isMobileViewport ? (
+            <>
+              <BottomSheetOverlay onClose={() => setMoodTarget(null)} />
+              <BottomSheet onClose={() => setMoodTarget(null)} height="78vh">
+                <div className="flex h-full flex-col gap-5 overflow-y-auto px-1 pb-2">
+                  {moodContent}
+                </div>
+              </BottomSheet>
+            </>
+          ) : (
             <>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -1540,160 +1712,7 @@ export default function AdminPageClient() {
                 className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 rounded-[2.5rem] p-8 max-w-sm mx-auto flex flex-col items-center gap-5"
                 style={{ background: "var(--surface-lowest)", boxShadow: "var(--glass-shadow)" }}
               >
-                {/* 날씨 아이콘 */}
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentMetaphor.label}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.9, opacity: 0 }}
-                    transition={STANDARD_SPRING}
-                  >
-                    <CurrentIcon size={72} />
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* 이름 + 상태 */}
-                <div className="text-center">
-                  <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: "var(--text-soft)" }}>
-                    {targetMember?.name}의 오늘 날씨
-                  </p>
-                  <h3 className="text-2xl font-black tracking-tight" style={{ color: "var(--primary)" }}>
-                    {currentMetaphor.ko}
-                  </h3>
-                </div>
-
-                {/* 모드 토글 */}
-                <PrimaryTabToggle
-                  tabs={[
-                    { value: "tile" as const, label: "빠른 선택" },
-                    { value: "range" as const, label: "직접 입력" },
-                  ]}
-                  active={moodMode}
-                  onChange={setMoodMode}
-                />
-
-                {/* 입력 영역 */}
-                <AnimatePresence mode="wait">
-                  {moodMode === "tile" ? (
-                    <motion.div
-                      key="tile"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={STANDARD_SPRING}
-                      className="w-full"
-                    >
-                      <div className="grid grid-cols-3 gap-2 mb-2">
-                        {WEATHER_METAPHORS.slice(0, 3).map((m) => (
-                          <WeatherTile
-                            key={m.label}
-                            Icon={WEATHER_ICON_MAP[m.label]}
-                            label={m.ko}
-                            isSelected={currentMetaphor.label === m.label}
-                            onClick={() => setMoodScore(m.score)}
-                          />
-                        ))}
-                      </div>
-                      <div className="flex justify-center gap-2">
-                        {WEATHER_METAPHORS.slice(3).map((m) => (
-                          <div key={m.label} className="w-[calc(33.333%-0.375rem)]">
-                            <WeatherTile
-                              Icon={WEATHER_ICON_MAP[m.label]}
-                              label={m.ko}
-                              isSelected={currentMetaphor.label === m.label}
-                              onClick={() => setMoodScore(m.score)}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="range"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={STANDARD_SPRING}
-                      className="w-full flex flex-col gap-3"
-                    >
-                      <input
-                        type="range" min="0" max="100" value={moodScore}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMoodScore(Number(e.target.value))}
-                        className="w-full accent-primary"
-                      />
-                      <div className="flex justify-between text-xs font-black opacity-40">
-                        <span>번개</span>
-                        <span style={{ color: "var(--primary)", opacity: 1 }}>{moodScore}점</span>
-                        <span>쨍함</span>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* 메시지 */}
-                <ClimaTextarea
-                  placeholder="한마디 (선택)"
-                  value={moodMessage}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setMoodMessage(e.target.value)}
-                  className="w-full"
-                />
-
-                {/* 에러 / 중복 피드백 */}
-                {moodError && (
-                  <p className="w-full text-center text-sm font-bold rounded-2xl px-4 py-3"
-                    style={{ background: "color-mix(in srgb, var(--error) 12%, transparent)", color: "var(--error)" }}>
-                    {moodError}
-                  </p>
-                )}
-                {moodDuplicate && (
-                  <div className="w-full rounded-2xl px-4 py-4 flex flex-col gap-3 text-center"
-                    style={{ background: "color-mix(in srgb, #ff9900 12%, transparent)" }}>
-                    <p className="text-sm font-bold" style={{ color: "var(--text-muted)" }}>
-                      오늘 이미 기록이 있어요.<br />현재 점수로 덮어쓸까요?
-                    </p>
-                    <div className="flex gap-2 justify-center">
-                      <button
-                        type="button"
-                        onClick={overwriteMood}
-                        disabled={submitting}
-                        className="px-5 py-2 rounded-full text-white font-black text-sm transition-opacity hover:opacity-80 disabled:opacity-50"
-                        style={{ background: "var(--primary)" }}
-                      >
-                        {submitting ? "저장 중..." : "덮어쓰기"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setMoodDuplicate(false)}
-                        className="px-5 py-2 rounded-full font-bold text-sm"
-                        style={{ color: "var(--text-soft)", background: "var(--button-subtle-bg)" }}
-                      >
-                        취소
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* 버튼 */}
-                {!moodDuplicate && (
-                  <div className="flex gap-3 w-full">
-                    <ClimaButton
-                      onClick={submitMood}
-                      variant="primary"
-                      className="flex-1 py-4 text-sm"
-                    >
-                      {submitting ? "저장 중..." : "기록하기"}
-                    </ClimaButton>
-                    <ClimaButton
-                      variant="tertiary"
-                      onClick={() => setMoodTarget(null)}
-                      className="py-4 text-sm"
-                      style={{ paddingInline: "1.5rem" }}
-                    >
-                      취소
-                    </ClimaButton>
-                  </div>
-                )}
+                {moodContent}
               </motion.div>
             </>
           );

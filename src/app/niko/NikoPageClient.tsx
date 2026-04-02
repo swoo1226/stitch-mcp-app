@@ -50,7 +50,7 @@ function isoDate(d: Date): string {
 
 // KST(+09:00) 기준 날짜 범위 — logged_at이 timestamptz라 오프셋 명시 필요
 function kstDayStart(iso: string): string { return `${iso}T00:00:00+09:00`; }
-function kstDayEnd(iso: string): string   { return `${iso}T23:59:59+09:00`; }
+function kstDayEnd(iso: string): string { return `${iso}T23:59:59+09:00`; }
 
 // DB에서 내려온 UTC 타임스탬프를 KST 기준 YYYY-MM-DD로 변환
 function utcToKstDate(utcStr: string): string {
@@ -347,7 +347,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <SectionHeader
             icon={<CalendarIcon />}
-            title="Niko-Niko Calendar"
+            title="Niko-Niko 캘린더"
             subtitle={dateRangeLabel}
           />
           <div className="flex flex-col gap-3 sm:items-end">
@@ -389,7 +389,6 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
                 active={weekOffset === 0 ? "this" : "last"}
                 onChange={(v) => setWeekOffset(v === "this" ? 0 : -1)}
               />
-              <ViewModeToggle mode={viewMode} onChange={setViewMode} />
             </div>
             <div className="flex flex-wrap gap-2 sm:justify-end">
               <MiniStatCard
@@ -411,18 +410,10 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
           className="rounded-[2.5rem] px-4 py-5 md:px-7 md:py-8"
           style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
         >
-          <div className="mb-5 flex items-center justify-between">
-            {!loading && visibleMembers.length > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--primary)" }}>Active Squad</span>
-                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-              </div>
-            )}
-            {!loading && members.length > 0 && (
-              <div className="text-[10px] font-black tracking-widest uppercase opacity-40 px-3 py-1 rounded-full border border-current" style={{ color: "var(--primary)" }}>
-                Total {members.length} Members
-              </div>
-            )}
+          <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+              <ViewModeToggle mode={viewMode} onChange={setViewMode} />
+            </div>
           </div>
 
           <section className="min-h-[400px]">

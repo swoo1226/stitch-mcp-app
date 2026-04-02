@@ -78,7 +78,7 @@ const HOW_IT_WORKS = [
   {
     num: "03",
     title: "리더가 인사이트에 따라 행동해요",
-    desc: "관리자는 실시간 팀 기후와 캘린더 추이를 보고 선제적으로 케어할 수 있어요.",
+    desc: "관리자는 실시간 팀 날씨와 캘린더 추이를 보고 선제적으로 케어할 수 있어요.",
   },
 ];
 
@@ -489,11 +489,11 @@ export default function LandingPage() {
               <FadeIn key={state.status} delay={i * 0.06}>
                 <div
                   className="rounded-[2rem] p-5 md:p-6 flex flex-col gap-3 transition-transform hover:scale-[1.02] cursor-default"
-                    style={{
-                      background: state.bg,
+                  style={{
+                    background: state.bg,
                     backdropFilter: "var(--glass-blur-low)",
                     boxShadow: "var(--glass-shadow)",
-                    }}
+                  }}
                 >
                   <div className="flex items-center justify-between">
                     <state.icon size={40} />
@@ -606,7 +606,7 @@ export default function LandingPage() {
                 </p>
                 <h2 className="text-3xl md:text-4xl font-black tracking-tight leading-tight mb-4" style={{ fontFamily: "'Public Sans', sans-serif" }}>
                   스마트{" "}
-                  <span style={{ color: "var(--primary)" }}>팀 기후 분석</span>
+                  <span style={{ color: "var(--primary)" }}>팀 날씨 분석</span>
                 </h2>
                 <p className="text-base font-medium leading-relaxed max-w-sm" style={{ color: "var(--text-muted)" }}>
                   Niko-Niko 캘린더와 주간 추이를 통해 리더가 문제가 되기 전에 패턴을 먼저 발견할 수 있어요.
@@ -676,7 +676,7 @@ export default function LandingPage() {
                   지금 시작해요
                 </p>
                 <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4" style={{ fontFamily: "'Public Sans', sans-serif", color: "var(--on-primary)" }}>
-                  오늘 나의 기후는 어때요?
+                  오늘 나의 날씨는 어때요?
                 </h2>
                 <p className="text-base md:text-lg font-medium mb-10 max-w-md mx-auto" style={{ color: "color-mix(in srgb, var(--on-primary) 72%, transparent)" }}>
                   10초면 충분해요. 팀이 고마워할 거예요.

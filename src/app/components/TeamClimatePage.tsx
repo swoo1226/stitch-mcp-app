@@ -208,8 +208,8 @@ export default function TeamClimatePage() {
 
   const averageScore = visibleMembers.length
     ? Math.round(
-        visibleMembers.reduce((total, member) => total + member.currentScore, 0) / visibleMembers.length
-      )
+      visibleMembers.reduce((total, member) => total + member.currentScore, 0) / visibleMembers.length
+    )
     : 72;
   const averageStatus = scoreToStatus(averageScore);
   const flattenedStatuses = visibleMembers.flatMap((member) => member.recentStatuses);
@@ -367,7 +367,7 @@ export default function TeamClimatePage() {
               <article className="rounded-[2rem] bg-white/84 p-4 md:p-6">
                 <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div>
-                    <h2 className="text-base font-black tracking-tight">Niko-Niko Calendar</h2>
+                    <h2 className="text-base font-black tracking-tight">Niko-Niko 캘린더</h2>
                     <p className="mt-1 text-xs" style={{ color: "rgba(23, 49, 46, 0.48)" }}>
                       Weekly affect trace by teammate.
                     </p>
@@ -399,7 +399,7 @@ export default function TeamClimatePage() {
                         color: "rgba(23, 49, 46, 0.4)",
                       }}
                     >
-                      <div>TEAM MEMBER</div>
+                      <div>팀원</div>
                       {WEEK_LABELS.map((label) => (
                         <div key={label} className="text-center">
                           {label}

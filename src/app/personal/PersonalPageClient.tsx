@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import DynamicBackground from "../components/DynamicBackground";
-import { PageHeadline, SanctuaryCard, Badge, ViewModeToggle } from "../components/ui";
+import { PageHeadline, SanctuaryCard, Badge, ViewModeToggle, MarkdownRenderer } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { MoodTrendChart } from "../components/MoodTrendChart";
 import { supabase } from "../../lib/supabase";
@@ -84,9 +84,6 @@ function MemberCard({ user, viewMode, onViewModeChange }: {
       <section className="mb-8 flex flex-col items-center rounded-[2.5rem] bg-surface-lowest px-6 py-12 text-on-surface shadow-ambient">
         {todayScore !== null ? (
           <>
-            <p className="mb-8 text-center text-sm font-medium leading-relaxed opacity-60">
-              {todayLog?.message || "오늘의 기후가 기록되었어요."}
-            </p>
             <div className="relative flex h-48 w-48 items-center justify-center">
               <svg className="absolute inset-0 h-full w-full -rotate-90 drop-shadow-lg">
                 <circle cx="96" cy="96" r="88" stroke="var(--surface-container-high)" strokeWidth="12" fill="transparent" />
@@ -118,7 +115,7 @@ function MemberCard({ user, viewMode, onViewModeChange }: {
 
       <section className="mb-8 rounded-[2rem] bg-surface-container p-6 md:p-8">
         <div className="mb-6 flex items-center justify-between">
-          <p className="text-[10px] font-black uppercase tracking-widest opacity-40">이번 주 기후</p>
+          <p className="text-[10px] font-black uppercase tracking-widest opacity-40">이번 주 날씨</p>
           <ViewModeToggle mode={viewMode} onChange={onViewModeChange} />
         </div>
         {viewMode === "icon" ? (
@@ -180,7 +177,9 @@ function MemberCard({ user, viewMode, onViewModeChange }: {
       {todayLog?.message && (
         <SanctuaryCard className="mb-8 bg-surface-high">
           <p className="mb-4 text-[10px] font-black uppercase tracking-widest opacity-40">오늘의 한마디</p>
-          <p className="text-sm font-medium italic leading-relaxed opacity-80">"{todayLog.message}"</p>
+          <div className="text-sm font-medium leading-relaxed opacity-80">
+            <MarkdownRenderer content={todayLog.message} color="var(--on-surface)" />
+          </div>
         </SanctuaryCard>
       )}
     </motion.div>
@@ -298,12 +297,12 @@ export default function PersonalPageClient({ userId, teamId }: { userId: string;
 
   const bgScore = user?.mood_logs
     ? (() => {
-        const todayKST = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
-        const todayLog = user.mood_logs.find(l =>
-          new Date(l.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === todayKST
-        );
-        return todayLog?.score ?? 50;
-      })()
+      const todayKST = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+      const todayLog = user.mood_logs.find(l =>
+        new Date(l.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === todayKST
+      );
+      return todayLog?.score ?? 50;
+    })()
     : 50;
 
   // ── 단일 유저 뷰 ─────────────────────────────────────────────────────────────
@@ -323,7 +322,7 @@ export default function PersonalPageClient({ userId, teamId }: { userId: string;
 
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={STANDARD_SPRING}>
             <div className="mb-10 pt-4">
-              <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-40">나의 기후 정원</p>
+              <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-40">나의 날씨 정원</p>
               <PageHeadline className="font-black">
                 {loading ? "..." : user ? `${user.name}의 오늘` : "나의 비밀 정원"}
               </PageHeadline>
@@ -408,7 +407,7 @@ export default function PersonalPageClient({ userId, teamId }: { userId: string;
             >
               <div className="mx-auto w-full max-w-lg px-4 pb-32 pt-24 md:px-8">
                 <div className="mb-10 pt-4">
-                  <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-40">기후 정원</p>
+                  <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-40">날씨 정원</p>
                   <PageHeadline className="font-black">
                     {member.name}의 오늘
                   </PageHeadline>

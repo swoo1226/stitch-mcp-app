@@ -20,11 +20,11 @@ interface WeatherMetaphor {
 }
 
 const WEATHER_METAPHORS: WeatherMetaphor[] = [
-  { score: 0, label: "Stormy", ko: "번개" },
-  { score: 20, label: "Rainy", ko: "비" },
-  { score: 40, label: "Foggy", ko: "안개" },
-  { score: 60, label: "Sunny", ko: "맑음" },
-  { score: 100, label: "Radiant", ko: "쨍함" },
+  { score: 10, label: "Stormy", ko: "번개" },
+  { score: 30, label: "Rainy", ko: "비" },
+  { score: 50, label: "Foggy", ko: "안개" },
+  { score: 70, label: "Sunny", ko: "맑음" },
+  { score: 90, label: "Radiant", ko: "쨍함" },
 ];
 
 const currentMetaphorFromScore = (score: number): WeatherMetaphor =>
@@ -216,7 +216,7 @@ function ClimaInputInner() {
 
           <div className="text-center">
             <h1 className="text-3xl md:text-6xl font-black mb-2 md:mb-4 tracking-tight">{currentMetaphor.ko}</h1>
-            <p className="text-base md:text-xl opacity-50 font-bold tracking-tight">오늘 나의 기후는 어때요?</p>
+            <p className="text-base md:text-xl opacity-50 font-bold tracking-tight">오늘 나의 날씨는 어때요?</p>
           </div>
 
           {/* 모드 토글 */}
