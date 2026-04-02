@@ -63,7 +63,7 @@ function utcToKstDate(utcStr: string): string {
 }
 
 const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI"];
-const COL_TEMPLATE = "180px repeat(5, minmax(80px, 1fr))";
+const COL_TEMPLATE = "120px repeat(5, minmax(80px, 1fr))";
 
 // ─── 타입 ───────────────────────────────────────────────────────────────────
 interface MoodLogRow {
@@ -430,8 +430,6 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
               members={visibleMembers.map((m): NikoCalendarMember => ({
                 id: m.id,
                 name: m.name,
-                avatar: m.avatar,
-                subtitle: m.todayScore !== null ? `오늘 ${m.todayScore}pt` : "오늘 기록 없음",
                 week: m.week,
               }))}
               weekDays={weekDays}

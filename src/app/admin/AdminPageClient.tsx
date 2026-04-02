@@ -3,9 +3,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase, DEFAULT_TEAM_ID } from "../../lib/supabase";
-import { scoreToStatus, statusToEmoji, statusToKo } from "../../lib/mood";
+import { scoreToStatus, statusToKo } from "../../lib/mood";
 import { STANDARD_SPRING } from "../constants/springs";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import ClimaLogo from "../components/WetherLogo";
 import ThemeToggleButton from "../components/ThemeToggleButton";
 import {
@@ -87,15 +88,6 @@ function LinkIcon() {
   );
 }
 
-function CopyIcon({ size = 16 }: { size?: number }) {
-  return (
-    <svg viewBox="0 0 24 24" style={{ width: size, height: size }} fill="none" stroke="currentColor" strokeWidth="1.8">
-      <rect x="9" y="9" width="10" height="10" rx="2" />
-      <path d="M15 9V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-    </svg>
-  );
-}
-
 function ExternalLinkIcon({ size = 16 }: { size?: number }) {
   return (
     <svg viewBox="0 0 24 24" style={{ width: size, height: size }} fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -116,6 +108,58 @@ function ThoughtBubbleIcon() {
   );
 }
 
+function ThoughtTooltip({
+  anchorRect,
+  content,
+}: {
+  anchorRect: DOMRect;
+  content: string;
+}) {
+  const tooltipWidth = Math.min(280, window.innerWidth - 24);
+  const maxHeight = Math.min(240, window.innerHeight - 48);
+  const left = Math.max(12, Math.min(anchorRect.left, window.innerWidth - tooltipWidth - 12));
+  const showAbove = anchorRect.bottom + 12 + maxHeight > window.innerHeight - 12;
+  const top = showAbove
+    ? Math.max(12, anchorRect.top - maxHeight - 16)
+    : Math.min(window.innerHeight - maxHeight - 12, anchorRect.bottom + 12);
+  const arrowLeft = Math.max(20, Math.min(anchorRect.left + anchorRect.width / 2 - left, tooltipWidth - 20));
+
+  return createPortal(
+    <motion.div
+      initial={{ opacity: 0, y: showAbove ? 6 : -6, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: showAbove ? 4 : -4, scale: 0.97 }}
+      transition={STANDARD_SPRING}
+      className="fixed z-[120] rounded-[1.4rem] px-4 py-3"
+      style={{
+        top,
+        left,
+        width: tooltipWidth,
+        maxHeight,
+        background: "var(--surface-elevated)",
+        backdropFilter: "var(--glass-blur-low)",
+        WebkitBackdropFilter: "var(--glass-blur-low)",
+        boxShadow: "var(--glass-shadow)",
+      }}
+    >
+      <div
+        className={`absolute h-4 w-4 rotate-45 rounded-[0.35rem] ${showAbove ? "-bottom-2" : "-top-2"}`}
+        style={{
+          left: arrowLeft - 8,
+          background: "var(--surface-elevated)",
+        }}
+      />
+      <p className="mb-1 text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--primary)" }}>
+        한마디
+      </p>
+      <div className="overflow-y-auto pr-1" style={{ maxHeight: maxHeight - 40 }}>
+        <MarkdownRenderer content={content} color="var(--on-surface)" />
+      </div>
+    </motion.div>,
+    document.body,
+  );
+}
+
 
 interface Team {
   id: string;
@@ -128,9 +172,7 @@ export default function AdminPageClient() {
   const [pwInput, setPwInput] = useState("");
   const [pwError, setPwError] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
-
-  // 모바일 사이드바 드로어
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   // 탭: "members" | "teams"
   const [activeTab, setActiveTab] = useState<"members" | "teams">("members");
@@ -145,6 +187,7 @@ export default function AdminPageClient() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedLinkKey, setCopiedLinkKey] = useState<string | null>(null);
   const [activeThoughtId, setActiveThoughtId] = useState<string | null>(null);
+  const [activeThoughtRect, setActiveThoughtRect] = useState<DOMRect | null>(null);
   const thoughtPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const thoughtLongPressTriggeredRef = useRef(false);
 
@@ -166,12 +209,22 @@ export default function AdminPageClient() {
     }
   }
 
-  function beginThoughtPress(id: string) {
+  function openThought(id: string, rect: DOMRect) {
+    setActiveThoughtId(id);
+    setActiveThoughtRect(rect);
+  }
+
+  function closeThought() {
+    setActiveThoughtId(null);
+    setActiveThoughtRect(null);
+  }
+
+  function beginThoughtPress(id: string, rect: DOMRect) {
     clearThoughtPressTimer();
     thoughtLongPressTriggeredRef.current = false;
     thoughtPressTimerRef.current = setTimeout(() => {
       thoughtLongPressTriggeredRef.current = true;
-      setActiveThoughtId(id);
+      openThought(id, rect);
     }, 380);
   }
 
@@ -179,19 +232,37 @@ export default function AdminPageClient() {
     clearThoughtPressTimer();
   }
 
-  function toggleThought(id: string) {
+  function toggleThought(id: string, rect: DOMRect) {
     if (thoughtLongPressTriggeredRef.current) {
       thoughtLongPressTriggeredRef.current = false;
       return;
     }
-    setActiveThoughtId((current) => current === id ? null : id);
+    if (activeThoughtId === id) {
+      closeThought();
+      return;
+    }
+    openThought(id, rect);
   }
+
+  useEffect(() => {
+    if (!activeThoughtId) return;
+    function dismiss() {
+      closeThought();
+    }
+    window.addEventListener("resize", dismiss);
+    window.addEventListener("scroll", dismiss, true);
+    return () => {
+      window.removeEventListener("resize", dismiss);
+      window.removeEventListener("scroll", dismiss, true);
+    };
+  }, [activeThoughtId]);
 
   // ── 팀원 관리 상태
   const [members, setMembers] = useState<Member[]>([]);
   const [parts, setParts] = useState<Part[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
+  const [memberAddOpen, setMemberAddOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newTeamId, setNewTeamId] = useState<string>("");
   const [newPartId, setNewPartId] = useState<string>("");
@@ -207,10 +278,12 @@ export default function AdminPageClient() {
   const [moodDuplicate, setMoodDuplicate] = useState(false);
 
   // ── 팀 CRUD 상태
+  const [teamManageOpen, setTeamManageOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
   const [addingTeam, setAddingTeam] = useState(false);
 
   // ── 파트 CRUD 상태
+  const [partManageOpen, setPartManageOpen] = useState(false);
   const [newPartName, setNewPartName] = useState("");
   const [newPartTeamId, setNewPartTeamId] = useState<string>("");
   const [addingPart, setAddingPart] = useState(false);
@@ -291,7 +364,7 @@ export default function AdminPageClient() {
     patchMember(userId, { mood_logs: [] });
     const todayKST = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
     const startOfDay = `${todayKST}T00:00:00+09:00`;
-    const endOfDay   = `${todayKST}T23:59:59+09:00`;
+    const endOfDay = `${todayKST}T23:59:59+09:00`;
     const { error } = await supabase
       .from("mood_logs")
       .delete()
@@ -453,7 +526,7 @@ export default function AdminPageClient() {
               Clima 관리자
             </h1>
             <p className="text-sm font-medium mb-10" style={{ color: "var(--on-surface-variant)" }}>
-              팀 기후 시스템 관리
+              팀 날씨 시스템 관리
             </p>
 
             {/* 폼 */}
@@ -505,186 +578,31 @@ export default function AdminPageClient() {
     return logDateKST === todayKST;
   }).length;
 
-  // 사이드바 네비 공통 함수
-  function handleNavTab(tab: "members" | "teams") {
-    setActiveTab(tab);
-    setSidebarOpen(false);
-  }
-
   return (
-    <div className="min-h-screen flex overflow-x-hidden" style={{ background: "var(--surface)" }}>
-
-      {/* ── 사이드바 (데스크탑) ── */}
-      <aside
-        className="hidden md:flex fixed left-0 top-0 h-full w-60 flex-col z-40"
-        style={{ background: "var(--surface)", borderRight: "1px solid var(--border-subtle)" }}
-      >
-        {/* 로고 */}
-        <div className="pt-8 px-6 mb-8">
-          <h1
-            className="font-black text-xl tracking-tight"
-            style={{ fontFamily: "'Space Grotesk', 'Public Sans', sans-serif", color: "var(--primary)" }}
-          >
-            Clima 관리자
-          </h1>
-          <p className="text-xs font-medium mt-1" style={{ color: "var(--on-surface-variant)" }}>시스템 관리</p>
-        </div>
-
-        {/* 네비 */}
-        <nav className="flex-1 px-4 flex flex-col gap-1">
-          <button
-            onClick={() => handleNavTab("members")}
-            className="flex items-center gap-3 px-4 py-3 rounded-full text-sm font-bold text-left transition-all"
-            style={activeTab === "members"
-              ? { background: "var(--primary-container)", color: "var(--on-surface)", fontWeight: 800 }
-              : { color: "var(--on-surface-variant)" }
-            }
-          >
-            <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="9" cy="7" r="3" /><path d="M3 20a6 6 0 0 1 12 0" /><path d="M16 3.13a4 4 0 0 1 0 7.75M21 20a6 6 0 0 0-9-5.2" />
-            </svg>
-            Team Members
-          </button>
-          <button
-            onClick={() => handleNavTab("teams")}
-            className="flex items-center gap-3 px-4 py-3 rounded-full text-sm font-bold text-left transition-all"
-            style={activeTab === "teams"
-              ? { background: "var(--primary-container)", color: "var(--on-surface)", fontWeight: 800 }
-              : { color: "var(--on-surface-variant)" }
-            }
-          >
-            <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" /><polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-            Teams &amp; Parts
-          </button>
-        </nav>
-
-        {/* 하단 */}
-        <div className="px-6 pb-8 flex flex-col gap-3">
-          <p className="text-[10px] font-black tracking-widest uppercase" style={{ color: "var(--text-soft)" }}>관리 메뉴</p>
-          <Link
-            href="/"
-            className="text-xs font-bold transition-opacity hover:opacity-70"
-            style={{ color: "var(--on-surface-variant)" }}
-          >
-            ← 메인 가든으로
-          </Link>
-          <button
-            onClick={signOut}
-            className="text-xs font-bold text-left transition-opacity hover:opacity-70"
-            style={{ color: "var(--error)" }}
-          >
-            로그아웃
-          </button>
-        </div>
-      </aside>
-
-      {/* ── 모바일 사이드바 드로어 ── */}
-      <AnimatePresence>
-        {sidebarOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSidebarOpen(false)}
-              className="fixed inset-0 z-50 md:hidden"
-              style={{ background: "var(--drawer-scrim)", backdropFilter: "blur(4px)" }}
-            />
-            <motion.aside
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed left-0 top-0 h-full w-72 z-[60] flex flex-col md:hidden"
-              style={{ background: "var(--drawer-bg)", backdropFilter: "var(--glass-blur)" }}
-            >
-              <div className="flex items-center justify-between pt-8 px-6 mb-8">
-                <div>
-                  <h1 className="font-black text-xl tracking-tight" style={{ fontFamily: "'Space Grotesk', 'Public Sans', sans-serif", color: "var(--primary)" }}>
-                    Clima Admin
-                  </h1>
-                  <p className="text-xs font-medium mt-1" style={{ color: "var(--on-surface-variant)" }}>System Controller</p>
-                </div>
-                <button
-                  onClick={() => setSidebarOpen(false)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full"
-                  style={{ color: "var(--text-soft)", background: "var(--button-subtle-bg)" }}
-                >
-                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                    <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
-                  </svg>
-                </button>
-              </div>
-              <nav className="flex-1 px-4 flex flex-col gap-1">
-                <button
-                  onClick={() => handleNavTab("members")}
-                  className="flex items-center gap-3 px-4 py-4 rounded-[1.5rem] text-base font-bold text-left transition-all"
-                  style={activeTab === "members"
-                    ? { background: "var(--primary-container)", color: "var(--on-surface)", fontWeight: 800 }
-                    : { color: "var(--on-surface-variant)" }
-                  }
-                >
-                  <svg viewBox="0 0 24 24" className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="9" cy="7" r="3" /><path d="M3 20a6 6 0 0 1 12 0" /><path d="M16 3.13a4 4 0 0 1 0 7.75M21 20a6 6 0 0 0-9-5.2" />
-                  </svg>
-                  팀원 관리
-                </button>
-                <button
-                  onClick={() => handleNavTab("teams")}
-                  className="flex items-center gap-3 px-4 py-4 rounded-[1.5rem] text-base font-bold text-left transition-all"
-                  style={activeTab === "teams"
-                    ? { background: "var(--primary-container)", color: "var(--on-surface)", fontWeight: 800 }
-                    : { color: "var(--on-surface-variant)" }
-                  }
-                >
-                  <svg viewBox="0 0 24 24" className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" /><polyline points="9 22 9 12 15 12 15 22" />
-                  </svg>
-                  팀 · 파트
-                </button>
-              </nav>
-              <div className="px-6 pb-10 flex flex-col gap-3">
-                <p className="text-[10px] font-black tracking-widest uppercase" style={{ color: "var(--text-soft)" }}>관리 메뉴</p>
-                <Link
-                  href="/"
-                  className="text-sm font-bold transition-opacity hover:opacity-70"
-                  style={{ color: "var(--on-surface-variant)" }}
-                >
-                  ← 메인 가든으로
-                </Link>
-              </div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+    <div className="min-h-screen overflow-x-hidden" style={{ background: "var(--surface)" }}>
 
       {/* ── 메인 영역 ── */}
-      <div className="flex-1 md:ml-60 flex flex-col min-h-screen overflow-y-auto overflow-x-hidden">
+      <div className="flex flex-col min-h-screen overflow-y-auto overflow-x-hidden">
 
         {/* 탑바 */}
         <motion.header
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={STANDARD_SPRING}
-          className="fixed z-40 top-0 left-0 right-0 md:left-60 flex items-center justify-between h-16 px-6 md:px-10"
+          className="fixed z-40 top-0 left-0 right-0 flex items-center justify-between h-16 px-6 md:px-10"
           style={{ background: "var(--header-bg)", backdropFilter: "var(--glass-blur)", boxShadow: "var(--header-shadow)" }}
         >
-          {/* 좌측: 로고 (모바일) / 탭 제목 (데스크탑) */}
+          {/* 좌측: 페이지 타이틀 */}
           <div className="flex items-center gap-3">
-            <Link href="/" className="md:hidden flex shrink-0 items-center">
-              <ClimaLogo />
-            </Link>
             <span
-              className="hidden md:block font-black text-xl tracking-tight"
+              className="font-black text-xl tracking-tight"
               style={{ fontFamily: "'Space Grotesk', 'Public Sans', sans-serif", color: "var(--primary)" }}
             >
-              {activeTab === "members" ? "팀원 관리" : "팀 · 파트"}
+              Clima 관리자
             </span>
           </div>
 
-          {/* 우측: 홈 + 로그아웃 (데스크탑) / 햄버거 (모바일) */}
+          {/* 우측 액션 */}
           <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
             <ThemeToggleButton />
             <Link
@@ -706,7 +624,7 @@ export default function AdminPageClient() {
             </button>
             <button
               className="md:hidden flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
-              onClick={() => setSidebarOpen(true)}
+              onClick={() => setMobileNavOpen(true)}
               aria-label="메뉴 열기"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -716,6 +634,95 @@ export default function AdminPageClient() {
           </div>
         </motion.header>
 
+        <AnimatePresence>
+          {mobileNavOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setMobileNavOpen(false)}
+                className="fixed inset-0 z-[60]"
+                style={{ background: "var(--drawer-scrim)", backdropFilter: "blur(4px)" }}
+              />
+              <motion.div
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={STANDARD_SPRING}
+                className="fixed right-0 top-0 h-full w-72 z-[70] flex flex-col"
+                style={{ background: "var(--drawer-bg)", backdropFilter: "var(--glass-blur)" }}
+              >
+                <div className="flex items-center justify-between px-6 h-16 shrink-0">
+                  <ClimaLogo />
+                  <button
+                    onClick={() => setMobileNavOpen(false)}
+                    className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-low transition-colors"
+                    style={{ color: "var(--text-soft)" }}
+                  >
+                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+                <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab("members"); setMobileNavOpen(false); }}
+                    className="rounded-[1.5rem] px-5 py-4 text-left text-base font-semibold tracking-tight transition-all duration-200"
+                    style={activeTab === "members"
+                      ? {
+                        color: "var(--primary)",
+                        background: "color-mix(in srgb, var(--primary) 16%, transparent)",
+                        boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--primary) 18%, transparent)",
+                      }
+                      : { color: "var(--text-muted)" }
+                    }
+                  >
+                    팀원 관리
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab("teams"); setMobileNavOpen(false); }}
+                    className="rounded-[1.5rem] px-5 py-4 text-left text-base font-semibold tracking-tight transition-all duration-200"
+                    style={activeTab === "teams"
+                      ? {
+                        color: "var(--primary)",
+                        background: "color-mix(in srgb, var(--primary) 16%, transparent)",
+                        boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--primary) 18%, transparent)",
+                      }
+                      : { color: "var(--text-muted)" }
+                    }
+                  >
+                    팀 · 파트 관리
+                  </button>
+                  <Link
+                    href="/"
+                    onClick={() => setMobileNavOpen(false)}
+                    className="rounded-[1.5rem] px-5 py-4 text-base font-semibold tracking-tight transition-all duration-200"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    홈으로
+                  </Link>
+                </nav>
+                <div className="px-4 pb-4">
+                  <button
+                    type="button"
+                    onClick={() => { setMobileNavOpen(false); signOut(); }}
+                    className="w-full rounded-[1.5rem] px-5 py-4 text-left text-base font-semibold tracking-tight transition-all duration-200"
+                    style={{
+                      color: "var(--error)",
+                      background: "color-mix(in srgb, var(--error) 10%, transparent)",
+                    }}
+                  >
+                    로그아웃
+                  </button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
         {/* 캔버스 */}
         <motion.main
           initial={{ opacity: 0, y: 10 }}
@@ -723,113 +730,63 @@ export default function AdminPageClient() {
           transition={{ ...STANDARD_SPRING, delay: 0.05 }}
           className="pt-20 px-4 pb-10 md:px-8 md:pb-12 flex flex-col gap-6 md:gap-8 w-full max-w-2xl md:max-w-none mx-auto"
         >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm font-black tracking-tight md:text-base" style={{ color: "var(--primary)" }}>
+              {activeTab === "members" ? "팀원 관리" : "팀 · 파트 관리"}
+            </div>
+            <div
+              className="flex items-center gap-1 rounded-full p-1"
+              style={{ background: "var(--surface-overlay)", boxShadow: "var(--button-subtle-shadow)" }}
+            >
+              <PrimaryTabToggle
+                tabs={[
+                  { value: "members" as const, label: "팀원" },
+                  { value: "teams" as const, label: "팀 · 파트" },
+                ]}
+                active={activeTab}
+                onChange={setActiveTab}
+              />
+            </div>
+          </div>
+
           {activeTab === "members" && (<>
             {/* 1. 요약 Bento Grid */}
-            <section className="grid grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
-              {/* 총 팀원 */}
-              <GlassCard className="p-6 flex flex-col justify-between min-h-[140px]" intensity="low">
-                <div
-                  className="w-10 h-10 rounded-[1rem] flex items-center justify-center mb-4"
-                  style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
-                >
-                  <UsersIcon />
-                </div>
-                <div>
-                  <p className="text-4xl font-black" style={{ fontFamily: "'Space Grotesk', sans-serif", color: "var(--on-surface)" }}>
-                    {loading ? "—" : members.length}
-                  </p>
-                  <p className="text-sm font-medium mt-1" style={{ color: "var(--on-surface-variant)" }}>전체 팀원</p>
-                </div>
-              </GlassCard>
-
-              {/* 오늘 체크인 */}
-              <GlassCard className="p-6 flex flex-col justify-between min-h-[140px]" intensity="low">
-                <div
-                  className="w-10 h-10 rounded-[1rem] flex items-center justify-center mb-4"
-                  style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
-                >
-                  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                    <path d="M9 11l3 3L22 4" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" strokeLinecap="round" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-4xl font-black" style={{ fontFamily: "'Space Grotesk', sans-serif", color: "var(--primary)" }}>
-                    {loading ? "—" : checkedInToday}
-                  </p>
-                  <p className="text-sm font-medium mt-1" style={{ color: "var(--on-surface-variant)" }}>오늘 체크인</p>
-                </div>
-              </GlassCard>
-
-              {/* Team Atmosphere 텍스트 카드 */}
-              <GlassCard className="p-5 col-span-2 flex flex-col gap-2" intensity="low">
-                <p className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--primary)" }}>팀 분위기</p>
-                <p className="text-base font-extrabold leading-snug tracking-tight" style={{
+            <section
+              className="flex flex-wrap items-center gap-2 rounded-[1.5rem] px-3 py-2.5 md:px-4"
+              style={{ background: "var(--surface-overlay)", boxShadow: "var(--button-subtle-shadow)" }}
+            >
+              <div
+                className="rounded-full px-3 py-1.5 text-xs font-black tracking-tight"
+                style={{ background: "var(--surface-container-low)", color: "var(--on-surface)" }}
+              >
+                전체 팀원 {loading ? "—" : members.length}
+              </div>
+              <div
+                className="rounded-full px-3 py-1.5 text-xs font-black tracking-tight"
+                style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)", color: "var(--primary)" }}
+              >
+                오늘 체크인 {loading ? "—" : `${checkedInToday} / ${members.length}`}
+              </div>
+              <div
+                className="min-w-0 flex-1 px-1 text-xs font-bold tracking-tight"
+                style={{
                   color: !loading && members.length > 0 && checkedInToday < members.length
                     ? "var(--tertiary)"
-                    : "var(--on-surface)"
-                }}>
-                  {loading
-                    ? "데이터를 불러오는 중..."
-                    : members.length === 0
-                      ? "아직 팀원이 없어요."
-                      : checkedInToday === members.length
-                        ? "모든 팀원이 오늘 체크인했어요! 🌤️"
-                        : `${members.length - checkedInToday}명이 아직 오늘 기록을 남기지 않았어요.`
-                  }
-                </p>
-                {!loading && members.length > 0 && (
-                  <p className="text-xs font-medium" style={{ color: "var(--on-surface-variant)" }}>
-                    오늘 {checkedInToday} / {members.length}명 체크인
-                  </p>
-                )}
-              </GlassCard>
+                    : "var(--on-surface-variant)",
+                }}
+              >
+                {loading
+                  ? "데이터를 불러오는 중..."
+                  : members.length === 0
+                    ? "아직 팀원이 없어요."
+                    : checkedInToday === members.length
+                      ? "모든 팀원이 오늘 체크인했어요."
+                      : `${members.length - checkedInToday}명이 아직 오늘 기록을 남기지 않았어요.`
+                }
+              </div>
             </section>
 
-            {/* 2. 팀원 추가 */}
-            <GlassCard className="p-6 md:p-8" intensity="low">
-              <SectionHeader
-                icon={<PlusIcon />}
-                title="팀원 추가"
-                subtitle="새 팀원을 가든에 식재합니다"
-                className="mb-6"
-              />
-              <div className="flex gap-3 flex-wrap">
-                <ClimaInput
-                  id="add-member-name"
-                  type="text"
-                  placeholder="멤버 이름"
-                  value={newName}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewName(e.target.value)}
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && addMember()}
-                  className="font-bold flex-1 min-w-[140px]"
-                />
-                <PortalSelect
-                  value={newTeamId}
-                  onChange={(v) => { setNewTeamId(v); setNewPartId(""); }}
-                  placeholder="팀 선택 (선택)"
-                  options={teams.map(t => ({ value: t.id, label: t.name }))}
-                  className="flex-1"
-                />
-                <PortalSelect
-                  value={newPartId}
-                  onChange={setNewPartId}
-                  placeholder="파트 선택 (선택)"
-                  options={(newTeamId ? parts.filter(p => p.team_id === newTeamId) : parts).map(p => ({ value: p.id, label: p.name }))}
-                  className="flex-1"
-                />
-                <ClimaButton
-                  variant="primary"
-                  onClick={addMember}
-                  className="py-3 text-sm shrink-0"
-                  style={{ paddingInline: "1.5rem" }}
-                >
-                  {adding ? "추가 중..." : "추가하기"}
-                </ClimaButton>
-              </div>
-            </GlassCard>
-
-            {/* 3. 팀원 목록 */}
+            {/* 2. 팀원 목록 */}
             <GlassCard className="p-6 md:p-8" intensity="low">
               <div className="flex items-center justify-between mb-6">
                 <SectionHeader icon={<UsersIcon />} title="팀원 목록" />
@@ -872,7 +829,7 @@ export default function AdminPageClient() {
                         layout
                         className="relative flex flex-col gap-4 rounded-[2rem] p-5 shrink-0 group"
                         onMouseLeave={() => {
-                          if (activeThoughtId === m.id) setActiveThoughtId(null);
+                          if (activeThoughtId === m.id) closeThought();
                         }}
                         style={{
                           width: 300,
@@ -908,7 +865,7 @@ export default function AdminPageClient() {
                               {hasThought && (
                                 <div
                                   className="relative shrink-0"
-                                  onMouseEnter={() => setActiveThoughtId(m.id)}
+                                  onMouseEnter={(e) => openThought(m.id, e.currentTarget.getBoundingClientRect())}
                                 >
                                   <motion.button
                                     type="button"
@@ -922,39 +879,21 @@ export default function AdminPageClient() {
                                     transition={activeThoughtId === m.id
                                       ? { duration: 0.18 }
                                       : { duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-                                    onTouchStart={() => beginThoughtPress(m.id)}
+                                    onTouchStart={(e) => beginThoughtPress(m.id, e.currentTarget.getBoundingClientRect())}
                                     onTouchEnd={endThoughtPress}
                                     onTouchCancel={endThoughtPress}
-                                    onClick={() => toggleThought(m.id)}
+                                    onClick={(e) => toggleThought(m.id, e.currentTarget.getBoundingClientRect())}
                                     title="메시지 미리보기"
                                   >
                                     <ThoughtBubbleIcon />
                                     한마디
                                   </motion.button>
                                   <AnimatePresence>
-                                    {activeThoughtId === m.id && (
-                                      <motion.div
-                                        initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: 6, scale: 0.97 }}
-                                        transition={STANDARD_SPRING}
-                                        className="absolute left-0 top-full z-20 mt-2 w-52 rounded-[1.4rem] px-4 py-3"
-                                        style={{
-                                          background: "var(--surface-elevated)",
-                                          backdropFilter: "var(--glass-blur-low)",
-                                          WebkitBackdropFilter: "var(--glass-blur-low)",
-                                          boxShadow: "var(--glass-shadow)",
-                                        }}
-                                      >
-                                        <div
-                                          className="absolute -top-2 left-5 h-4 w-4 rotate-45 rounded-[0.35rem]"
-                                          style={{ background: "var(--surface-elevated)" }}
-                                        />
-                                        <p className="mb-1 text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "var(--primary)" }}>
-                                          한마디
-                                        </p>
-                                        <MarkdownRenderer content={thought || ""} color="var(--on-surface)" />
-                                      </motion.div>
+                                    {activeThoughtId === m.id && activeThoughtRect && (
+                                      <ThoughtTooltip
+                                        anchorRect={activeThoughtRect}
+                                        content={thought || ""}
+                                      />
                                     )}
                                   </AnimatePresence>
                                 </div>
@@ -1106,186 +1045,357 @@ export default function AdminPageClient() {
               )}
             </GlassCard>
 
+            {/* 3. 팀원 추가 */}
+            <GlassCard className="p-4 md:p-5" intensity="low">
+              <button
+                type="button"
+                onClick={() => setMemberAddOpen((open) => !open)}
+                className="flex w-full items-center justify-between gap-4 rounded-[1.5rem] px-4 py-3 text-left transition-all"
+                style={{ background: "var(--surface-overlay)" }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex h-10 w-10 items-center justify-center rounded-[1rem]"
+                    style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
+                  >
+                    <PlusIcon />
+                  </div>
+                  <div>
+                    <p className="text-sm font-black tracking-tight" style={{ color: "var(--on-surface)" }}>
+                      팀원 추가
+                    </p>
+                    <p className="text-xs font-medium" style={{ color: "var(--on-surface-variant)" }}>
+                      필요할 때만 열어 새 팀원을 등록합니다
+                    </p>
+                  </div>
+                </div>
+                <motion.svg
+                  animate={{ rotate: memberAddOpen ? 45 : 0 }}
+                  transition={STANDARD_SPRING}
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5 shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  style={{ color: "var(--primary)" }}
+                >
+                  <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+                </motion.svg>
+              </button>
+
+              <AnimatePresence initial={false}>
+                {memberAddOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={STANDARD_SPRING}
+                    className="overflow-hidden"
+                  >
+                    <div className="flex gap-3 flex-wrap pt-4">
+                      <ClimaInput
+                        id="add-member-name"
+                        type="text"
+                        placeholder="멤버 이름"
+                        value={newName}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewName(e.target.value)}
+                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && addMember()}
+                        className="font-bold flex-1 min-w-[140px]"
+                      />
+                      <PortalSelect
+                        value={newTeamId}
+                        onChange={(v) => { setNewTeamId(v); setNewPartId(""); }}
+                        placeholder="팀 선택 (선택)"
+                        options={teams.map(t => ({ value: t.id, label: t.name }))}
+                        className="flex-1"
+                      />
+                      <PortalSelect
+                        value={newPartId}
+                        onChange={setNewPartId}
+                        placeholder="파트 선택 (선택)"
+                        options={(newTeamId ? parts.filter(p => p.team_id === newTeamId) : parts).map(p => ({ value: p.id, label: p.name }))}
+                        className="flex-1"
+                      />
+                      <ClimaButton
+                        variant="primary"
+                        onClick={addMember}
+                        className="py-3 text-sm shrink-0"
+                        style={{ paddingInline: "1.5rem" }}
+                      >
+                        {adding ? "추가 중..." : "추가하기"}
+                      </ClimaButton>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </GlassCard>
+
           </>)}
 
           {activeTab === "teams" && (<>
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
               {/* Teams CRUD */}
-              <GlassCard className="p-6 md:p-8" intensity="low">
-                <SectionHeader
-                  icon={<svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" /><polyline points="9 22 9 12 15 12 15 22" /></svg>}
-                  title="팀 관리"
-                  subtitle="팀을 추가하거나 삭제합니다"
-                  className="mb-6"
-                />
-                <div className="flex gap-3 flex-wrap mb-6">
-                  <ClimaInput
-                    type="text"
-                    placeholder="팀 이름"
-                    value={newTeamName}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTeamName(e.target.value)}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && addTeam()}
-                    className="font-bold flex-1 min-w-[160px]"
-                  />
-                  <ClimaButton
-                    variant="secondary"
-                    onClick={addTeam}
-                    className="py-3 text-sm"
-                    style={{ paddingInline: "1.5rem" }}
+              <GlassCard className="p-4 md:p-5" intensity="low">
+                <button
+                  type="button"
+                  onClick={() => setTeamManageOpen((open) => !open)}
+                  className="flex w-full items-center justify-between gap-4 rounded-[1.5rem] px-4 py-3 text-left transition-all"
+                  style={{ background: "var(--surface-overlay)" }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="flex h-10 w-10 items-center justify-center rounded-[1rem]"
+                      style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
+                    >
+                      <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-black tracking-tight" style={{ color: "var(--on-surface)" }}>
+                        팀 관리
+                      </p>
+                      <p className="text-xs font-medium" style={{ color: "var(--on-surface-variant)" }}>
+                        필요할 때만 열어 팀을 추가하거나 삭제합니다
+                      </p>
+                    </div>
+                  </div>
+                  <motion.svg
+                    animate={{ rotate: teamManageOpen ? 45 : 0 }}
+                    transition={STANDARD_SPRING}
+                    viewBox="0 0 24 24"
+                    className="h-5 w-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    style={{ color: "var(--primary)" }}
                   >
-                    {addingTeam ? "추가 중..." : "팀 추가"}
-                  </ClimaButton>
-                </div>
-                {teams.length === 0 ? (
-                  <p className="text-sm font-bold py-2" style={{ color: "var(--text-soft)" }}>등록된 팀이 없어요.</p>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    {teams.map(t => (
-                      <div
-                        key={t.id}
-                        className="flex items-center gap-4 rounded-[1.5rem] px-5 py-4"
-                        style={{ background: "var(--surface-container-low)" }}
-                      >
-                        <div
-                          className="w-9 h-9 rounded-[0.875rem] flex items-center justify-center shrink-0"
-                          style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
-                        >
-                          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
-                        </div>
-                        <p className="font-bold text-base tracking-tight flex-1">{t.name}</p>
-                        {confirmDeleteId === t.id ? (
-                          <div className="flex items-center gap-2 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => { deleteTeam(t.id); setConfirmDeleteId(null); }}
-                              className="text-xs font-black px-3 py-1 rounded-full transition-opacity hover:opacity-80"
-                              style={{ background: "var(--error-container)", color: "var(--error)" }}
-                            >
-                              확인
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setConfirmDeleteId(null)}
-                              className="text-xs font-bold transition-opacity hover:opacity-60"
-                              style={{ color: "var(--text-soft)" }}
-                            >
-                              취소
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setConfirmDeleteId(t.id)}
-                            className="text-xs font-bold shrink-0 transition-opacity hover:opacity-60"
-                            style={{ color: "var(--text-soft)" }}
+                    <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+                  </motion.svg>
+                </button>
+                <AnimatePresence initial={false}>
+                  {teamManageOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={STANDARD_SPRING}
+                      className="overflow-hidden"
+                    >
+                      <div className="pt-4">
+                        <div className="flex gap-3 flex-wrap mb-6">
+                          <ClimaInput
+                            type="text"
+                            placeholder="팀 이름"
+                            value={newTeamName}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTeamName(e.target.value)}
+                            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && addTeam()}
+                            className="font-bold flex-1 min-w-[160px]"
+                          />
+                          <ClimaButton
+                            variant="secondary"
+                            onClick={addTeam}
+                            className="py-3 text-sm"
+                            style={{ paddingInline: "1.5rem" }}
                           >
-                            삭제
-                          </button>
+                            {addingTeam ? "추가 중..." : "팀 추가"}
+                          </ClimaButton>
+                        </div>
+                        {teams.length === 0 ? (
+                          <p className="text-sm font-bold py-2" style={{ color: "var(--text-soft)" }}>등록된 팀이 없어요.</p>
+                        ) : (
+                          <div className="flex flex-col gap-2">
+                            {teams.map(t => (
+                              <div
+                                key={t.id}
+                                className="flex items-center gap-4 rounded-[1.5rem] px-5 py-4"
+                                style={{ background: "var(--surface-container-low)" }}
+                              >
+                                <div
+                                  className="w-9 h-9 rounded-[0.875rem] flex items-center justify-center shrink-0"
+                                  style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
+                                >
+                                  <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+                                </div>
+                                <p className="font-bold text-base tracking-tight flex-1">{t.name}</p>
+                                {confirmDeleteId === t.id ? (
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <button
+                                      type="button"
+                                      onClick={() => { deleteTeam(t.id); setConfirmDeleteId(null); }}
+                                      className="text-xs font-black px-3 py-1 rounded-full transition-opacity hover:opacity-80"
+                                      style={{ background: "var(--error-container)", color: "var(--error)" }}
+                                    >
+                                      확인
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setConfirmDeleteId(null)}
+                                      className="text-xs font-bold transition-opacity hover:opacity-60"
+                                      style={{ color: "var(--text-soft)" }}
+                                    >
+                                      취소
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setConfirmDeleteId(t.id)}
+                                    className="text-xs font-bold shrink-0 transition-opacity hover:opacity-60"
+                                    style={{ color: "var(--text-soft)" }}
+                                  >
+                                    삭제
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </GlassCard>
 
               {/* Parts CRUD */}
-              <GlassCard className="p-6 md:p-8" intensity="low">
-                <SectionHeader
-                  icon={<svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>}
-                  title="파트 관리"
-                  subtitle="팀 내 파트를 추가하거나 삭제합니다"
-                  className="mb-6"
-                />
-                <div className="flex gap-3 flex-wrap mb-6">
-                  <ClimaInput
-                    type="text"
-                    placeholder="파트 이름"
-                    value={newPartName}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPartName(e.target.value)}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && addPart()}
-                    className="font-bold flex-1 min-w-[140px]"
-                  />
-                  <select
-                    value={newPartTeamId}
-                    onChange={(e) => setNewPartTeamId(e.target.value)}
-                    className="flex-1 min-w-[140px] rounded-[1.5rem] px-4 py-3 text-sm font-semibold border-none outline-none appearance-none cursor-pointer"
-                    style={{
-                      background: "var(--surface-container-low)",
-                      color: newPartTeamId ? "var(--on-surface)" : "var(--text-soft)",
-                    }}
-                  >
-                    <option value="">팀 선택 (선택)</option>
-                    {teams.map(t => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
-                  <ClimaButton
-                    variant="secondary"
-                    onClick={addPart}
-                    className="py-3 text-sm"
-                    style={{ paddingInline: "1.5rem" }}
-                  >
-                    {addingPart ? "추가 중..." : "파트 추가"}
-                  </ClimaButton>
-                </div>
-                {parts.length === 0 ? (
-                  <p className="text-sm font-bold py-2" style={{ color: "var(--text-soft)" }}>등록된 파트가 없어요.</p>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    {parts.map(p => {
-                      const teamName = teams.find(t => t.id === p.team_id)?.name;
-                      return (
-                        <div
-                          key={p.id}
-                          className="flex items-center gap-4 rounded-[1.5rem] px-5 py-4"
-                          style={{ background: "var(--surface-container-low)" }}
-                        >
-                          <div
-                            className="w-9 h-9 rounded-[0.875rem] flex items-center justify-center shrink-0"
-                            style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
-                          >
-                            <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-base tracking-tight">{p.name}</p>
-                            {teamName && (
-                              <p className="text-xs font-medium mt-0.5" style={{ color: "var(--text-soft)" }}>{teamName}</p>
-                            )}
-                          </div>
-                          {confirmDeleteId === p.id ? (
-                            <div className="flex items-center gap-2 shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => { deletePart(p.id); setConfirmDeleteId(null); }}
-                                className="text-xs font-black px-3 py-1 rounded-full transition-opacity hover:opacity-80"
-                                style={{ background: "var(--error-container)", color: "var(--error)" }}
-                              >
-                                확인
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setConfirmDeleteId(null)}
-                                className="text-xs font-bold transition-opacity hover:opacity-60"
-                                style={{ color: "var(--text-soft)" }}
-                              >
-                                취소
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => setConfirmDeleteId(p.id)}
-                              className="text-xs font-bold shrink-0 transition-opacity hover:opacity-60"
-                              style={{ color: "var(--text-soft)" }}
-                            >
-                              삭제
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
+              <GlassCard className="p-4 md:p-5" intensity="low">
+                <button
+                  type="button"
+                  onClick={() => setPartManageOpen((open) => !open)}
+                  className="flex w-full items-center justify-between gap-4 rounded-[1.5rem] px-4 py-3 text-left transition-all"
+                  style={{ background: "var(--surface-overlay)" }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="flex h-10 w-10 items-center justify-center rounded-[1rem]"
+                      style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
+                    >
+                      <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-black tracking-tight" style={{ color: "var(--on-surface)" }}>
+                        파트 관리
+                      </p>
+                      <p className="text-xs font-medium" style={{ color: "var(--on-surface-variant)" }}>
+                        필요할 때만 열어 파트를 추가하거나 삭제합니다
+                      </p>
+                    </div>
                   </div>
-                )}
+                  <motion.svg
+                    animate={{ rotate: partManageOpen ? 45 : 0 }}
+                    transition={STANDARD_SPRING}
+                    viewBox="0 0 24 24"
+                    className="h-5 w-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    style={{ color: "var(--primary)" }}
+                  >
+                    <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+                  </motion.svg>
+                </button>
+                <AnimatePresence initial={false}>
+                  {partManageOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={STANDARD_SPRING}
+                      className="overflow-hidden"
+                    >
+                      <div className="pt-4">
+                        <div className="flex gap-3 flex-wrap mb-6">
+                          <ClimaInput
+                            type="text"
+                            placeholder="파트 이름"
+                            value={newPartName}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPartName(e.target.value)}
+                            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && addPart()}
+                            className="font-bold flex-1 min-w-[140px]"
+                          />
+                          <select
+                            value={newPartTeamId}
+                            onChange={(e) => setNewPartTeamId(e.target.value)}
+                            className="flex-1 min-w-[140px] rounded-[1.5rem] px-4 py-3 text-sm font-semibold border-none outline-none appearance-none cursor-pointer"
+                            style={{
+                              background: "var(--surface-container-low)",
+                              color: newPartTeamId ? "var(--on-surface)" : "var(--text-soft)",
+                            }}
+                          >
+                            <option value="">팀 선택 (선택)</option>
+                            {teams.map(t => (
+                              <option key={t.id} value={t.id}>{t.name}</option>
+                            ))}
+                          </select>
+                          <ClimaButton
+                            variant="secondary"
+                            onClick={addPart}
+                            className="py-3 text-sm"
+                            style={{ paddingInline: "1.5rem" }}
+                          >
+                            {addingPart ? "추가 중..." : "파트 추가"}
+                          </ClimaButton>
+                        </div>
+                        {parts.length === 0 ? (
+                          <p className="text-sm font-bold py-2" style={{ color: "var(--text-soft)" }}>등록된 파트가 없어요.</p>
+                        ) : (
+                          <div className="flex flex-col gap-2">
+                            {parts.map(p => {
+                              const teamName = teams.find(t => t.id === p.team_id)?.name;
+                              return (
+                                <div
+                                  key={p.id}
+                                  className="flex items-center gap-4 rounded-[1.5rem] px-5 py-4"
+                                  style={{ background: "var(--surface-container-low)" }}
+                                >
+                                  <div
+                                    className="w-9 h-9 rounded-[0.875rem] flex items-center justify-center shrink-0"
+                                    style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
+                                  >
+                                    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-base tracking-tight">{p.name}</p>
+                                    {teamName && (
+                                      <p className="text-xs font-medium mt-0.5" style={{ color: "var(--text-soft)" }}>{teamName}</p>
+                                    )}
+                                  </div>
+                                  {confirmDeleteId === p.id ? (
+                                    <div className="flex items-center gap-2 shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => { deletePart(p.id); setConfirmDeleteId(null); }}
+                                        className="text-xs font-black px-3 py-1 rounded-full transition-opacity hover:opacity-80"
+                                        style={{ background: "var(--error-container)", color: "var(--error)" }}
+                                      >
+                                        확인
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setConfirmDeleteId(null)}
+                                        className="text-xs font-bold transition-opacity hover:opacity-60"
+                                        style={{ color: "var(--text-soft)" }}
+                                      >
+                                        취소
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => setConfirmDeleteId(p.id)}
+                                      className="text-xs font-bold shrink-0 transition-opacity hover:opacity-60"
+                                      style={{ color: "var(--text-soft)" }}
+                                    >
+                                      삭제
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </GlassCard>
             </div>
 
@@ -1305,34 +1415,20 @@ export default function AdminPageClient() {
                     const dashUrl = `${origin}/dashboard${param}`;
                     const nikoUrl = `${origin}/niko${param}`;
 
-                    const actions = [
-                      { key: "dash", label: "대시보드", href: dashUrl },
-                      { key: "niko", label: "니코니코", href: nikoUrl },
-                    ];
-
                     return (
                       <div
                         key={t.id}
-                        className="rounded-[2rem] px-6 py-6 flex flex-col md:flex-row md:items-center justify-between gap-6"
+                        className="rounded-[1.5rem] px-4 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
                         style={{ background: "var(--surface-container-low)" }}
                       >
-                        <div className="flex items-center gap-4">
-                          <div
-                            className="w-12 h-12 rounded-[1.2rem] flex items-center justify-center shrink-0"
-                            style={{ background: "var(--primary-container)", color: "var(--primary)" }}
-                          >
-                            <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
-                          </div>
-                          <div>
-                            <p className="font-black text-lg tracking-tight leading-tight">{t.name}</p>
-                            <p className="text-xs font-bold mt-1" style={{ color: "var(--text-soft)" }}>팀 접속 포털</p>
-                          </div>
+                        <div className="min-w-0">
+                          <p className="font-black text-base tracking-tight leading-tight">{t.name}</p>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row items-center gap-6">
+                        <div className="flex flex-wrap items-center gap-3 md:justify-end">
                           {/* Dashboard Access */}
                           <div className="flex items-center gap-3">
-                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--text-soft)" }}>대시보드</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--primary)" }}>대시보드</span>
                             <div className="flex items-center gap-1.5 p-1 rounded-full" style={{ background: "var(--surface-overlay)", boxShadow: "var(--button-subtle-shadow)" }}>
                               <motion.button
                                 type="button"
@@ -1372,7 +1468,7 @@ export default function AdminPageClient() {
 
                           {/* Niko-Niko Access */}
                           <div className="flex items-center gap-3">
-                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--text-soft)" }}>니코</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--primary)" }}>니코</span>
                             <div className="flex items-center gap-1.5 p-1 rounded-full" style={{ background: "var(--surface-overlay)", boxShadow: "var(--button-subtle-shadow)" }}>
                               <motion.button
                                 type="button"
@@ -1460,7 +1556,7 @@ export default function AdminPageClient() {
                 {/* 이름 + 상태 */}
                 <div className="text-center">
                   <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: "var(--text-soft)" }}>
-                    {targetMember?.name}의 오늘 기후
+                    {targetMember?.name}의 오늘 날씨
                   </p>
                   <h3 className="text-2xl font-black tracking-tight" style={{ color: "var(--primary)" }}>
                     {currentMetaphor.ko}

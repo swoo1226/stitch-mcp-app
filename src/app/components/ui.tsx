@@ -151,10 +151,10 @@ interface SectionLabelProps {
 }
 
 const LABEL_COLOR_MAP = {
-  primary:   "var(--primary)",
+  primary: "var(--primary)",
   secondary: "var(--secondary)",
-  tertiary:  "var(--tertiary)",
-  muted:     "var(--on-surface)",
+  tertiary: "var(--tertiary)",
+  muted: "var(--on-surface)",
 };
 
 export function SectionLabel({ children, color = "primary", className = "" }: SectionLabelProps) {
@@ -179,9 +179,9 @@ interface ProgressBarProps {
 
 const BAR_BG = {
   gradient: "linear-gradient(90deg, #2b6867, #52f2f5)",
-  primary:  "var(--primary)",
-  secondary:"var(--secondary)",
-  error:    "var(--error)",
+  primary: "var(--primary)",
+  secondary: "var(--secondary)",
+  error: "var(--error)",
 };
 
 export function ProgressBar({ value, variant = "gradient", height = 8, className = "", animate = true }: ProgressBarProps) {
@@ -262,10 +262,10 @@ interface BadgeProps {
 
 const BADGE_STYLES: Record<BadgeVariant, React.CSSProperties> = {
   secondary: { background: "var(--secondary-container)", color: "var(--primary)" },
-  primary:   { background: "var(--primary-container)",   color: "var(--primary)" },
-  tertiary:  { background: "var(--tertiary-container)",  color: "var(--tertiary)" },
-  surface:   { background: "var(--surface-container-highest)", color: "var(--on-surface-variant)" },
-  error:     { background: "var(--error-container)",     color: "var(--error)" },
+  primary: { background: "var(--primary-container)", color: "var(--primary)" },
+  tertiary: { background: "var(--tertiary-container)", color: "var(--tertiary)" },
+  surface: { background: "var(--surface-container-highest)", color: "var(--on-surface-variant)" },
+  error: { background: "var(--error-container)", color: "var(--error)" },
 };
 
 export function Badge({ children, variant = "secondary", className = "" }: BadgeProps) {
@@ -607,10 +607,10 @@ export function ClimaButton({
       : variant === "tertiary"
         ? { boxShadow: "0 12px 32px -18px rgba(155, 61, 55, 0.28)" }
         : {
-            background: "linear-gradient(135deg, #2b6867 0%, #52f2f5 100%)",
-            color: "var(--on-primary)",
-            boxShadow: "0 16px 44px -14px rgba(43, 104, 103, 0.42)",
-          };
+          background: "linear-gradient(135deg, #2b6867 0%, #52f2f5 100%)",
+          color: "var(--on-primary)",
+          boxShadow: "0 16px 44px -14px rgba(43, 104, 103, 0.42)",
+        };
 
   const inner = (
     <motion.span
@@ -822,12 +822,12 @@ interface NikoGridHeaderProps {
 
 export function NikoGridHeader({ days, todayIso, colTemplate, className = "" }: NikoGridHeaderProps) {
   return (
-    <div 
-      className={`mb-4 grid px-4 py-2 border-b border-[var(--border-subtle)] ${className}`} 
+    <div
+      className={`mb-3 grid px-2 py-2 border-b border-[var(--border-subtle)] ${className}`}
       style={{ gridTemplateColumns: colTemplate }}
     >
-      <div className="sticky left-0 z-10 bg-[var(--surface-lowest)] transition-colors duration-200 pl-14">
-        <SectionLabel color="primary" className="opacity-70">TEAM MEMBER</SectionLabel>
+      <div className="sticky left-0 z-10 bg-[var(--surface-lowest)] transition-colors duration-200 pl-11">
+        <SectionLabel color="primary" className="opacity-70">팀원</SectionLabel>
       </div>
       {days.map(({ label, date }, i) => {
         const y = date.getFullYear();
@@ -879,12 +879,12 @@ export function NikoMemberRow({
   if (loading) {
     return (
       <div
-        className="grid items-center rounded-[1.5rem] px-3 py-5"
+        className="grid items-center rounded-[1.25rem] px-2 py-3"
         style={{ gridTemplateColumns: colTemplate, background: "rgba(37,50,40,0.04)" }}
       >
-        <div className="sticky left-0 z-10 -ml-3 flex items-center gap-3 bg-[var(--surface-container-low)] pl-3 pr-4">
-          <div className="h-11 w-11 animate-pulse rounded-full" style={{ background: "rgba(37,50,40,0.08)" }} />
-          <div className="h-4 w-24 animate-pulse rounded-full" style={{ background: "rgba(37,50,40,0.08)" }} />
+        <div className="sticky left-0 z-10 -ml-2 flex items-center gap-2 pl-2 pr-2">
+          <div className="h-9 w-9 animate-pulse rounded-full" style={{ background: "rgba(37,50,40,0.08)" }} />
+          <div className="h-4 w-20 animate-pulse rounded-full" style={{ background: "rgba(37,50,40,0.08)" }} />
         </div>
         {week.map((_, j) => (
           <div key={j} className="flex justify-center">
@@ -901,40 +901,43 @@ export function NikoMemberRow({
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ "--row-bg": "color-mix(in srgb, var(--primary) 8%, transparent)" } as any}
       transition={STANDARD_SPRING}
-      className="grid items-stretch px-4 transition-colors duration-200 border-b border-[var(--border-subtle)] last:border-0"
-      style={{ 
+      className="grid items-stretch px-2 border-b border-[var(--border-subtle)] last:border-0"
+      style={{
         gridTemplateColumns: colTemplate,
-        backgroundColor: "var(--row-bg, transparent)" 
+        backgroundColor: "var(--row-bg, transparent)"
       }}
     >
       {/* Sticky Column with Opaque Base to hide scrolling content underneath */}
-      <div className="sticky left-0 z-10 flex items-center gap-3 pr-4 py-4 transition-colors duration-200 bg-[var(--surface-lowest)] isolate">
-        <div className="absolute inset-0 z-[-1] bg-[var(--row-bg)]" />
+      <div className="sticky left-0 z-10 flex items-center gap-2 pr-2 py-3 bg-[var(--surface-lowest)] isolate">
         <div
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-lg"
+          className="absolute inset-0 z-[-1]"
+          style={{ backgroundColor: "var(--row-bg, transparent)" }}
+        />
+        <div
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base"
           style={{ background: "rgba(37,50,40,0.07)" }}
         >
           {avatar
             ? avatar
             : (() => {
-                const todayStatus = todayIndex >= 0 ? week[todayIndex]?.status : null;
-                if (todayStatus) {
-                  const Icon = WEATHER_ICON_MAP[todayStatus];
-                  return <Icon size={22} />;
-                }
-                return <span className="text-sm font-black" style={{ color: "rgba(37,50,40,0.3)" }}>{name.slice(0, 1)}</span>;
-              })()
+              const todayStatus = todayIndex >= 0 ? week[todayIndex]?.status : null;
+              if (todayStatus) {
+                const Icon = WEATHER_ICON_MAP[todayStatus];
+                return <Icon size={22} />;
+              }
+              return <span className="text-sm font-black" style={{ color: "rgba(37,50,40,0.3)" }}>{name.slice(0, 1)}</span>;
+            })()
           }
         </div>
         <div className="min-w-0">
           <span
-            className="block truncate text-[1.02rem] font-extrabold tracking-tight"
+            className="block truncate text-[0.95rem] font-extrabold tracking-tight"
             style={{ color: "var(--on-surface)" }}
           >
             {name}
           </span>
           {subtitle && (
-            <span className="block text-xs font-medium" style={{ color: "rgba(37,50,40,0.45)" }}>
+            <span className="block text-[11px] font-medium" style={{ color: "rgba(37,50,40,0.45)" }}>
               {subtitle}
             </span>
           )}
@@ -952,9 +955,9 @@ export function NikoMemberRow({
         ))
       ) : (
         <div className="col-span-5 h-16 flex items-center pr-4">
-          <MoodTrendChart 
-            scores={week.map(w => w.score)} 
-            height={60} 
+          <MoodTrendChart
+            scores={week.map(w => w.score)}
+            height={60}
             className="w-full opacity-80"
           />
         </div>
@@ -974,10 +977,10 @@ interface MiniStatCardProps {
 }
 
 const MINI_STAT_COLOR_MAP = {
-  primary:   "var(--primary)",
+  primary: "var(--primary)",
   secondary: "var(--secondary)",
-  tertiary:  "var(--tertiary)",
-  default:   "var(--on-surface)",
+  tertiary: "var(--tertiary)",
+  default: "var(--on-surface)",
 };
 
 export function MiniStatCard({ label, value, valueColor = "default", className = "" }: MiniStatCardProps) {
@@ -1022,7 +1025,7 @@ export function NikoCalendar({
   todayIso,
   loading = false,
   pageSize,
-  colTemplate = "200px repeat(5, minmax(80px, 1fr))",
+  colTemplate = "120px repeat(5, minmax(80px, 1fr))",
   viewMode = "icon",
 }: NikoCalendarProps) {
   const [page, setPage] = useState(0);
@@ -1044,16 +1047,17 @@ export function NikoCalendar({
   const pageMembers = pageSize ? members.slice(page * pageSize, (page + 1) * pageSize) : members;
 
   return (
-    <div className="overflow-x-auto">
-      <div style={{ minWidth: "600px" }}>
-        <NikoGridHeader
-          days={headerDays}
-          todayIso={todayIso}
-          colTemplate={colTemplate}
-        />
-        <div className="flex flex-col gap-2">
-          {loading
-            ? Array.from({ length: pageSize ?? 5 }, (_, i) => (
+    <div>
+      <div className="overflow-x-auto">
+        <div style={{ minWidth: "600px" }}>
+          <NikoGridHeader
+            days={headerDays}
+            todayIso={todayIso}
+            colTemplate={colTemplate}
+          />
+          <div className="flex flex-col gap-2">
+            {loading
+              ? Array.from({ length: pageSize ?? 5 }, (_, i) => (
                 <NikoMemberRow
                   key={i}
                   avatar=""
@@ -1064,7 +1068,7 @@ export function NikoCalendar({
                   loading
                 />
               ))
-            : pageMembers.map((member) => (
+              : pageMembers.map((member) => (
                 <NikoMemberRow
                   key={member.id}
                   avatar={member.avatar ?? ""}
@@ -1076,58 +1080,59 @@ export function NikoCalendar({
                   viewMode={viewMode}
                 />
               ))
-          }
-        </div>
-
-        {totalPages > 1 && (
-          <div
-            className="flex items-center justify-between pt-4 mt-3"
-            style={{ borderTop: "1px solid rgba(37,50,40,0.07)" }}
-          >
-            <span className="text-sm font-medium" style={{ color: "rgba(37,50,40,0.45)" }}>
-              {page * pageSize! + 1}–{Math.min((page + 1) * pageSize!, members.length)} / {members.length}명
-            </span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                disabled={page === 0}
-                onClick={() => setPage(p => p - 1)}
-                className="flex h-9 w-9 items-center justify-center rounded-full transition-colors disabled:opacity-30"
-                style={{ background: "rgba(37,50,40,0.06)" }}
-              >
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setPage(i)}
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-black transition-colors"
-                  style={page === i
-                    ? { background: "var(--primary)", color: "#fff" }
-                    : { background: "rgba(37,50,40,0.06)", color: "rgba(37,50,40,0.6)" }
-                  }
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button
-                type="button"
-                disabled={page === totalPages - 1}
-                onClick={() => setPage(p => p + 1)}
-                className="flex h-9 w-9 items-center justify-center rounded-full transition-colors disabled:opacity-30"
-                style={{ background: "rgba(37,50,40,0.06)" }}
-              >
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            </div>
+            }
           </div>
-        )}
+        </div>
       </div>
+
+      {totalPages > 1 && (
+        <div
+          className="mt-3 flex items-center justify-between gap-3 border-t pt-4"
+          style={{ borderColor: "rgba(37,50,40,0.07)" }}
+        >
+          <span className="text-sm font-medium" style={{ color: "rgba(37,50,40,0.45)" }}>
+            {page * pageSize! + 1}–{Math.min((page + 1) * pageSize!, members.length)} / {members.length}명
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={page === 0}
+              onClick={() => setPage(p => p - 1)}
+              className="flex h-9 w-9 items-center justify-center rounded-full transition-colors disabled:opacity-30"
+              style={{ background: "rgba(37,50,40,0.06)" }}
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setPage(i)}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-black transition-colors"
+                style={page === i
+                  ? { background: "var(--primary)", color: "#fff" }
+                  : { background: "rgba(37,50,40,0.06)", color: "rgba(37,50,40,0.6)" }
+                }
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button
+              type="button"
+              disabled={page === totalPages - 1}
+              onClick={() => setPage(p => p + 1)}
+              className="flex h-9 w-9 items-center justify-center rounded-full transition-colors disabled:opacity-30"
+              style={{ background: "rgba(37,50,40,0.06)" }}
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1135,10 +1140,10 @@ export function NikoCalendar({
 // ─── WeatherLegend ────────────────────────────────────────────────────────────
 // 날씨 범례 바. Stormy~Radiant 아이콘+한글 라벨 + "기록 없음" 항목 고정 포함.
 const WEATHER_LEGEND_ITEMS: Array<{ status: WeatherStatus; label: string }> = [
-  { status: "Stormy",  label: "번개" },
-  { status: "Rainy",   label: "비" },
-  { status: "Foggy",   label: "안개" },
-  { status: "Sunny",   label: "맑음" },
+  { status: "Stormy", label: "번개" },
+  { status: "Rainy", label: "비" },
+  { status: "Foggy", label: "안개" },
+  { status: "Sunny", label: "맑음" },
   { status: "Radiant", label: "쨍함" },
 ];
 
@@ -1341,23 +1346,22 @@ export function PortalSelect({
   );
 }
 // ─── ViewModeToggle ──────────────────────────────────────────────────────────
-export function ViewModeToggle({ 
-  mode, 
-  onChange 
-}: { 
-  mode: "icon" | "chart"; 
-  onChange: (m: "icon" | "chart") => void 
+export function ViewModeToggle({
+  mode,
+  onChange
+}: {
+  mode: "icon" | "chart";
+  onChange: (m: "icon" | "chart") => void
 }) {
   return (
-    <div 
+    <div
       className="inline-flex p-1 rounded-full bg-surface-low"
       style={{ border: "1px solid rgba(37,50,40,0.06)" }}
     >
       <button
         onClick={() => onChange("icon")}
-        className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-          mode === "icon" ? "bg-white shadow-sm text-primary" : "text-text-soft hover:text-text-muted"
-        }`}
+        className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${mode === "icon" ? "bg-white shadow-sm text-primary" : "text-text-soft hover:text-text-muted"
+          }`}
       >
         <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5">
           <rect x="3" y="3" width="7" height="7" rx="1.5" />
@@ -1369,9 +1373,8 @@ export function ViewModeToggle({
       </button>
       <button
         onClick={() => onChange("chart")}
-        className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-          mode === "chart" ? "bg-white shadow-sm text-primary" : "text-text-soft hover:text-text-muted"
-        }`}
+        className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${mode === "chart" ? "bg-white shadow-sm text-primary" : "text-text-soft hover:text-text-muted"
+          }`}
       >
         <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5">
           <path d="M3 18v-2l4-4 4 4 6-6 4 4v4" />
