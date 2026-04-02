@@ -886,7 +886,7 @@ function NikoSummaryRow({
   loading = false,
   viewMode = "icon",
   label = "팀 평균",
-  subtitle = "날짜별 평균 점수",
+  subtitle = "날짜별 평균",
   tone = "primary",
 }: NikoSummaryRowProps) {
   const rowBackground = tone === "primary"
@@ -1240,7 +1240,7 @@ export function NikoCalendar({
               loading={loading}
               viewMode={viewMode}
               label={summaryLabel}
-              subtitle="날짜별 평균 점수"
+              subtitle="날짜별 평균"
             />
             {comparisonWeek && (
               <NikoSummaryRow
