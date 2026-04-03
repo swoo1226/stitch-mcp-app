@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import ClimaLogo from "./components/WetherLogo";
 import ThemeToggleButton from "./components/ThemeToggleButton";
 import { STANDARD_SPRING } from "./constants/springs";
@@ -106,6 +106,77 @@ function FadeIn({
     >
       {children}
     </motion.div>
+  );
+}
+
+// ─── Weather Carousel (모바일 전용 자동 슬라이드) ────────────────────────────
+function WeatherCarousel() {
+  const [current, setCurrent] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function resetTimer() {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setCurrent((c) => (c + 1) % WEATHER_STATES.length);
+    }, 2800);
+  }
+
+  useEffect(() => {
+    resetTimer();
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const state = WEATHER_STATES[current];
+
+  return (
+    <div className="md:hidden">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={state.status}
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -40 }}
+          transition={{ duration: 0.35, ease: "easeInOut" }}
+          className="rounded-[2rem] p-6 flex flex-col gap-4"
+          style={{
+            background: state.bg,
+            backdropFilter: "var(--glass-blur-low)",
+            boxShadow: "var(--glass-shadow)",
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <state.icon size={48} />
+            <span
+              className="text-sm font-black rounded-full px-3 py-1.5"
+              style={{ background: "var(--surface-overlay)", color: state.accent }}
+            >
+              {state.range}
+            </span>
+          </div>
+          <div>
+            <p className="font-black text-lg tracking-tight mb-1" style={{ color: "var(--on-surface)" }}>{statusToKo(state.status)}</p>
+            <p className="text-sm font-medium leading-relaxed" style={{ color: "var(--text-muted)" }}>{state.desc}</p>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* 인디케이터 dots */}
+      <div className="flex justify-center gap-2 mt-4">
+        {WEATHER_STATES.map((s, i) => (
+          <button
+            key={s.status}
+            onClick={() => { setCurrent(i); resetTimer(); }}
+            className="rounded-full transition-all"
+            style={{
+              width: i === current ? "1.5rem" : "0.5rem",
+              height: "0.5rem",
+              background: i === current ? "var(--primary)" : "color-mix(in srgb, var(--on-surface) 18%, transparent)",
+            }}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -483,11 +554,12 @@ export default function LandingPage() {
             </p>
           </FadeIn>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+          {/* 데스크탑: 한 줄 flex */}
+          <div className="hidden md:flex gap-4 xl:gap-6">
             {WEATHER_STATES.map((state, i) => (
-              <FadeIn key={state.status} delay={i * 0.06}>
+              <FadeIn key={state.status} delay={i * 0.06} className="flex-1 min-w-0">
                 <div
-                  className="rounded-[2rem] p-5 md:p-6 flex flex-col gap-3 transition-transform hover:scale-[1.02] cursor-default"
+                  className="h-full rounded-[2rem] p-5 flex flex-col gap-3 transition-transform hover:scale-[1.02] cursor-default"
                   style={{
                     background: state.bg,
                     backdropFilter: "var(--glass-blur-low)",
@@ -495,22 +567,25 @@ export default function LandingPage() {
                   }}
                 >
                   <div className="flex items-center justify-between">
-                    <state.icon size={40} />
+                    <state.icon size={36} />
                     <span
-                      className="text-xs font-black rounded-full px-3 py-1"
+                      className="text-xs font-black rounded-full px-2.5 py-1"
                       style={{ background: "var(--surface-overlay)", color: state.accent }}
                     >
                       {state.range}
                     </span>
                   </div>
                   <div>
-                    <p className="font-black text-base tracking-tight mb-1" style={{ color: "var(--on-surface)" }}>{statusToKo(state.status)}</p>
+                    <p className="font-black text-sm tracking-tight mb-1" style={{ color: "var(--on-surface)" }}>{statusToKo(state.status)}</p>
                     <p className="text-xs font-medium leading-relaxed" style={{ color: "var(--text-muted)" }}>{state.desc}</p>
                   </div>
                 </div>
               </FadeIn>
             ))}
           </div>
+
+          {/* 모바일: 자동 슬라이드 캐러셀 */}
+          <WeatherCarousel />
         </div>
       </section>
 
