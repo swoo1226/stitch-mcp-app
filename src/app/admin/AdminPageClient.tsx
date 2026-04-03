@@ -164,7 +164,7 @@ function ThoughtTooltip({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: showAbove ? 4 : -4, scale: 0.97 }}
       transition={STANDARD_SPRING}
-      className="fixed z-[120] rounded-[1.4rem] px-4 py-3"
+      className="fixed z-[120] rounded-[1.5rem] px-4 py-3"
       style={{
         top,
         left,
@@ -969,8 +969,7 @@ export default function AdminPageClient() {
                     style={activeTab === "members"
                       ? {
                         color: "var(--primary)",
-                        background: "color-mix(in srgb, var(--primary) 16%, transparent)",
-                        boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--primary) 18%, transparent)",
+                        background: "color-mix(in srgb, var(--primary) 14%, transparent)",
                       }
                       : { color: "var(--text-muted)" }
                     }
@@ -984,8 +983,7 @@ export default function AdminPageClient() {
                     style={activeTab === "teams"
                       ? {
                         color: "var(--primary)",
-                        background: "color-mix(in srgb, var(--primary) 16%, transparent)",
-                        boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--primary) 18%, transparent)",
+                        background: "color-mix(in srgb, var(--primary) 14%, transparent)",
                       }
                       : { color: "var(--text-muted)" }
                     }
@@ -1063,7 +1061,7 @@ export default function AdminPageClient() {
           </div>
           {teamsAlertMessage && (
             <div
-              className="rounded-[1.25rem] px-4 py-3 text-sm font-semibold"
+              className="rounded-[1.5rem] px-4 py-3 text-sm font-semibold"
               style={{
                 background: "color-mix(in srgb, var(--primary) 10%, transparent)",
                 color: teamsAlertMessage.includes("실패") || teamsAlertMessage.includes("Missing") || teamsAlertMessage.includes("failed")
@@ -1110,7 +1108,7 @@ export default function AdminPageClient() {
               <div className="mt-4 flex flex-col gap-3">
                 {riskTargets.length === 0 ? (
                   <div
-                    className="rounded-[1.25rem] px-4 py-4 text-sm font-semibold"
+                    className="rounded-[1.5rem] px-4 py-4 text-sm font-semibold"
                     style={{ background: "var(--surface-overlay)", color: "var(--on-surface-variant)" }}
                   >
                     현재 규칙에 걸리는 팀원이 없습니다.
@@ -1119,7 +1117,7 @@ export default function AdminPageClient() {
                   riskTargets.map((target) => (
                     <div
                       key={target.userId}
-                      className="rounded-[1.4rem] px-4 py-4"
+                      className="rounded-[1.5rem] px-4 py-4"
                       style={{
                         background: target.level === "critical"
                           ? "color-mix(in srgb, var(--tertiary) 12%, transparent)"
@@ -1165,7 +1163,7 @@ export default function AdminPageClient() {
                               href={ticket.browseUrl}
                               target="_blank"
                               rel="noreferrer"
-                              className="rounded-[1rem] px-3 py-2 text-xs font-semibold transition-colors"
+                              className="rounded-[1.5rem] px-3 py-2 text-xs font-semibold transition-colors"
                               style={{ background: "var(--surface-elevated)", color: "var(--on-surface)" }}
                             >
                               {ticket.key} · {ticket.summary}
@@ -1282,7 +1280,7 @@ export default function AdminPageClient() {
                           {/* 통합: 아이콘 + 이름/파트 + 날씨상태 */}
                           <div className="flex items-center gap-3">
                             <div
-                              className="w-12 h-12 rounded-[1.2rem] flex items-center justify-center shrink-0"
+                              className="w-12 h-12 rounded-[1.5rem] flex items-center justify-center shrink-0"
                               style={{ background: score !== null ? "var(--highlight-soft)" : "var(--surface-container)" }}
                             >
                               {score !== null ? (
@@ -1359,7 +1357,7 @@ export default function AdminPageClient() {
                           </div>
 
                           <div
-                            className="flex flex-1 flex-col rounded-[1.4rem] px-4 py-3"
+                            className="flex flex-1 flex-col rounded-[1.5rem] px-4 py-3"
                             style={{ background: "color-mix(in srgb, var(--surface-container) 72%, transparent)" }}
                           >
                             {(() => {
@@ -1423,7 +1421,7 @@ export default function AdminPageClient() {
                                           href={ticket.browseUrl}
                                           target="_blank"
                                           rel="noreferrer"
-                                          className="flex items-start justify-between gap-3 rounded-[1rem] px-3 py-2 transition-colors"
+                                          className="flex items-start justify-between gap-3 rounded-[1.5rem] px-3 py-2 transition-colors"
                                           style={{ background: "color-mix(in srgb, var(--surface-elevated) 68%, transparent)" }}
                                         >
                                           <div className="min-w-0 flex-1">
@@ -1534,14 +1532,14 @@ export default function AdminPageClient() {
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                     exit={{ opacity: 0, y: 6, scale: 0.9 }}
                                     transition={{ duration: 0.15 }}
-                                    className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1.5 p-1.5 rounded-2xl shadow-lg z-20"
+                                    className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1.5 p-1.5 rounded-[1.5rem] shadow-lg z-20"
                                     style={{ background: "var(--surface-container-highest)", boxShadow: "var(--glass-shadow)" }}
                                   >
                                     <button type="button" onClick={() => { resetTodayMood(m.id); setConfirmResetId(null); }}
-                                      className="flex w-10 h-10 items-center justify-center rounded-xl text-xs font-black"
+                                      className="flex w-10 h-10 items-center justify-center rounded-[1.25rem] text-xs font-black"
                                       style={{ background: "color-mix(in srgb, #ed8936 16%, transparent)", color: "color-mix(in srgb, #ed8936 78%, var(--on-surface))" }}>✓</button>
                                     <button type="button" onClick={() => setConfirmResetId(null)}
-                                      className="flex w-10 h-10 items-center justify-center rounded-xl text-sm"
+                                      className="flex w-10 h-10 items-center justify-center rounded-[1.25rem] text-sm"
                                       style={{ color: "var(--text-soft)", background: "var(--button-subtle-bg)" }}>✕</button>
                                   </motion.div>
                                 )}
@@ -1572,14 +1570,14 @@ export default function AdminPageClient() {
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                     exit={{ opacity: 0, y: 6, scale: 0.9 }}
                                     transition={{ duration: 0.15 }}
-                                    className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1.5 p-1.5 rounded-2xl shadow-lg z-20"
+                                    className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1.5 p-1.5 rounded-[1.5rem] shadow-lg z-20"
                                     style={{ background: "var(--surface-container-highest)", boxShadow: "var(--glass-shadow)" }}
                                   >
                                     <button type="button" onClick={() => { deleteMember(m.id); setConfirmDeleteId(null); }}
-                                      className="flex w-10 h-10 items-center justify-center rounded-xl text-xs font-black"
+                                      className="flex w-10 h-10 items-center justify-center rounded-[1.25rem] text-xs font-black"
                                       style={{ background: "var(--error-container)", color: "var(--error)" }}>✓</button>
                                     <button type="button" onClick={() => setConfirmDeleteId(null)}
-                                      className="flex w-10 h-10 items-center justify-center rounded-xl text-sm"
+                                      className="flex w-10 h-10 items-center justify-center rounded-[1.25rem] text-sm"
                                       style={{ color: "var(--text-soft)", background: "var(--button-subtle-bg)" }}>✕</button>
                                   </motion.div>
                                 )}
@@ -1604,7 +1602,7 @@ export default function AdminPageClient() {
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className="flex h-10 w-10 items-center justify-center rounded-[1rem]"
+                    className="flex h-10 w-10 items-center justify-center rounded-[1.5rem]"
                     style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
                   >
                     <PlusIcon />
@@ -1646,7 +1644,7 @@ export default function AdminPageClient() {
                       <button
                         type="button"
                         onClick={() => { setJiraOpen((o) => !o); setJiraUsers([]); setJiraQuery(""); setJiraSelected(new Set()); }}
-                        className="flex items-center gap-2 rounded-[1.2rem] px-4 py-2.5 text-sm font-bold transition-all"
+                        className="flex items-center gap-2 rounded-[1.5rem] px-4 py-2.5 text-sm font-bold transition-all"
                         style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
                       >
                         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
@@ -1679,7 +1677,7 @@ export default function AdminPageClient() {
                             <>
                               <div className="flex flex-col gap-1 max-h-60 overflow-y-auto mb-3">
                                 {jiraUsers.map((u) => (
-                                  <label key={u.accountId} className="flex items-center gap-3 rounded-[1rem] px-3 py-2.5 cursor-pointer transition-all" style={{ background: jiraSelected.has(u.accountId) ? "var(--highlight-soft)" : "transparent" }}>
+                                  <label key={u.accountId} className="flex items-center gap-3 rounded-[1.5rem] px-3 py-2.5 cursor-pointer transition-all" style={{ background: jiraSelected.has(u.accountId) ? "var(--highlight-soft)" : "transparent" }}>
                                     <input
                                       type="checkbox"
                                       checked={jiraSelected.has(u.accountId)}
@@ -1775,7 +1773,7 @@ export default function AdminPageClient() {
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className="flex h-10 w-10 items-center justify-center rounded-[1rem]"
+                      className="flex h-10 w-10 items-center justify-center rounded-[1.5rem]"
                       style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
                     >
                       <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
@@ -1944,7 +1942,7 @@ export default function AdminPageClient() {
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className="flex h-10 w-10 items-center justify-center rounded-[1rem]"
+                      className="flex h-10 w-10 items-center justify-center rounded-[1.5rem]"
                       style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
                     >
                       <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
@@ -1990,20 +1988,13 @@ export default function AdminPageClient() {
                             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && addPart()}
                             className="font-bold flex-1 min-w-[140px]"
                           />
-                          <select
+                          <PortalSelect
                             value={newPartTeamId}
-                            onChange={(e) => setNewPartTeamId(e.target.value)}
-                            className="flex-1 min-w-[140px] rounded-[1.5rem] px-4 py-3 text-sm font-semibold border-none outline-none appearance-none cursor-pointer"
-                            style={{
-                              background: "var(--surface-container-low)",
-                              color: newPartTeamId ? "var(--on-surface)" : "var(--text-soft)",
-                            }}
-                          >
-                            <option value="">팀 선택 (선택)</option>
-                            {teams.map(t => (
-                              <option key={t.id} value={t.id}>{t.name}</option>
-                            ))}
-                          </select>
+                            onChange={setNewPartTeamId}
+                            placeholder="팀 선택 (선택)"
+                            options={teams.map(t => ({ value: t.id, label: t.name }))}
+                            className="flex-1 min-w-[140px]"
+                          />
                           <ClimaButton
                             variant="secondary"
                             onClick={addPart}
@@ -2350,13 +2341,13 @@ export default function AdminPageClient() {
               />
 
               {moodError && (
-                <p className="w-full text-center text-sm font-bold rounded-2xl px-4 py-3"
+                <p className="w-full text-center text-sm font-bold rounded-[1.5rem] px-4 py-3"
                   style={{ background: "color-mix(in srgb, var(--error) 12%, transparent)", color: "var(--error)" }}>
                   {moodError}
                 </p>
               )}
               {moodDuplicate && (
-                <div className="w-full rounded-2xl px-4 py-4 flex flex-col gap-3 text-center"
+                <div className="w-full rounded-[1.5rem] px-4 py-4 flex flex-col gap-3 text-center"
                   style={{ background: "color-mix(in srgb, #ff9900 12%, transparent)" }}>
                   <p className="text-sm font-bold" style={{ color: "var(--text-muted)" }}>
                     오늘 이미 기록이 있어요.<br />현재 점수로 덮어쓸까요?
