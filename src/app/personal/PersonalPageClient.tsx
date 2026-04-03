@@ -196,6 +196,7 @@ export default function PersonalPageClient({ userId, teamId }: { userId: string;
   const [viewMode, setViewMode] = useState<"icon" | "chart">("icon");
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const chipBarRef = useRef<HTMLDivElement>(null);
 
   // ── 어드민 세션 체크 + 데이터 로딩 ──────────────────────────────────────────
   useEffect(() => {
@@ -269,6 +270,12 @@ export default function PersonalPageClient({ userId, teamId }: { userId: string;
   useEffect(() => {
     if (isAdmin && allMembers.length > 0) {
       setUser(allMembers[currentIndex] ?? null);
+    }
+    // 활성 칩이 보이도록 칩바 스크롤
+    const bar = chipBarRef.current;
+    if (bar) {
+      const chip = bar.children[currentIndex] as HTMLElement | undefined;
+      chip?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
     }
   }, [currentIndex, isAdmin, allMembers]);
 
@@ -464,22 +471,26 @@ export default function PersonalPageClient({ userId, teamId }: { userId: string;
         </>
       )}
 
-      {/* 하단 인디케이터 */}
+      {/* 하단 팀원 이름 칩 */}
       {!loading && allMembers.length > 1 && (
-        <div className="relative z-20 flex items-center justify-center gap-2 py-5">
-          {allMembers.map((_, i) => (
+        <div ref={chipBarRef} className="relative z-20 flex items-center gap-2 px-4 py-4 overflow-x-auto no-scrollbar">
+          {allMembers.map((member, i) => (
             <button
-              key={i}
+              key={member.id}
               onClick={() => goTo(i)}
-              aria-label={`${allMembers[i].name}으로 이동`}
-              className="transition-all"
-              style={{
-                width: i === currentIndex ? 20 : 6,
-                height: 6,
-                borderRadius: 999,
-                background: i === currentIndex ? "var(--primary)" : "color-mix(in srgb, var(--primary) 28%, transparent)",
+              className="shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-all"
+              style={i === currentIndex ? {
+                background: "var(--primary)",
+                color: "var(--on-primary)",
+                boxShadow: "var(--button-primary-shadow)",
+              } : {
+                background: "color-mix(in srgb, var(--on-surface) 8%, transparent)",
+                color: "var(--text-muted)",
               }}
-            />
+            >
+              <span>{member.avatar_emoji}</span>
+              <span>{member.name}</span>
+            </button>
           ))}
         </div>
       )}
