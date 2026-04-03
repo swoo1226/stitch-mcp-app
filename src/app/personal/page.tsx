@@ -1,7 +1,7 @@
 import PersonalPageClient from "./PersonalPageClient";
 import AuthGuard from "../components/AuthGuard";
 import { getRequiredSearchParam } from "../lib/requiredSearchParam";
-import { DEMO_USER_ID, DEMO_TEAM_ID } from "../../lib/demo-data";
+import { DEMO_USER_ID } from "../../lib/demo-data";
 
 export default async function PersonalPage({
   searchParams,
@@ -10,19 +10,15 @@ export default async function PersonalPage({
 }) {
   const params = await searchParams;
   const userId = getRequiredSearchParam(params.user) ?? DEMO_USER_ID;
-  const teamId = getRequiredSearchParam(params.team) ?? null;
-
-  const needsAuth =
-    userId !== DEMO_USER_ID ||
-    (teamId !== null && teamId !== DEMO_TEAM_ID);
+  const needsAuth = userId !== DEMO_USER_ID;
 
   if (needsAuth) {
     return (
       <AuthGuard>
-        <PersonalPageClient userId={userId} teamId={teamId} />
+        <PersonalPageClient userId={userId} />
       </AuthGuard>
     );
   }
 
-  return <PersonalPageClient userId={userId} teamId={teamId} />;
+  return <PersonalPageClient userId={userId} />;
 }

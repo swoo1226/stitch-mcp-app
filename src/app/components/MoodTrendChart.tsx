@@ -154,8 +154,8 @@ export function MoodTrendChart({ scores, height = 40, className = "" }: MoodTren
                 className="absolute opacity-0 group-hover:opacity-100 transition-opacity bg-surface-elevated px-2 py-1 rounded-md text-[11px] md:text-xs font-black shadow-lg z-20 border border-white/10 leading-none"
                 style={{
                   left: "50%",
-                  bottom: `calc(${barHeight}% + 2rem)`,
-                  transform: "translateX(-50%)",
+                  bottom: `calc(${barHeight}% / 2)`,
+                  transform: "translate(-50%, 50%)",
                 }}
               >
                 {score}

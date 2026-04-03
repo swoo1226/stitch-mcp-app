@@ -31,6 +31,7 @@ function isActivePath(pathname: string, item: HeaderNavItem) {
 
 function withTeamParam(href: string, teamId: string | null): string {
   if (!teamId) return href;
+  if (href === "/personal" || href.startsWith("/personal?")) return href;
   const [path, existing] = href.split("?");
   const params = new URLSearchParams(existing ?? "");
   params.set("team", teamId);
