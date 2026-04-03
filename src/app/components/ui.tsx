@@ -168,6 +168,50 @@ export function SectionLabel({ children, color = "primary", className = "" }: Se
   );
 }
 
+interface UserAvatarProps {
+  name: string;
+  avatarUrl?: string | null;
+  avatarEmoji?: string | null;
+  size?: number;
+  className?: string;
+  style?: React.CSSProperties;
+  fallbackTextClassName?: string;
+}
+
+export function UserAvatar({
+  name,
+  avatarUrl,
+  avatarEmoji,
+  size = 36,
+  className = "",
+  style,
+  fallbackTextClassName = "text-sm font-black",
+}: UserAvatarProps) {
+  return (
+    <div
+      className={`overflow-hidden rounded-full ${className}`}
+      style={{ width: size, height: size, ...style }}
+    >
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt={`${name} avatar`}
+          className="h-full w-full object-cover"
+          referrerPolicy="no-referrer"
+        />
+      ) : avatarEmoji ? (
+        <div className="flex h-full w-full items-center justify-center text-base">
+          {avatarEmoji}
+        </div>
+      ) : (
+        <div className={`flex h-full w-full items-center justify-center ${fallbackTextClassName}`} style={{ color: "var(--text-soft)" }}>
+          {name.slice(0, 1)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── ProgressBar ─────────────────────────────────────────────────────────────
 interface ProgressBarProps {
   value: number; // 0–100
@@ -311,7 +355,7 @@ export function TabToggle<T extends string>({
   return (
     <div
       className="flex items-center rounded-full p-1"
-      style={{ background: "rgba(37,50,40,0.05)" }}
+      style={{ background: "color-mix(in srgb, var(--surface-container-high) 72%, transparent)" }}
     >
       {allTabs.map(({ value, label }) => {
         const isActive = active === value;
@@ -331,7 +375,7 @@ export function TabToggle<T extends string>({
               paddingBottom: "0.5rem",
               color: isActive
                 ? isPrimary ? "var(--on-primary)" : "var(--primary)"
-                : "rgba(37,50,40,0.45)",
+                : "var(--text-soft)",
             }}
           >
             {isActive && (
@@ -340,7 +384,7 @@ export function TabToggle<T extends string>({
                 className="absolute inset-0 rounded-[1.5rem]"
                 style={isPrimary
                   ? { background: "linear-gradient(135deg, #2b6867 0%, #52f2f5 100%)" }
-                  : { background: "white", boxShadow: "0 2px 8px rgba(37,50,40,0.08)" }
+                  : { background: "var(--surface-elevated)", boxShadow: "var(--button-subtle-shadow)" }
                 }
                 transition={RESPONSIVE_SPRING}
               />
@@ -656,7 +700,7 @@ export function SectionHeader({ icon, title, subtitle, className = "" }: Section
           {title}
         </h2>
         {subtitle && (
-          <p className="text-sm font-medium" style={{ color: "rgba(37,50,40,0.55)" }}>
+          <p className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>
             {subtitle}
           </p>
         )}
@@ -856,7 +900,7 @@ interface NikoMemberRowCell {
 }
 
 interface NikoMemberRowProps {
-  avatar: string;
+  avatarEmoji?: string;
   name: string;
   subtitle?: string;
   week: NikoMemberRowCell[];
@@ -936,7 +980,7 @@ function NikoSummaryRow({
         </div>
         <div className="min-w-0">
           <span className="block truncate text-[0.95rem] font-extrabold tracking-tight" style={{ color: accentColor }}>{label}</span>
-          <span className="block text-[11px] font-medium" style={{ color: "rgba(37,50,40,0.45)" }}>
+          <span className="block text-[11px] font-medium" style={{ color: "var(--text-soft)" }}>
             {subtitle}
           </span>
         </div>
@@ -967,7 +1011,7 @@ function NikoSummaryRow({
               <div
                 className="flex min-w-[56px] flex-col items-center justify-center rounded-[1rem] px-2 py-2"
                 style={{
-                  background: isToday ? "rgba(0,102,104,0.08)" : "transparent",
+                  background: isToday ? "color-mix(in srgb, var(--primary) 12%, transparent)" : "transparent",
                   outline: isToday ? `2px solid ${tone === "primary" ? "color-mix(in srgb, var(--primary) 28%, transparent)" : "color-mix(in srgb, var(--on-surface) 18%, transparent)"}` : "none",
                   outlineOffset: "-2px",
                 }}
@@ -1003,7 +1047,7 @@ function NikoSummaryRow({
 }
 
 export function NikoMemberRow({
-  avatar,
+  avatarEmoji,
   name,
   subtitle,
   week,
@@ -1016,15 +1060,15 @@ export function NikoMemberRow({
     return (
       <div
         className="grid items-center rounded-[1.25rem] px-2 py-3"
-        style={{ gridTemplateColumns: colTemplate, background: "rgba(37,50,40,0.04)" }}
+        style={{ gridTemplateColumns: colTemplate, background: "color-mix(in srgb, var(--on-surface) 5%, transparent)" }}
       >
         <div className="sticky left-0 z-10 -ml-2 flex items-center gap-2 pl-2 pr-2">
-          <div className="h-9 w-9 animate-pulse rounded-full" style={{ background: "rgba(37,50,40,0.08)" }} />
-          <div className="h-4 w-20 animate-pulse rounded-full" style={{ background: "rgba(37,50,40,0.08)" }} />
+          <div className="h-9 w-9 animate-pulse rounded-full" style={{ background: "color-mix(in srgb, var(--on-surface) 9%, transparent)" }} />
+          <div className="h-4 w-20 animate-pulse rounded-full" style={{ background: "color-mix(in srgb, var(--on-surface) 9%, transparent)" }} />
         </div>
         {week.map((_, j) => (
           <div key={j} className="flex justify-center">
-            <div className="h-9 w-9 animate-pulse rounded-full" style={{ background: "rgba(37,50,40,0.08)" }} />
+            <div className="h-9 w-9 animate-pulse rounded-full" style={{ background: "color-mix(in srgb, var(--on-surface) 9%, transparent)" }} />
           </div>
         ))}
       </div>
@@ -1051,17 +1095,23 @@ export function NikoMemberRow({
         />
         <div
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base"
-          style={{ background: "rgba(37,50,40,0.07)" }}
+          style={{ background: "color-mix(in srgb, var(--on-surface) 8%, transparent)" }}
         >
-          {avatar
-            ? avatar
+          {avatarEmoji
+            ? (
+              <UserAvatar
+                name={name}
+                avatarEmoji={avatarEmoji}
+                size={36}
+              />
+            )
             : (() => {
               const todayStatus = todayIndex >= 0 ? week[todayIndex]?.status : null;
               if (todayStatus) {
                 const Icon = WEATHER_ICON_MAP[todayStatus];
                 return <Icon size={22} />;
               }
-              return <span className="text-sm font-black" style={{ color: "rgba(37,50,40,0.3)" }}>{name.slice(0, 1)}</span>;
+              return <span className="text-sm font-black" style={{ color: "var(--text-soft)" }}>{name.slice(0, 1)}</span>;
             })()
           }
         </div>
@@ -1073,7 +1123,7 @@ export function NikoMemberRow({
             {name}
           </span>
           {subtitle && (
-            <span className="block text-[11px] font-medium" style={{ color: "rgba(37,50,40,0.45)" }}>
+            <span className="block text-[11px] font-medium" style={{ color: "var(--text-soft)" }}>
               {subtitle}
             </span>
           )}
@@ -1140,7 +1190,7 @@ export function MiniStatCard({ label, value, valueColor = "default", className =
 export interface NikoCalendarMember {
   id: string;
   name: string;
-  avatar?: string;
+  avatarEmoji?: string;
   subtitle?: string;
   week: Array<{ status: WeatherStatus | null; score: number | null; message?: string | null }>;
 }
@@ -1258,7 +1308,7 @@ export function NikoCalendar({
               ? Array.from({ length: pageSize ?? 5 }, (_, i) => (
                 <NikoMemberRow
                   key={i}
-                  avatar=""
+                  avatarEmoji=""
                   name=""
                   week={Array.from({ length: 5 }, () => ({ status: null, score: null, message: null }))}
                   todayIndex={todayIndex}
@@ -1269,7 +1319,7 @@ export function NikoCalendar({
               : pageMembers.map((member) => (
                 <NikoMemberRow
                   key={member.id}
-                  avatar={member.avatar ?? ""}
+                  avatarEmoji={member.avatarEmoji ?? ""}
                   name={member.name}
                   subtitle={member.subtitle}
                   week={member.week}
@@ -1286,9 +1336,9 @@ export function NikoCalendar({
       {totalPages > 1 && (
         <div
           className="mt-3 flex items-center justify-between gap-3 border-t pt-4"
-          style={{ borderColor: "rgba(37,50,40,0.07)" }}
+          style={{ borderColor: "var(--border-subtle)" }}
         >
-          <span className="text-sm font-medium" style={{ color: "rgba(37,50,40,0.45)" }}>
+          <span className="text-sm font-medium" style={{ color: "var(--text-soft)" }}>
             {page * pageSize! + 1}–{Math.min((page + 1) * pageSize!, members.length)} / {members.length}명
           </span>
           <div className="flex items-center gap-2">
@@ -1297,7 +1347,7 @@ export function NikoCalendar({
               disabled={page === 0}
               onClick={() => setPage(p => p - 1)}
               className="flex h-9 w-9 items-center justify-center rounded-full transition-colors disabled:opacity-30"
-              style={{ background: "rgba(37,50,40,0.06)" }}
+              style={{ background: "color-mix(in srgb, var(--on-surface) 7%, transparent)" }}
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
@@ -1311,7 +1361,7 @@ export function NikoCalendar({
                 className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-black transition-colors"
                 style={page === i
                   ? { background: "var(--primary)", color: "#fff" }
-                  : { background: "rgba(37,50,40,0.06)", color: "rgba(37,50,40,0.6)" }
+                  : { background: "color-mix(in srgb, var(--on-surface) 7%, transparent)", color: "var(--text-muted)" }
                 }
               >
                 {i + 1}
@@ -1322,7 +1372,7 @@ export function NikoCalendar({
               disabled={page === totalPages - 1}
               onClick={() => setPage(p => p + 1)}
               className="flex h-9 w-9 items-center justify-center rounded-full transition-colors disabled:opacity-30"
-              style={{ background: "rgba(37,50,40,0.06)" }}
+              style={{ background: "color-mix(in srgb, var(--on-surface) 7%, transparent)" }}
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
@@ -1358,15 +1408,15 @@ export function WeatherLegend({ className = "" }: WeatherLegendProps) {
         return (
           <div key={status} className="flex items-center gap-1.5">
             <Icon size={24} />
-            <span className="text-xs font-semibold" style={{ color: "rgba(37,50,40,0.6)" }}>
+            <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
               {label}
             </span>
           </div>
         );
       })}
       <div className="flex items-center gap-1.5">
-        <div className="h-6 w-6 rounded-full" style={{ background: "rgba(37,50,40,0.07)" }} />
-        <span className="text-xs font-semibold" style={{ color: "rgba(37,50,40,0.6)" }}>기록 없음</span>
+        <div className="h-6 w-6 rounded-full" style={{ background: "color-mix(in srgb, var(--on-surface) 8%, transparent)" }} />
+        <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>기록 없음</span>
       </div>
     </div>
   );

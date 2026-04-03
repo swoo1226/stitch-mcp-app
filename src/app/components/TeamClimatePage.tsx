@@ -6,6 +6,7 @@ import { supabase, DEFAULT_TEAM_ID } from "../../lib/supabase";
 import { scoreToStatus, statusToEmoji, WeatherStatus } from "../../lib/mood";
 import { motion } from "framer-motion";
 import { STANDARD_SPRING } from "../constants/springs";
+import { UserAvatar } from "./ui";
 
 type MoodLog = {
   score: number;
@@ -350,7 +351,12 @@ export default function TeamClimatePage() {
                           style={{ background: "#fffcf7" }}
                           title={member.name}
                         >
-                          {member.avatarEmoji}
+                          <UserAvatar
+                            name={member.name}
+                            avatarEmoji={member.avatarEmoji}
+                            size={32}
+                            fallbackTextClassName="text-xs font-black"
+                          />
                         </div>
                       ))}
                       <div
@@ -423,8 +429,13 @@ export default function TeamClimatePage() {
                             }}
                           >
                             <div className="flex items-center gap-3">
-                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm shadow-[0_8px_18px_rgba(19,49,46,0.08)]">
-                                {member.avatarEmoji}
+                              <div className="rounded-full bg-white shadow-[0_8px_18px_rgba(19,49,46,0.08)]">
+                                <UserAvatar
+                                  name={member.name}
+                                  avatarEmoji={member.avatarEmoji}
+                                  size={32}
+                                  fallbackTextClassName="text-xs font-black"
+                                />
                               </div>
                               <div className="min-w-0">
                                 <div className="truncate text-sm font-bold">{member.name}</div>
