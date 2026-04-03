@@ -7,7 +7,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { createPortal } from "react-dom";
 import { WEATHER_ICON_MAP } from "./WeatherIcons";
-import { scoreToStatus, statusToKo, type WeatherStatus } from "../../lib/mood";
+import { scoreToStatus, statusToKo, statusToFallbackComment, type WeatherStatus } from "../../lib/mood";
 import { useTextLayout } from "../../lib/pretext-utils";
 import { MoodTrendChart } from "./MoodTrendChart";
 
@@ -777,7 +777,7 @@ function SmartTooltip({
         )}
       </div>
       <div className="text-[13px] font-medium leading-[1.5] text-on-surface" style={{ fontFamily: "'Public Sans', sans-serif" }}>
-        <MarkdownRenderer content={text || `${statusToKo(status)} 하루예요.`} color="var(--on-surface)" />
+        <MarkdownRenderer content={text || statusToFallbackComment(status)} color="var(--on-surface)" />
       </div>
       {/* Arrow: 툴팁 하단 중앙 → 셀 방향 */}
       <div
