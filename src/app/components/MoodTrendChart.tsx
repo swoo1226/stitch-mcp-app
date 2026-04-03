@@ -133,7 +133,7 @@ export function MoodTrendChart({ scores, height = 40, className = "" }: MoodTren
                 className="absolute z-10 flex items-center gap-1 rounded-full px-1.5 py-1 text-[9px] font-black shadow-sm md:text-[10px]"
                 style={{
                   left: "50%",
-                  bottom: `calc(${barHeight}% + 0.45rem)`,
+                  top: 0,
                   transform: "translateX(-50%)",
                   color: trendColor,
                   background: trendBackground,
