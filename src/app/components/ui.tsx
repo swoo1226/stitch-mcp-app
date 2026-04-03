@@ -975,7 +975,7 @@ function NikoSummaryRow({
     >
       <div
         className="sticky left-0 z-10 flex items-center gap-2 py-3 pr-2"
-        style={{ background: "var(--panel-strong)" }}
+        style={{ background: rowBackground }}
       >
         <div
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-black"
@@ -1093,7 +1093,7 @@ export function NikoMemberRow({
       }}
     >
       {/* Sticky Column with Opaque Base to hide scrolling content underneath */}
-      <div className="sticky left-0 z-10 flex items-center gap-2 pr-2 py-3 isolate" style={{ background: "var(--panel-strong)" }}>
+      <div className="sticky left-0 z-10 flex items-center gap-2 pr-2 py-3 bg-[var(--surface-lowest)] isolate">
         <div
           className="absolute inset-0 z-[-1]"
           style={{ backgroundColor: "var(--row-bg, transparent)" }}
