@@ -188,7 +188,7 @@ function ClimaInputInner() {
         </header>
 
         {/* 중앙 콘텐츠 */}
-        <main className="flex-1 flex flex-col items-center justify-center w-full gap-7 md:gap-12 pb-32 md:pb-36">
+        <main className="flex-1 flex flex-col items-center justify-center w-full gap-7 md:gap-12 pb-10">
 
           {/* 날씨 아이콘 */}
           <AnimatePresence mode="wait">
@@ -345,7 +345,7 @@ function ClimaInputInner() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="w-full max-w-[18rem] md:max-w-sm mx-auto mb-16"
+            className="w-full max-w-[18rem] md:max-w-sm mx-auto flex flex-col gap-4"
           >
             <ClimaTextarea
               label="오늘의 한마디 (선택)"
@@ -354,20 +354,7 @@ function ClimaInputInner() {
               placeholder="따뜻한 한마디를 남겨주세요..."
               className="bg-white/30 backdrop-blur-sm"
             />
-          </motion.div>
-        </main>
-      </motion.div>
 
-      {/* 하단 버튼 */}
-      <AnimatePresence>
-        {!isSubmitted && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={STANDARD_SPRING}
-            className="fixed bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-3"
-          >
             {/* 에러 메시지 */}
             <AnimatePresence>
               {errorMsg && (
@@ -375,7 +362,7 @@ function ClimaInputInner() {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
-                  className="rounded-2xl px-5 py-3 text-sm font-bold text-center max-w-[calc(100vw-3rem)]"
+                  className="rounded-2xl px-5 py-3 text-sm font-bold text-center"
                   style={{ background: "rgba(220,38,38,0.12)", color: "#dc2626", backdropFilter: "blur(12px)" }}
                 >
                   {errorMsg}
@@ -383,14 +370,14 @@ function ClimaInputInner() {
               )}
             </AnimatePresence>
 
-            {/* 오늘 이미 기록 존재 — 덮어쓰기 확인 */}
+            {/* 덮어쓰기 확인 */}
             <AnimatePresence>
               {pendingUserId && (
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
-                  className="rounded-2xl px-5 py-4 text-sm font-bold text-center max-w-[calc(100vw-3rem)] flex flex-col gap-3"
+                  className="rounded-2xl px-5 py-4 text-sm font-bold text-center flex flex-col gap-3"
                   style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", boxShadow: "0 8px 32px rgba(37,50,40,0.12)" }}
                 >
                   <p style={{ color: "rgba(37,50,40,0.75)" }}>오늘 이미 기록이 있어요.<br />현재 점수로 덮어쓸까요?</p>
@@ -417,15 +404,27 @@ function ClimaInputInner() {
               )}
             </AnimatePresence>
 
-            <FAB
-              onClick={handleSubmit}
-              className="text-sm md:text-base tracking-tight max-w-[calc(100vw-2rem)]"
-            >
-              {submitting ? "저장 중..." : "기록하기"}
-            </FAB>
+            <AnimatePresence>
+              {!isSubmitted && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  transition={STANDARD_SPRING}
+                  className="flex justify-center"
+                >
+                  <FAB
+                    onClick={handleSubmit}
+                    className="text-sm md:text-base tracking-tight"
+                  >
+                    {submitting ? "저장 중..." : "기록하기"}
+                  </FAB>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </main>
+      </motion.div>
 
       {/* 축하 모달 */}
       <AnimatePresence>
