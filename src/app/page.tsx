@@ -273,9 +273,7 @@ export default function LandingPage() {
                 className="text-4xl sm:text-5xl md:text-[3.5rem] xl:text-[4rem] font-black tracking-tight leading-[1.08] mb-6"
                 style={{ fontFamily: "'Public Sans', sans-serif", color: "var(--on-surface)" }}
               >
-                Check whether{" "}
-                <br className="hidden sm:block" />
-                your mind is{" "}
+                팀의 오늘,
                 <br />
                 <span
                   style={{
@@ -285,8 +283,9 @@ export default function LandingPage() {
                     backgroundClip: "text",
                   }}
                 >
-                  sunny.
+                  맑음
                 </span>
+                일까요?
               </motion.h1>
 
               <motion.p
