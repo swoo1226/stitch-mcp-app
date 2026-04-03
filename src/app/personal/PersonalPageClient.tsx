@@ -347,7 +347,7 @@ export default function PersonalPageClient({ userId, teamId }: { userId: string;
 
   // ── 어드민 스와이프 뷰 ────────────────────────────────────────────────────────
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden flex flex-col">
       <DynamicBackground score={bgScore} />
 
       {/* 상단 헤더 */}
@@ -396,7 +396,7 @@ export default function PersonalPageClient({ userId, teamId }: { userId: string;
       {/* 스와이프 트랙 */}
       <div
         ref={scrollRef}
-        className="flex h-screen overflow-x-scroll"
+        className="flex flex-1 overflow-x-scroll"
         style={{
           scrollSnapType: "x mandatory",
           WebkitOverflowScrolling: "touch",
@@ -415,7 +415,7 @@ export default function PersonalPageClient({ userId, teamId }: { userId: string;
               className="w-screen shrink-0 overflow-y-auto"
               style={{ scrollSnapAlign: "start" }}
             >
-              <div className="mx-auto w-full max-w-lg px-4 pb-32 pt-24 md:px-8">
+              <div className="mx-auto w-full max-w-lg px-4 pb-8 pt-24 md:px-8">
                 <div className="mb-10 pt-4">
                   <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-40">날씨 정원</p>
                   <PageHeadline className="font-black">
@@ -466,7 +466,7 @@ export default function PersonalPageClient({ userId, teamId }: { userId: string;
 
       {/* 하단 인디케이터 */}
       {!loading && allMembers.length > 1 && (
-        <div className="fixed bottom-8 left-1/2 z-20 -translate-x-1/2 flex items-center gap-2">
+        <div className="relative z-20 flex items-center justify-center gap-2 py-5">
           {allMembers.map((_, i) => (
             <button
               key={i}

@@ -188,7 +188,7 @@ function ClimaInputInner() {
         </header>
 
         {/* 중앙 콘텐츠 */}
-        <main className="flex-1 flex flex-col items-center justify-center w-full gap-7 md:gap-12">
+        <main className="flex-1 flex flex-col items-center justify-center w-full gap-7 md:gap-12 pb-32 md:pb-36">
 
           {/* 날씨 아이콘 */}
           <AnimatePresence mode="wait">
