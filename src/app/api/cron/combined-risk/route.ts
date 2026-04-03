@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   }
 
   const baseUrl = request.nextUrl.origin;
-  const response = await fetch(`${baseUrl}/api/admin/alerts/combined-risk`, {
+  const response = await fetch(`${baseUrl}/api/admin/alerts/combined-risk?send=1`, {
     method: "POST",
     headers: cronSecret ? { authorization: `Bearer ${cronSecret}` } : undefined,
     cache: "no-store",
