@@ -295,7 +295,7 @@ export default function LandingPage() {
                 className="text-base md:text-lg font-medium leading-relaxed mb-8 max-w-md"
                 style={{ color: "var(--text-muted)" }}
               >
-                팀원의 컨디션을 날씨로 읽는 도구, Clima — 팀장이 팀의 분위기를 빠르게 파악하고, 문제가 커지기 전에 먼저 움직일 수 있도록 도와줘요.
+                팀원의 컨디션을 날씨로 표현해요. 팀장은 한눈에 팀 분위기를 파악하고, 문제가 커지기 전에 먼저 움직일 수 있어요.
               </motion.p>
 
               <motion.div
