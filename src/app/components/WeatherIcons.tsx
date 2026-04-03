@@ -1,5 +1,7 @@
 "use client";
 
+import { useId } from "react";
+
 // 디자인 스크린 기반 날씨 아이콘 SVG 컴포넌트
 
 interface IconProps {
@@ -7,6 +9,8 @@ interface IconProps {
 }
 
 export function IconSunny({ size = 48 }: IconProps) {
+  const uid = useId().replace(/:/g, '');
+  const gradId = `sunGrad-${uid}`;
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
       <circle cx="24" cy="24" r="10" fill="#F5A623" />
@@ -21,9 +25,9 @@ export function IconSunny({ size = 48 }: IconProps) {
           transform={`rotate(${deg} 24 24)`}
         />
       ))}
-      <circle cx="24" cy="24" r="10" fill="url(#sunGrad)" />
+      <circle cx="24" cy="24" r="10" fill={`url(#${gradId})`} />
       <defs>
-        <radialGradient id="sunGrad" cx="35%" cy="30%">
+        <radialGradient id={gradId} cx="35%" cy="30%">
           <stop offset="0%" stopColor="#FFD166" />
           <stop offset="100%" stopColor="#F5A623" />
         </radialGradient>
@@ -33,14 +37,16 @@ export function IconSunny({ size = 48 }: IconProps) {
 }
 
 export function IconCloudy({ size = 48 }: IconProps) {
+  const uid = useId().replace(/:/g, '');
+  const gradId = `cloudGrad1-${uid}`;
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
-      <circle cx="20" cy="26" r="9" fill="url(#cloudGrad1)" />
-      <circle cx="30" cy="28" r="7" fill="url(#cloudGrad1)" />
-      <circle cx="26" cy="22" r="8" fill="url(#cloudGrad1)" />
-      <rect x="12" y="28" width="24" height="8" rx="4" fill="url(#cloudGrad1)" />
+      <circle cx="20" cy="26" r="9" fill={`url(#${gradId})`} />
+      <circle cx="30" cy="28" r="7" fill={`url(#${gradId})`} />
+      <circle cx="26" cy="22" r="8" fill={`url(#${gradId})`} />
+      <rect x="12" y="28" width="24" height="8" rx="4" fill={`url(#${gradId})`} />
       <defs>
-        <linearGradient id="cloudGrad1" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#9fd4f0" />
           <stop offset="100%" stopColor="#74b9e8" />
         </linearGradient>
@@ -65,19 +71,21 @@ export function IconFoggy({ size = 48 }: IconProps) {
 }
 
 export function IconRainy({ size = 48 }: IconProps) {
+  const uid = useId().replace(/:/g, '');
+  const gradId = `rainCloud-${uid}`;
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
       {/* 구름 */}
-      <circle cx="19" cy="18" r="7" fill="url(#rainCloud)" />
-      <circle cx="28" cy="19" r="6" fill="url(#rainCloud)" />
-      <circle cx="24" cy="15" r="7" fill="url(#rainCloud)" />
-      <rect x="13" y="20" width="22" height="6" rx="3" fill="url(#rainCloud)" />
+      <circle cx="19" cy="18" r="7" fill={`url(#${gradId})`} />
+      <circle cx="28" cy="19" r="6" fill={`url(#${gradId})`} />
+      <circle cx="24" cy="15" r="7" fill={`url(#${gradId})`} />
+      <rect x="13" y="20" width="22" height="6" rx="3" fill={`url(#${gradId})`} />
       {/* 빗방울 */}
       <line x1="16" y1="30" x2="14" y2="38" stroke="#5b9bd5" strokeWidth="2.5" strokeLinecap="round"/>
       <line x1="24" y1="30" x2="22" y2="38" stroke="#5b9bd5" strokeWidth="2.5" strokeLinecap="round"/>
       <line x1="32" y1="30" x2="30" y2="38" stroke="#5b9bd5" strokeWidth="2.5" strokeLinecap="round"/>
       <defs>
-        <linearGradient id="rainCloud" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#7f8fa6" />
           <stop offset="100%" stopColor="#636e72" />
         </linearGradient>
@@ -87,17 +95,19 @@ export function IconRainy({ size = 48 }: IconProps) {
 }
 
 export function IconStormy({ size = 48 }: IconProps) {
+  const uid = useId().replace(/:/g, '');
+  const gradId = `stormCloud-${uid}`;
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
       {/* 어두운 구름 */}
-      <circle cx="19" cy="17" r="7" fill="url(#stormCloud)" />
-      <circle cx="28" cy="18" r="6" fill="url(#stormCloud)" />
-      <circle cx="24" cy="14" r="7" fill="url(#stormCloud)" />
-      <rect x="13" y="19" width="22" height="6" rx="3" fill="url(#stormCloud)" />
+      <circle cx="19" cy="17" r="7" fill={`url(#${gradId})`} />
+      <circle cx="28" cy="18" r="6" fill={`url(#${gradId})`} />
+      <circle cx="24" cy="14" r="7" fill={`url(#${gradId})`} />
+      <rect x="13" y="19" width="22" height="6" rx="3" fill={`url(#${gradId})`} />
       {/* 번개 */}
       <path d="M26 27 L21 35 L25 35 L20 44 L30 33 L26 33 Z" fill="#F5A623" />
       <defs>
-        <linearGradient id="stormCloud" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#2d3436" />
           <stop offset="100%" stopColor="#1e272e" />
         </linearGradient>
@@ -107,11 +117,13 @@ export function IconStormy({ size = 48 }: IconProps) {
 }
 
 export function IconRadiant({ size = 48 }: IconProps) {
+  const uid = useId().replace(/:/g, '');
+  const gradId = `radiantGrad-${uid}`;
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
       {/* 글로우 */}
       <circle cx="24" cy="24" r="16" fill="#FFE066" opacity="0.25" />
-      <circle cx="24" cy="24" r="11" fill="url(#radiantGrad)" />
+      <circle cx="24" cy="24" r="11" fill={`url(#${gradId})`} />
       {[0,40,80,120,160,200,240,280,320].map((deg, i) => (
         <line
           key={i}
@@ -124,7 +136,7 @@ export function IconRadiant({ size = 48 }: IconProps) {
         />
       ))}
       <defs>
-        <radialGradient id="radiantGrad" cx="35%" cy="30%">
+        <radialGradient id={gradId} cx="35%" cy="30%">
           <stop offset="0%" stopColor="#FFE599" />
           <stop offset="100%" stopColor="#F5A623" />
         </radialGradient>

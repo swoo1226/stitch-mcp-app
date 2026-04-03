@@ -27,6 +27,11 @@
   --color-surface-elevated: var(--surface-elevated);
   --color-surface-overlay: var(--surface-overlay);
   --color-border-subtle: var(--border-subtle);
+
+  --shadow-level-1: var(--shadow-level-1);
+  --shadow-level-2: var(--shadow-level-2);
+  --shadow-level-3: var(--shadow-level-3);
+  --shadow-level-4: var(--shadow-level-4);
 }
 
 
@@ -69,10 +74,14 @@
   --glass-blur-medium: blur(24px);
   --glass-blur-high: blur(40px);
 
-  --shadow-ambient: 0 20px 40px -10px rgba(37, 50, 40, 0.06);
-  --glass-shadow: 0 20px 40px -10px rgba(37, 50, 40, 0.06);
+  --shadow-ambient: var(--shadow-level-3);
+  --glass-shadow: var(--shadow-level-2);
+  --shadow-level-1: 0 4px 12px -4px rgba(37, 50, 40, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  --shadow-level-2: 0 8px 24px -4px rgba(37, 50, 40, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  --shadow-level-3: 0 16px 32px -8px rgba(37, 50, 40, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.5), inset 0 -2px 0 0 rgba(0, 0, 0, 0.05);
+  --shadow-level-4: 0 32px 64px -12px rgba(37, 50, 40, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
   --header-bg: rgba(255, 255, 255, 0.72);
-  --header-shadow: 0 20px 40px -10px rgba(37, 50, 40, 0.06);
+  --header-shadow: var(--shadow-level-2);
   --header-action-color: rgba(37, 50, 40, 0.7);
   --drawer-bg: rgba(255, 255, 255, 0.96);
   --drawer-scrim: rgba(37, 50, 40, 0.15);
@@ -84,7 +93,7 @@
   --landing-hero-gradient: radial-gradient(ellipse 80% 60% at 70% 40%, rgba(82,242,245,0.18) 0%, transparent 60%), radial-gradient(ellipse 60% 80% at 10% 60%, rgba(0,102,104,0.06) 0%, transparent 60%), var(--surface);
   --highlight-soft: rgba(0, 102, 104, 0.08);
   --button-primary-gradient: linear-gradient(135deg, #006668, #1a9d9f);
-  --button-primary-shadow: 0 8px 24px rgba(0,102,104,0.28);
+  --button-primary-shadow: var(--shadow-level-3);
   --button-subtle-bg: var(--surface-container);
   --button-subtle-shadow: none;
   --button-subtle-text: rgba(37, 50, 40, 0.7);
@@ -140,10 +149,14 @@ html[data-theme="dark"] {
   --glass-bg-medium: rgba(18, 28, 31, 0.68);
   --glass-bg-high: rgba(18, 28, 31, 0.82);
 
-  --shadow-ambient: 0 22px 48px -16px rgba(0, 0, 0, 0.42);
-  --glass-shadow: 0 22px 48px -16px rgba(0, 0, 0, 0.38);
+  --shadow-ambient: var(--shadow-level-4);
+  --glass-shadow: var(--shadow-level-2);
+  --shadow-level-1: 0 4px 12px -4px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --shadow-level-2: 0 8px 24px -4px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  --shadow-level-3: 0 16px 32px -8px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.12), inset 0 -2px 0 0 rgba(0, 0, 0, 0.2);
+  --shadow-level-4: 0 32px 64px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
   --header-bg: rgba(16, 23, 25, 0.78);
-  --header-shadow: 0 24px 44px -16px rgba(0, 0, 0, 0.42);
+  --header-shadow: var(--shadow-level-2);
   --header-action-color: rgba(229, 241, 238, 0.86);
   --drawer-bg: rgba(14, 21, 23, 0.96);
   --drawer-scrim: rgba(5, 8, 10, 0.46);
@@ -155,7 +168,7 @@ html[data-theme="dark"] {
   --landing-hero-gradient: radial-gradient(ellipse 80% 60% at 70% 40%, rgba(82,242,245,0.12) 0%, transparent 60%), radial-gradient(ellipse 60% 80% at 10% 60%, rgba(0,102,104,0.18) 0%, transparent 60%), var(--surface);
   --highlight-soft: rgba(82, 242, 245, 0.16);
   --button-primary-gradient: linear-gradient(135deg, #0d7375, #34b9bc);
-  --button-primary-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  --button-primary-shadow: var(--shadow-level-3);
   --button-subtle-bg: rgba(255, 255, 255, 0.04);
   --button-subtle-shadow: inset 0 0 0 1px rgba(229, 241, 238, 0.06);
   --button-subtle-text: rgba(229, 241, 238, 0.84);
@@ -193,6 +206,7 @@ body {
   color: var(--on-surface);
   overflow-x: hidden;
   transition: background-color 0.25s ease, color 0.25s ease;
+  letter-spacing: 0.1px;
 }
 
 h1, h2, h3, h4, .headline {

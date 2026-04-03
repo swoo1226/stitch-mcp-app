@@ -47,7 +47,7 @@ In environments with a corporate TLS proxy, set `JIRA_INSECURE_TLS=1` in `.env.l
 - `CRON_SECRET`: optional bearer token for Vercel cron calls
 - `KR_HOLIDAYS`: optional comma-separated `YYYY-MM-DD` additions or overrides for Korean holidays
 
-The Vercel cron runs on weekdays, and the server route skips weekends and Korean public holidays before sending.
+The Vercel cron runs on weekdays in the production deployment only, and the server route skips weekends and Korean public holidays before sending.
 
 ### 3. Connect to Stitch (MCP)
 To use this app's context in Stitch, add the following MCP server configuration:

@@ -17,7 +17,7 @@ const DEFAULT_KR_HOLIDAYS = [
   "2026-12-25",
 ] as const;
 
-function toKoreanIsoDate(date: Date) {
+export function toKoreanIsoDate(date: Date) {
   const formatter = new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Asia/Seoul",
     year: "numeric",
@@ -55,4 +55,3 @@ export function getKoreanBusinessDaySkipReason(date = new Date()) {
 
   return null;
 }
-

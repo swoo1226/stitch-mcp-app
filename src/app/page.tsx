@@ -10,6 +10,7 @@ import {
   IconSunny, IconFoggy, IconRainy, IconStormy, IconRadiant,
 } from "./components/WeatherIcons";
 import { statusToKo } from "../lib/mood";
+import { supabase } from "../lib/supabase";
 
 // ─── Nav ────────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
@@ -120,7 +121,7 @@ function WeatherCarousel() {
   const trackRef = useRef<HTMLDivElement>(null);
   const xRef = useRef(0);
   const rafRef = useRef<number | null>(null);
-  const SPEED = 0.6; // px per frame
+  const SPEED = 1.5; // 원래 0.6에서 속도 대폭 상향
 
   useEffect(() => {
     function tick() {
@@ -152,16 +153,16 @@ function WeatherCarousel() {
             }}
           >
             <div className="flex items-center justify-between">
-              <state.icon size={40} />
+              <state.icon size={36} />
               <span
                 className="text-xs font-black rounded-full px-2.5 py-1"
-                style={{ background: "var(--surface-overlay)", color: state.accent }}
+                style={{ background: "var(--surface-overlay)", color: state.status === "Stormy" ? "var(--on-surface)" : state.accent }}
               >
                 {state.range}
               </span>
             </div>
             <div>
-              <p className="font-black text-base tracking-tight mb-1" style={{ color: "var(--on-surface)" }}>{statusToKo(state.status)}</p>
+              <p className="font-black text-sm tracking-tight mb-1" style={{ color: "var(--on-surface)" }}>{statusToKo(state.status)}</p>
               <p className="text-xs font-medium leading-relaxed" style={{ color: "var(--text-muted)" }}>{state.desc}</p>
             </div>
           </div>
@@ -174,6 +175,12 @@ function WeatherCarousel() {
 // ─── Main ────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setIsAdmin(!!session));
+  }, []);
+
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 60]);
@@ -204,6 +211,15 @@ export default function LandingPage() {
                 {item.label}
               </Link>
             ))}
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="px-3 py-1 text-sm font-semibold tracking-tight transition-colors rounded-full hover:bg-surface-low"
+                style={{ color: "var(--text-muted)" }}
+              >
+                어드민
+              </Link>
+            )}
           </nav>
         </div>
         <div className="flex items-center gap-3">
@@ -272,6 +288,16 @@ export default function LandingPage() {
                     {item.label}
                   </Link>
                 ))}
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setMobileNavOpen(false)}
+                    className="px-5 py-4 rounded-[1.5rem] text-base font-semibold tracking-tight transition-colors hover:bg-surface-low"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    어드민
+                  </Link>
+                )}
                 <div className="mt-4 px-2">
                   <Link
                     href="/input"
@@ -561,7 +587,7 @@ export default function LandingPage() {
                     <state.icon size={36} />
                     <span
                       className="text-xs font-black rounded-full px-2.5 py-1"
-                      style={{ background: "var(--surface-overlay)", color: state.accent }}
+                      style={{ background: "var(--surface-overlay)", color: state.status === "Stormy" ? "var(--on-surface)" : state.accent }}
                     >
                       {state.range}
                     </span>

@@ -1,125 +1,82 @@
-# Design System Strategy: The Vibrant Digital Atrium
+# DESIGN.md - Wether: The Vibrant Digital Atrium
 
-## 1. Overview & Creative North Star: "The Chromatic Conservatory"
+이 문서는 "Wether" 서비스의 프론트엔드 및 UI 요소를 일관되게 생성하기 위한 진실의 원천(Single Source of Truth)입니다. AI 에이전트는 이 문서의 규칙을 최우선으로 준수하여 화면을 구성해야 합니다.
 
-The Creative North Star for this design system is **The Chromatic Conservatory**. This is not a static interface; it is a living, breathing digital space that mimics the airy, light-filled transparency of a modern glass atrium. We are moving away from the rigid, "boxed-in" layout of traditional SaaS and towards a fluid, expressive environment designed for the Gen Z sensibility.
+## 1. Visual Theme & Atmosphere
+핵심 메타포는 **"디지털 온실 속 날씨(The Vibrant Digital Atrium & Weather)"**입니다.
+팀원의 컨디션('Whether')을 날씨('Weather')로 시각화하여 심리적 압박감 없이 상태를 기록하는 반응형 공감(Responsive Empathy) 프로덕트입니다. 
+- **The Atrium (디지털 온실)**: 1px의 딱딱한 선(Border)이나 그리드를 배제하고, 투명한 유리 질감(Glassmorphism)과 여백만으로 공간을 구성.
+- **Botanical & Organic**: 둥글둥글한 곡선(최소 1.5rem, 버튼은 원형), 식물에서 영감을 받은 Mint / Coral 등의 편안한 색상.
+- **Apple-style Motion**: 모든 이동과 확장에 스프링 물리 효과(stiffness 170, damping 26)를 사용하여 서비스가 유기체처럼 살아 숨 쉬게 함.
 
-To achieve this, we break the "template" look through **Intentional Asymmetry** and **Physicality**. Elements shouldn't just sit on a grid; they should float, overlap, and respond with **Contextual Continuity**. By utilizing high-saturation accents against a soft mint foundation, we create a high-contrast editorial experience that feels premium yet energetic. This is "Responsive Empathy" in practice—a UI that feels as vibrant and tactile as the generation it serves.
+## 2. Color Palette & Roles
+극강의 대비(Contrast)와 투명도(Opacity)를 활용하여 모던하고 편집 스러운 분위기를 연출합니다. 컬러는 다크모드/라이트모드에 따라 CSS 변수로 유연하게 적용됩니다.
 
----
+- **Background & Canvas**
+  - `--surface` (Base): 온실의 배경 공기층 (Light: Soft Mint `#ebfaec`, Dark: `#0f1718`)
+  - `--surface-container` (Card Base): 주요 콘텐츠가 놓이는 영역
+  - `--surface-lowest` (Spotlight): 가장 밝게 강조되는 핵심 유리창
+- **Text & Content**
+  - `--on-surface` (Primary): 절대 완전한 흰색/검정색을 지양하며, 눈의 피로를 던 미세한 색조(Light: `#253228`, Dark: `#e5f1ee`)
+  - `--text-muted`: 보조 설명 및 날짜 (불투명도 조절로 구현)
+- **Brand & Accent**
+  - `--primary` (Signature Teal): 긍정/안정감 전달 (`#006668` / `#52f2f5`)
+  - `--secondary` (Muted Teal): 부가적인 선택/상태 토글
+  - `--tertiary` (Soft Coral / Red): 경고, 특별한 라이프스타일 요소 (`#9b3d37` / `#ff9f95`)
+- **Weather Dynamics**
+  - 점수에 따라 뒷배경(Blob) 색상 변화 (Radiant/Sunny -> Foggy -> Rainy -> Stormy)
 
-## 2. Colors & Surface Architecture
+## 3. Typography Rules
+글로벌 접근성과 에디토리얼한 감각을 결합한 듀얼 폰트 시스템을 사용합니다.
+- **English/Numerals**: `Public Sans`. 기하학적이고 현대적인 느낌 (Display).
+- **Korean**: `Pretendard`. 극강의 가독성과 네오-그로테스크 양식 제공.
+- **Typography Detail (Raycast 스타일)**: 어두운 투명 유리(Glassmorphism) 위에서의 가독성을 높이기 위해, Body 텍스트에는 약간 양수의 자간(`letter-spacing: 0.1px`)을 주어 글자들이 숨을 쉬게 합니다.
+- **Scale**:
+  - `Display / Header`: 사이즈 극대화(3.5rem~), -0.02em의 타이트한 자간으로 대담한 매거진 느낌 부여.
+  - `Body`: 1rem 기준, 편안한 1.6의 라인하이트. `font-weight: 500(Medium)`을 베이스라인으로 삼아 무게감 유지.
+  - `Label`: 작은 태그는 영문 시 모두 대문자(All-Caps)로 세련되게 처리.
 
-Our palette balances the calm of "Soft Mint" with the high-octane energy of "Muted Teal" and "Soft Coral."
+## 4. Component Stylings
+모든 컴포넌트는 직각이 금지되어 있으며(최소 `md` ~ `rounded-full`), 투명도를 우선시합니다.
+- **Primary Buttons (FAB / Main Action)**: 완전한 알약 형태(`rounded-full`). Signature Gradient(`--button-primary-gradient`) 사용. Hover 시 배경색 전환 대신 투명도 및 내부 그림자 변경, 또는 살짝 확대(`scale(1.04)`).
+- **Secondary / Ghost Buttons**: 배경은 `rgba(255,255,255, 0.04)`처럼 투명도에만 의존하며, 절대 Solid 컬러를 넣지 않음. Hover 시 투명도가 0.08으로 진해짐 (Linear 스타일 상태 변환).
+- **Glass Panel (Cards)**: `--glass-bg` (ex. `rgba(255,255,255,0.7)`) + `backdrop-filter: blur(20px)`가 필수.
+- **Tab Toggles**: 
+  - `PrimaryTabToggle`: 뷰 구조 전체가 변할 때. 활성화 시 시그니처 그라데이션 점유.
+  - `TabToggle`: 단순 데이터 전환 시. 활성화 시 흰색(또는 밝은) 알약 + 그림자. `layoutId` 모션 필수.
 
-### The Surface Hierarchy
-We move beyond flat backgrounds by using a tiered system of `surface` tokens to define importance.
-* **Base Layer:** `surface` (#ebfaec) - The foundational "air" of the atrium.
-* **Mid Layer:** `surface_container_low` (#e4f5e5) - Used for grouping secondary content.
-* **High Layer:** `surface_container_highest` (#cde2cf) - Reserved for prominent interactive cards.
+## 5. Layout Principles
+- **The "No-Line" Rule**: 1px의 실선 테두리 사용을 엄격히 금지. 구획은 "여백(Spacing)"과 "배경색 명도 변화"로 나눕니다. (접근성상 필요할 때만 불투명도 8% 미만의 Ghost Border 사용).
+- **Spacing Rhythm**: 8px 배수 확장. 카드 사이에는 시원하게 파고드는 여백(최소 24px~32px)을 주어 "디지털 온실 내부의 숨 쉴 공간" 확보.
+- **Intentional Asymmetry**: 기하학적 요소나 날씨 Blob이 컴포넌트 사이로 슬쩍 보이도록 비대칭 배치 지향.
 
-### The "No-Line" Rule
-**Explicit Instruction:** Designers are prohibited from using 1px solid borders to section content. Boundaries must be defined solely through background color shifts or tonal transitions. Use `surface_container_low` sections sitting on a `surface` background to create natural separation.
+## 6. Depth & Elevation
+단일 레이어의 뿌연 그림자에서 탈피하여 다중 레이어로 깊이감(macOS style)을 부여합니다. 어두운 표면에서도 빛의 반사를 묘사하여 물리적 볼륨을 생성합니다. (globals.css 클래스 참조)
 
-### The "Glass & Gradient" Rule
-To capture the "Atrium" essence, floating elements (modals, dropdowns, navigation bars) must utilize **Glassmorphism**.
-* **Token:** Use semi-transparent versions of `surface_container_lowest` (#ffffff at 70% opacity) with a `backdrop-filter: blur(20px)`.
-* **Signature Gradients:** For primary CTAs and hero moments, use a linear gradient transitioning from `primary` (#006668) to `primary_container` (#52f2f5) at a 135-degree angle. This adds "visual soul" and depth.
+- **Level 1 (Subtle Lift)**: `box-shadow: var(--shadow-level-1)` - 작은 태그, 가벼운 데이터 행.
+- **Level 2 (Ring Containment)**: `box-shadow: var(--shadow-level-2)` - 표준 카드레이아웃.
+- **Level 3 (Action Button)**: `box-shadow: var(--shadow-level-3)` - 외곽 그림자와 Inset 하이라이트 결합.
+- **Level 4 (Floating / Dialog)**: `box-shadow: var(--shadow-level-4)` - 최상단 모달, 드롭다운.
 
----
+## 7. Do's and Don'ts
+- **DO**: Glassmorphism 카드 밑으로 색상(Blob)을 배치해 투명함을 강조하라.
+- **DO**: 본문 읽기가 편안하도록 양수 자간(+0.1px)과 Medium(500) 굵기를 기본으로 사용하라.
+- **DON'T**: 딱딱한 1px 테두리를 사용해 영역을 가두지 마라(No-Line).
+- **DON'T**: 투명도가 없는 순수 Solid 배경의 보조 버튼을 만들지 마라 (Linear-style 투명도 hover를 사용).
+- **DON'T**: 날카로운 모서리(4px 이하)를 사용하지 마라. `0.75rem ~ 3rem` 곡률 유지.
 
-### 3. Typography: Editorial Kineticism
+## 8. Responsive Behavior (반응형 규칙)
+- **모바일 (< 640px)**
+  - 네비게이션: 데스크톱 가로형 링크 -> 하단 안전 영역(Safe Area)에 닿은 Floating Bottom Bar 또는 햄버거 메뉴 붕괴.
+  - 여백: 외부 컨테이너 여백 16px 축소, 블록 간 Spacing 24px 수준으로 통일.
+- **태블릿 (640px ~ 1024px)**
+  - 컴포넌트 2단 분할 시작. 사이드바가 존재할 경우 축소 아이콘 모드 전환.
+- **데스크톱 (> 1024px)**
+  - 카드들이 화면을 꽉 채우지 못하게 Max Width Container 내부에 비치하고, 바깥 공간은 날씨 Blob이 담당하여 여백의 극대화 연출.
 
-We utilize a dual-font system to balance global accessibility with high-end personality.
+## 9. Agent Prompt Guide (마법의 주문)
+AI 에이전트(Claude 등)로 새 컴포넌트를 만들 때 아래 문구들을 프롬프트에 활용하세요:
 
-* **English & Numerals:** *Public Sans*. This font provides a geometric, modern "pop" perfect for titles.
-* **Korean Text:** *Pretendard*. A clean, highly legible neo-grotesque that ensures "Responsive Empathy" for local users.
-
-**Hierarchy Strategy:**
-* **Display & Headline Scale:** Use `display-lg` (3.5rem) with tight letter-spacing (-0.02em) for high-impact hero sections. These should feel like magazine headlines—bold and unapologetic.
-* **Body Scale:** `body-lg` (1rem) using *Public Sans* for English-heavy descriptors ensures a premium, international feel.
-* **Label Scale:** `label-md` (0.75rem) should always be in All-Caps for English text to act as a sophisticated "tag" against the playful shapes.
-
----
-
-## 4. Elevation & Depth: Tonal Layering
-
-Traditional drop shadows are too "heavy" for a glass atrium. We achieve depth through **Physicality** and **Ambient Light**.
-
-* **The Layering Principle:** Stacking is our primary tool. A `surface_container_lowest` card placed on a `surface_container` section creates a soft, natural lift without a single pixel of shadow.
-* **Ambient Shadows:** For elevated components (Floating Action Buttons or Tooltips), use an extra-diffused shadow:
-* *Blur:* 40px
-* *Spread:* -10px
-* *Color:* `on_surface` (#253228) at 6% opacity. This mimics natural light diffusion through frosted glass.
-* **The "Ghost Border" Fallback:** If accessibility requires a stroke, use the `outline_variant` (#a2b1a3) at **15% opacity**. High-contrast, 100% opaque borders are strictly forbidden.
-
----
-
-## 5. Components: The Pill & The Pattern
-
-All components must adhere to the `ROUND_FULL` (9999px) or `xl` (3rem) corner radius scale to maintain the "Friendly & Energetic" tone.
-
-* **Buttons:**
-* **Primary:** Pill-shaped (`full`). Uses the Signature Gradient (Teal to Mint) with `on_primary` text.
-* **Secondary:** `surface_container_highest` background with `secondary` (#52f2f5) text. No border.
-* **Input Fields:** Use `surface_container_low` as the field background. On focus, the background shifts to `surface_container_lowest` with a subtle `primary` "Ghost Border."
-* **Tab Toggle — Two variants:**
-
-  ### `TabToggle` (Neutral)
-  Secondary navigation toggle. Use when switching **views of the same data** without changing the user's core interaction mode.
-  * Container: `rgba(37,50,40,0.05)` background, `rounded-full`, `p-1`
-  * Active tab: white pill (`bg-white`) + `primary` text + `shadow-sm`. Animated with Framer Motion `layoutId`.
-  * Inactive tab: `on-surface-variant` text, no background.
-  * **When to use:** Time range switches (This Week / Last Week), filter tabs (All / Mine), display mode (List / Grid).
-  * **Implementation:** `<TabToggle tabs={[...]} active={value} onChange={fn} />`
-
-  ### `PrimaryTabToggle` (Signature)
-  Primary mode switch. Use when the toggle **fundamentally changes the interaction paradigm** on the screen — not just the data shown.
-  * Container: `rgba(37,50,40,0.05)` background, `rounded-full`, `p-1.5`
-  * Active tab: **Signature Gradient pill** (`linear-gradient(135deg, #2b6867 0%, #52f2f5 100%)`) + `on-primary` (white) text + `rounded-[1.5rem]`. Animated with Framer Motion `layoutId`.
-  * Inactive tab: `secondary` (#52f2f5) text, no background.
-  * **When to use:** Input mode switches (Quick / Precise), view paradigm switches where the entire UI structure changes.
-  * **Implementation:** `<PrimaryTabToggle tabs={[...]} active={value} onChange={fn} />`
-
-  ### Decision guide
-  `PrimaryTabToggle` is the default for all toggles in this project — consistent Signature Gradient style across views. Reserve `TabToggle` (neutral) only when a screen already contains a `PrimaryTabToggle` and a secondary, lower-emphasis toggle is also needed.
-
-  Both components live in `src/app/components/ui.tsx` and are exported for use across all pages.
-* **FAB (Floating Action Button):** The primary CTA placed `fixed bottom-8` centered. Uses `btn-sanctuary` (Signature Gradient, pill-shaped). Hover: `scale(1.04) y(-3px)`. This is the single most prominent action on the screen — use sparingly, one per view.
-* **Cards & Lists:** **Strictly forbid divider lines.** Use `Spacing Scale 4` (1.4rem) to create separation. Content within cards should be grouped using subtle shifts in background color (e.g., a `tertiary_container` header within a `surface_container` card).
-* **Playful Geometry:** Use the "Sunshine Yellow" and "Soft Coral" accents to create abstract, geometric patterns (circles, arcs) that peek out from behind containers, reinforcing the "Atrium" view.
-* **Glassmorphism Icons:** Icons should be 2D flat shapes with one or two overlapping "frosted" layers at 40% opacity to create a 3D glass-layered effect.
-
-### Niko-Niko Calendar Components
-Specialized components for the team mood calendar grid. All live in `src/app/components/ui.tsx`.
-
-* **`SectionHeader`** — 섹션 제목 블록. 원형 아이콘 래퍼(`h-11 w-11 rounded-[1.5rem] rgba(0,102,104,0.09)`) + 제목(`text-2xl~3xl font-black primary`) + 부제목(`text-sm rgba(37,50,40,0.55)`). Props: `icon`, `title`, `subtitle?`.
-
-* **`WeatherCell`** — 날씨 셀. 3가지 상태:
-  * `status=null` → 빈 원 (`h-9 w-9 rounded-full rgba(37,50,40,0.07)`)
-  * `status=값` → `WEATHER_ICON_MAP` 아이콘 (size 34, `h-12 w-12 rounded-[1.5rem]` 래퍼)
-  * `isToday=true` → 래퍼 배경 `rgba(0,102,104,0.08)` + 하단 primary 점
-  * Props: `status`, `score?`, `isToday?`
-
-* **`NikoGridHeader`** — 요일+날짜 헤더 행. 오늘 컬럼은 primary 컬러, 나머지 muted. `colTemplate` prop으로 부모 그리드와 정렬 맞춤. Props: `days`, `todayIso`, `colTemplate`.
-
-* **`NikoMemberRow`** — 팀원 한 행. 아바타+이름+서브텍스트 좌측 고정 + WeatherCell 배열. `loading=true` 시 skeleton. Framer Motion `whileHover rgba(0,102,104,0.05)`. Props: `avatar`, `name`, `subtitle?`, `week`, `todayIndex`, `colTemplate`, `loading?`.
-
-* **`MiniStatCard`** — 작은 인라인 통계 카드. `GlassPanel px-4 py-3` 기반, `text-xl font-black` 수치. `StatCard`(대형)와 구분: 헤더 영역 요약 수치 전용. Props: `label`, `value`, `valueColor?` ("primary" | "default").
-
-* **`WeatherLegend`** — 날씨 범례 바. Stormy→Radiant 아이콘+한글 라벨 + "기록 없음" 빈원 고정 포함. Props: `className?`.
-
----
-
-## 6. Do's and Don'ts
-
-### Do:
-* **Use Asymmetry:** Overlap a glass card slightly over a geometric background pattern to create "Contextual Continuity."
-* **Embrace White Space:** Use the `Spacing Scale 16` (5.5rem) for section breathing room.
-* **Color-Code Context:** Use `secondary` (Muted Teal) for action-oriented flows and `tertiary` (Soft Coral) for lifestyle or social features.
-
-### Don't:
-* **Don't use 1px Dividers:** They shatter the illusion of a seamless glass atrium.
-* **Don't use Photo Backgrounds:** The system relies on "Visual Style" through flat/3D glass icons and patterns, not realistic photography.
-* **Don't use Hard Corners:** Even a 4px radius is too sharp. Stick to `md` (1.5rem) as your absolute minimum.
-* **Don't Over-Saturate:** Keep the high-saturation accents (Muted Teal, Yellow, Coral) to less than 10% of the screen real estate; the Soft Mint and Teal must do the heavy lifting to maintain the "Premium" feel.
+- **버튼 생성 시**: "Primary CTA 버튼(`btn-sanctuary` 아님)을 만들어줘. 완전한 원형(rounded-full)이고 백그라운드 색상은 Primary 그라데이션. 모바일 환경에 적합한 16px 폰트 (Medium 500) 탑재."
+- **유리 질감 카드 생성 시**: "유리질감 카드를 만들어줘. 1px 테두리는 생략하고, 클래스는 `glass`를 붙이며 추가로 `shadow-level-2` 그림자를 적용해. 컨텐츠 패딩은 1.5rem이며 모서리는 3rem(xl)이야."
+- **섹션/헤더 생성 시**: "온실 테마를 유지하며 섹션 헤더를 그려. Public Sans 폰트로 제목은 32px(Display), 자간은 약간 줄여(-0.02em). 그 위엔 All-Caps로 작은 Label 텍스트를 배치해 줘."
