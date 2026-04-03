@@ -109,71 +109,62 @@ function FadeIn({
   );
 }
 
-// ─── Weather Carousel (모바일 전용 자동 슬라이드) ────────────────────────────
+// ─── Weather Carousel (모바일 전용 무한 마퀴) ────────────────────────────────
 function WeatherCarousel() {
-  const [current, setCurrent] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // 카드 너비 + gap 기준으로 무한 루프: 원본 5개 + 복제 5개
+  const CARD_W = 260;
+  const GAP = 16;
+  const TOTAL = WEATHER_STATES.length;
+  const LOOP_W = (CARD_W + GAP) * TOTAL;
 
-  function resetTimer() {
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
-      setCurrent((c) => (c + 1) % WEATHER_STATES.length);
-    }, 2800);
-  }
+  const trackRef = useRef<HTMLDivElement>(null);
+  const xRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+  const SPEED = 0.6; // px per frame
 
   useEffect(() => {
-    resetTimer();
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    function tick() {
+      xRef.current += SPEED;
+      if (xRef.current >= LOOP_W) xRef.current -= LOOP_W;
+      if (trackRef.current) {
+        trackRef.current.style.transform = `translateX(-${xRef.current}px)`;
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    }
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, [LOOP_W]);
 
-  const state = WEATHER_STATES[current];
+  const cards = [...WEATHER_STATES, ...WEATHER_STATES];
 
   return (
-    <div className="md:hidden">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={state.status}
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -40 }}
-          transition={{ duration: 0.35, ease: "easeInOut" }}
-          className="rounded-[2rem] p-6 flex flex-col gap-4"
-          style={{
-            background: state.bg,
-            backdropFilter: "var(--glass-blur-low)",
-            boxShadow: "var(--glass-shadow)",
-          }}
-        >
-          <div className="flex items-center justify-between">
-            <state.icon size={48} />
-            <span
-              className="text-sm font-black rounded-full px-3 py-1.5"
-              style={{ background: "var(--surface-overlay)", color: state.accent }}
-            >
-              {state.range}
-            </span>
-          </div>
-          <div>
-            <p className="font-black text-lg tracking-tight mb-1" style={{ color: "var(--on-surface)" }}>{statusToKo(state.status)}</p>
-            <p className="text-sm font-medium leading-relaxed" style={{ color: "var(--text-muted)" }}>{state.desc}</p>
-          </div>
-        </motion.div>
-      </AnimatePresence>
-
-      {/* 인디케이터 dots */}
-      <div className="flex justify-center gap-2 mt-4">
-        {WEATHER_STATES.map((s, i) => (
-          <button
-            key={s.status}
-            onClick={() => { setCurrent(i); resetTimer(); }}
-            className="rounded-full transition-all"
+    <div className="md:hidden overflow-hidden -mx-6">
+      <div ref={trackRef} className="flex" style={{ gap: GAP, willChange: "transform" }}>
+        {cards.map((state, i) => (
+          <div
+            key={i}
+            className="shrink-0 rounded-[2rem] p-5 flex flex-col gap-3"
             style={{
-              width: i === current ? "1.5rem" : "0.5rem",
-              height: "0.5rem",
-              background: i === current ? "var(--primary)" : "color-mix(in srgb, var(--on-surface) 18%, transparent)",
+              width: CARD_W,
+              background: state.bg,
+              backdropFilter: "var(--glass-blur-low)",
+              boxShadow: "var(--glass-shadow)",
             }}
-          />
+          >
+            <div className="flex items-center justify-between">
+              <state.icon size={40} />
+              <span
+                className="text-xs font-black rounded-full px-2.5 py-1"
+                style={{ background: "var(--surface-overlay)", color: state.accent }}
+              >
+                {state.range}
+              </span>
+            </div>
+            <div>
+              <p className="font-black text-base tracking-tight mb-1" style={{ color: "var(--on-surface)" }}>{statusToKo(state.status)}</p>
+              <p className="text-xs font-medium leading-relaxed" style={{ color: "var(--text-muted)" }}>{state.desc}</p>
+            </div>
+          </div>
         ))}
       </div>
     </div>
