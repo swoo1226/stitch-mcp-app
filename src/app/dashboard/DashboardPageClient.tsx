@@ -33,7 +33,7 @@ interface RawUser {
 interface Member {
   id: string;
   name: string;
-  avatar: string;
+  avatarEmoji: string;
   score: number | null;
   status: WeatherStatus | null;
   message: string;
@@ -97,7 +97,7 @@ function utcToKstDate(utcStr: string): string {
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI"];
 const NIKO_PAGE_SIZE = 5;
-const NAV_ITEMS: HeaderNavItem[] = [
+const BASE_NAV_ITEMS: HeaderNavItem[] = [
   { label: "홈", href: "/" },
   { label: "개인 현황", href: "/personal" },
   { label: "팀", href: "/dashboard", matchPaths: ["/dashboard", "/team"] },
@@ -184,6 +184,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
   const [loading, setLoading] = useState(true);
   const [weekTab, setWeekTab] = useState<"this" | "last">("this");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const weekOffset = weekTab === "this" ? 0 : -1;
   const today = new Date();
@@ -193,8 +194,16 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
 
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setIsAdmin(!!session));
+  }, []);
+
+  useEffect(() => {
     if (teamId === DEMO_TEAM_ID) {
-      const demoMembers = getDemoMembers(weekOffset).map((member) => ({ ...member, logs: [] }));
+      const demoMembers = getDemoMembers(weekOffset).map(({ avatar, ...member }) => ({
+        ...member,
+        avatarEmoji: avatar,
+        logs: [],
+      }));
       setMembers(demoMembers);
       setParts(DEMO_PARTS);
       setLoading(false);
@@ -251,7 +260,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
         return {
           id: user.id,
           name: user.name,
-          avatar: user.avatar_emoji || "",
+          avatarEmoji: user.avatar_emoji || "",
           score,
           status: score !== null ? scoreToStatus(score) : null,
           message: isToday ? (latest?.message ?? "") : "오늘 체크인이 아직 없어요.",
@@ -384,7 +393,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
             <ClimaLogo />
           </Link>
           <nav className="hidden md:flex items-center gap-1">
-            <HeaderNav items={NAV_ITEMS} />
+            <HeaderNav items={[...BASE_NAV_ITEMS, ...(isAdmin ? [{ label: "어드민", href: "/admin" }] : [])]} />
           </nav>
         </div>
         <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
@@ -444,7 +453,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                 </button>
               </div>
               <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
-                <HeaderNav items={NAV_ITEMS} mobile onNavigate={() => setMobileNavOpen(false)} />
+                <HeaderNav items={[...BASE_NAV_ITEMS, ...(isAdmin ? [{ label: "어드민", href: "/admin" }] : [])]} mobile onNavigate={() => setMobileNavOpen(false)} />
               </nav>
             </motion.div>
           </>
@@ -580,12 +589,14 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                 members={visibleMembers.map((m): NikoCalendarMember => ({
                   id: m.id,
                   name: m.name,
+                  avatarEmoji: m.avatarEmoji,
                   week: m.week,
                 }))}
                 comparisonMembers={selectedPartId
                   ? members.map((m): NikoCalendarMember => ({
                     id: m.id,
                     name: m.name,
+                    avatarEmoji: m.avatarEmoji,
                     week: m.week,
                   }))
                   : undefined}

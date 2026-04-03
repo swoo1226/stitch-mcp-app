@@ -117,10 +117,10 @@ html[data-theme="dark"] {
   --surface-overlay: rgba(17, 26, 28, 0.78);
 
   --on-surface: #e5f1ee;
-  --on-surface-variant: #9bb2ae;
-  --text-muted: rgba(229, 241, 238, 0.72);
-  --text-soft: rgba(229, 241, 238, 0.52);
-  --border-subtle: rgba(229, 241, 238, 0.1);
+  --on-surface-variant: #b8ccc8;
+  --text-muted: rgba(229, 241, 238, 0.82);
+  --text-soft: rgba(229, 241, 238, 0.68);
+  --border-subtle: rgba(229, 241, 238, 0.14);
 
   --primary: #52f2f5;
   --on-primary: #062b2c;
@@ -144,7 +144,7 @@ html[data-theme="dark"] {
   --glass-shadow: 0 22px 48px -16px rgba(0, 0, 0, 0.38);
   --header-bg: rgba(16, 23, 25, 0.78);
   --header-shadow: 0 24px 44px -16px rgba(0, 0, 0, 0.42);
-  --header-action-color: rgba(229, 241, 238, 0.72);
+  --header-action-color: rgba(229, 241, 238, 0.86);
   --drawer-bg: rgba(14, 21, 23, 0.96);
   --drawer-scrim: rgba(5, 8, 10, 0.46);
   --panel-soft: rgba(20, 30, 33, 0.92);
@@ -158,7 +158,7 @@ html[data-theme="dark"] {
   --button-primary-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
   --button-subtle-bg: rgba(255, 255, 255, 0.04);
   --button-subtle-shadow: inset 0 0 0 1px rgba(229, 241, 238, 0.06);
-  --button-subtle-text: rgba(229, 241, 238, 0.7);
+  --button-subtle-text: rgba(229, 241, 238, 0.84);
   --track-bg: rgba(229, 241, 238, 0.12);
   --weather-radiant-bg: #241d10;
   --weather-radiant-blob-1: #c98d13;

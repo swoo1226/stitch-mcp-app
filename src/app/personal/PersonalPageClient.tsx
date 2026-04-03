@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import DynamicBackground from "../components/DynamicBackground";
-import { PageHeadline, SanctuaryCard, Badge, ViewModeToggle, MarkdownRenderer } from "../components/ui";
+import { PageHeadline, SanctuaryCard, Badge, ViewModeToggle, MarkdownRenderer, UserAvatar } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { MoodTrendChart } from "../components/MoodTrendChart";
 import { supabase } from "../../lib/supabase";
@@ -312,8 +312,13 @@ export default function PersonalPageClient({ userId, teamId }: { userId: string;
         <DynamicBackground score={bgScore} />
         <div className="relative z-10 mx-auto w-full max-w-lg px-4 pb-24 pt-12 md:px-8 md:pt-16">
           <header className="mb-10 flex w-full items-center justify-between">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-high text-xl shadow-ambient">
-              {user?.avatar_emoji || "🪴"}
+            <div className="rounded-full bg-surface-high shadow-ambient">
+              <UserAvatar
+                name={user?.name ?? "User"}
+                avatarEmoji={user?.avatar_emoji}
+                size={48}
+                fallbackTextClassName="text-base font-black"
+              />
             </div>
             <Link href="/" className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-high font-bold shadow-ambient transition-transform active:scale-90">
               ✕
@@ -363,8 +368,13 @@ export default function PersonalPageClient({ userId, teamId }: { userId: string;
               transition={{ duration: 0.2 }}
               className="flex items-center gap-3"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-high text-lg shadow-sm">
-                {user?.avatar_emoji || "🪴"}
+              <div className="rounded-full bg-surface-high shadow-sm">
+                <UserAvatar
+                  name={user?.name ?? "User"}
+                  avatarEmoji={user?.avatar_emoji}
+                  size={36}
+                  fallbackTextClassName="text-sm font-black"
+                />
               </div>
               <div>
                 <p className="text-sm font-black tracking-tight leading-none" style={{ color: "var(--on-surface)" }}>

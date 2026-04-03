@@ -96,7 +96,7 @@ interface Part {
 interface MemberRow {
   id: string;
   name: string;
-  avatar: string;
+  avatarEmoji: string;
   part_id: string | null;
   week: Array<{ status: WeatherStatus | null; score: number | null; message: string | null }>;
   todayScore: number | null;
@@ -131,7 +131,7 @@ function getDailyScoresInRange(logs: MoodLogRow[], startIso: string, endIso: str
 }
 
 // ─── Nav ────────────────────────────────────────────────────────────────────
-const NAV_ITEMS: HeaderNavItem[] = [
+const BASE_NAV_ITEMS: HeaderNavItem[] = [
   { label: "홈", href: "/" },
   { label: "개인 현황", href: "/personal" },
   { label: "팀", href: "/dashboard", matchPaths: ["/dashboard", "/team"] },
@@ -191,6 +191,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
   const [weekOffset, setWeekOffset] = useState(0);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"icon" | "chart">("icon");
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const today = new Date();
   const baseMonday = getWeekStart(today);
@@ -201,8 +202,16 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
   const todayIndex = weekDays.findIndex((d) => isoDate(d) === todayIso);
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setIsAdmin(!!session));
+  }, []);
+
+  useEffect(() => {
     if (teamId === DEMO_TEAM_ID) {
-      const demoMembers = getDemoMembers(weekOffset).map((member) => ({ ...member, logs: [] }));
+      const demoMembers = getDemoMembers(weekOffset).map(({ avatar, ...member }) => ({
+        ...member,
+        avatarEmoji: avatar,
+        logs: [],
+      }));
       setMembers(demoMembers);
       setParts(DEMO_PARTS);
       setLoading(false);
@@ -250,7 +259,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
         return {
           id: user.id,
           name: user.name,
-          avatar: user.avatar_emoji || "",
+          avatarEmoji: user.avatar_emoji || "",
           part_id: user.part_id ?? null,
           week,
           todayScore,
@@ -353,7 +362,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
             <ClimaLogo />
           </Link>
           <nav className="hidden md:flex items-center gap-1">
-            <HeaderNav items={NAV_ITEMS} />
+            <HeaderNav items={[...BASE_NAV_ITEMS, ...(isAdmin ? [{ label: "어드민", href: "/admin" }] : [])]} />
           </nav>
         </div>
         <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
@@ -413,7 +422,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
                 </button>
               </div>
               <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
-                <HeaderNav items={NAV_ITEMS} mobile onNavigate={() => setMobileNavOpen(false)} />
+                <HeaderNav items={[...BASE_NAV_ITEMS, ...(isAdmin ? [{ label: "어드민", href: "/admin" }] : [])]} mobile onNavigate={() => setMobileNavOpen(false)} />
               </nav>
             </motion.div>
           </>
@@ -536,12 +545,14 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
               members={visibleMembers.map((m): NikoCalendarMember => ({
                 id: m.id,
                 name: m.name,
+                avatarEmoji: m.avatarEmoji,
                 week: m.week,
               }))}
               comparisonMembers={selectedPartId
                 ? members.map((m): NikoCalendarMember => ({
                   id: m.id,
                   name: m.name,
+                  avatarEmoji: m.avatarEmoji,
                   week: m.week,
                 }))
                 : undefined}
