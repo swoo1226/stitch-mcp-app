@@ -228,6 +228,8 @@ export default function AdminPageClient() {
   const thoughtPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const thoughtLongPressTriggeredRef = useRef(false);
   const jiraSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const carouselDrag = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false });
 
   function copyWithFeedback(text: string, key: string, type: "member" | "link") {
     navigator.clipboard.writeText(text);
@@ -1235,8 +1237,43 @@ export default function AdminPageClient() {
               ) : (
                 <>
                   <div
+                    ref={carouselRef}
                     className="flex gap-4 overflow-x-auto pb-3 -mx-1 px-1"
-                    style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", msOverflowStyle: "none", scrollbarWidth: "none" }}
+                    style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", msOverflowStyle: "none", scrollbarWidth: "none", cursor: carouselDrag.current.active ? "grabbing" : "grab" }}
+                    onMouseDown={(e) => {
+                      if (!carouselRef.current) return;
+                      carouselDrag.current = { active: true, moved: false, startX: e.pageX - carouselRef.current.offsetLeft, scrollLeft: carouselRef.current.scrollLeft };
+                      carouselRef.current.style.cursor = "grabbing";
+                      carouselRef.current.style.scrollSnapType = "none";
+                    }}
+                    onMouseLeave={() => {
+                      if (!carouselRef.current || !carouselDrag.current.active) return;
+                      carouselDrag.current.active = false;
+                      carouselRef.current.style.cursor = "grab";
+                      carouselRef.current.style.scrollSnapType = "x mandatory";
+                    }}
+                    onMouseUp={() => {
+                      if (!carouselRef.current) return;
+                      carouselDrag.current.active = false;
+                      carouselRef.current.style.cursor = "grab";
+                      carouselRef.current.style.scrollSnapType = "x mandatory";
+                    }}
+                    onMouseMove={(e) => {
+                      if (!carouselDrag.current.active || !carouselRef.current) return;
+                      const x = e.pageX - carouselRef.current.offsetLeft;
+                      const walk = x - carouselDrag.current.startX;
+                      if (Math.abs(walk) > 4) {
+                        e.preventDefault();
+                        carouselDrag.current.moved = true;
+                        carouselRef.current.scrollLeft = carouselDrag.current.scrollLeft - walk * 1.5;
+                      }
+                    }}
+                    onClick={(e) => {
+                      if (carouselDrag.current.moved) {
+                        e.stopPropagation();
+                        carouselDrag.current.moved = false;
+                      }
+                    }}
                   >
                     {members.map(m => {
                       const raw = m.mood_logs?.[0];
