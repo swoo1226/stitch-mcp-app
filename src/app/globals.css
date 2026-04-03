@@ -251,3 +251,15 @@ h1, h2, h3, h4, .headline {
 .shadow-ambient {
   box-shadow: var(--shadow-ambient);
 }
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+  50%       { opacity: 0.5; transform: translateX(-50%) scale(1.8); }
+}
+
+/* 터치 디바이스(모바일)에서만 pulse — PC는 hover로 충분 */
+@media (hover: none) {
+  .dot-pulse {
+    animation: dot-pulse 2.4s ease-in-out infinite;
+  }
+}

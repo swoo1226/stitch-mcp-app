@@ -838,12 +838,17 @@ export function WeatherCell({ status, score, message, isToday = false }: Weather
         onClick={(e) => { e.stopPropagation(); if (showTooltip) { setShowTooltip(false); } else { openTooltip(); } }}
       >
         <Icon size={34} />
-        {isToday && (
+        {isToday ? (
           <div
             className="absolute -bottom-1.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full"
             style={{ background: "var(--primary)" }}
           />
-        )}
+        ) : message ? (
+          <div
+            className="dot-pulse absolute -bottom-1.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full"
+            style={{ background: "var(--text-soft)" }}
+          />
+        ) : null}
         <AnimatePresence>
           {showTooltip && anchorRect && (
             <SmartTooltip text={message || ""} score={score} status={status} anchorRect={anchorRect} />
@@ -1417,6 +1422,12 @@ export function WeatherLegend({ className = "" }: WeatherLegendProps) {
       <div className="flex items-center gap-1.5">
         <div className="h-6 w-6 rounded-full" style={{ background: "color-mix(in srgb, var(--on-surface) 8%, transparent)" }} />
         <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>기록 없음</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <div className="relative flex h-6 w-6 items-center justify-center">
+          <div className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--text-soft)" }} />
+        </div>
+        <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>한마디 있음 (탭해서 보기)</span>
       </div>
     </div>
   );
