@@ -840,12 +840,12 @@ export function WeatherCell({ status, score, message, isToday = false }: Weather
         <Icon size={34} />
         {isToday ? (
           <div
-            className="absolute -bottom-1.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full"
+            className="absolute bottom-0.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full"
             style={{ background: "var(--primary)" }}
           />
         ) : message ? (
           <div
-            className="dot-pulse absolute -bottom-1.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full"
+            className="dot-pulse absolute bottom-0.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full"
             style={{ background: "var(--text-soft)" }}
           />
         ) : null}
