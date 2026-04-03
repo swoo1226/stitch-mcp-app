@@ -474,7 +474,7 @@ export default function LandingPage() {
         <div className="max-w-[1280px] mx-auto">
           <FadeIn className="text-center mb-14">
             <p className="text-xs font-extrabold uppercase tracking-[0.18em] mb-4" style={{ color: "var(--primary)", opacity: 0.7 }}>
-              6가지 날씨 상태
+              5가지 날씨 상태
             </p>
             <h2 className="text-3xl md:text-4xl font-black tracking-tight" style={{ fontFamily: "'Public Sans', sans-serif" }}>
               내 마음의 날씨를 읽어요
