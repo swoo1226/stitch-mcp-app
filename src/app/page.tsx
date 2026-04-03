@@ -273,7 +273,7 @@ export default function LandingPage() {
                 className="text-4xl sm:text-5xl md:text-[3.5rem] xl:text-[4rem] font-black tracking-tight leading-[1.08] mb-6"
                 style={{ fontFamily: "'Public Sans', sans-serif", color: "var(--on-surface)" }}
               >
-                우리 팀의 오늘,
+                우리 팀의 오늘 날씨,
                 <br />
                 <span
                   style={{
