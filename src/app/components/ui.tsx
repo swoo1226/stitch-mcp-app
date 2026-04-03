@@ -730,8 +730,9 @@ function SmartTooltip({
   status: WeatherStatus;
   anchorRect: DOMRect;
 }) {
+  const tooltipText = text || statusToFallbackComment(status);
   const layout = useTextLayout({
-    text: text || statusToKo(status),
+    text: tooltipText,
     fontSize: 13,
     fontFamily: "'Public Sans', sans-serif",
     maxWidth: 200,
@@ -739,7 +740,7 @@ function SmartTooltip({
   });
 
   const tooltipWidth = Math.max(layout.width + 32, 120);
-  const tooltipHeight = layout.height + 48;
+  const tooltipHeight = layout.height + 60;
 
   // 셀 중앙 기준으로 툴팁을 위에 띄움
   const left = anchorRect.left + anchorRect.width / 2 - tooltipWidth / 2;
@@ -759,7 +760,7 @@ function SmartTooltip({
         top,
         left: clampedLeft,
         width: tooltipWidth,
-        height: tooltipHeight,
+        minHeight: tooltipHeight,
         zIndex: 9999,
         background: "var(--glass-bg-high)",
         backdropFilter: "var(--glass-blur-high)",
@@ -776,8 +777,11 @@ function SmartTooltip({
           <span className="text-[10px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">{score}pt</span>
         )}
       </div>
-      <div className="text-[13px] font-medium leading-[1.5] text-on-surface" style={{ fontFamily: "'Public Sans', sans-serif" }}>
-        <MarkdownRenderer content={text || statusToFallbackComment(status)} color="var(--on-surface)" />
+      <div
+        className="text-[13px] font-medium leading-[1.5] text-on-surface break-words"
+        style={{ fontFamily: "'Public Sans', sans-serif", overflowWrap: "anywhere", wordBreak: "break-word" }}
+      >
+        <MarkdownRenderer content={tooltipText} color="var(--on-surface)" />
       </div>
       {/* Arrow: 툴팁 하단 중앙 → 셀 방향 */}
       <div
