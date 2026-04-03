@@ -155,7 +155,7 @@ export default function LandingPage() {
               boxShadow: "var(--button-primary-shadow)",
             }}
           >
-            Let's Clima
+            오늘 체크인하기
           </Link>
           <button
             className="md:hidden flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
@@ -217,7 +217,7 @@ export default function LandingPage() {
                     className="flex items-center justify-center h-14 rounded-[1.5rem] text-base font-bold"
                     style={{ background: "var(--button-primary-gradient)", color: "var(--on-primary)" }}
                   >
-                    Let's Clima
+                    오늘 체크인하기
                   </Link>
                 </div>
               </nav>
