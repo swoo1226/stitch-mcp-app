@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase, DEFAULT_TEAM_ID } from "../../lib/supabase";
+import { getAdminSession, isSuperAdmin, type AdminSession } from "../../lib/admin-auth";
 import { scoreToStatus, statusToKo } from "../../lib/mood";
 import { STANDARD_SPRING } from "../constants/springs";
 import Link from "next/link";
@@ -22,6 +23,7 @@ import {
   PrimaryTabToggle,
   PortalSelect,
   MarkdownRenderer,
+  UserAvatar,
 } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 
@@ -78,6 +80,19 @@ interface JiraTicketSnapshot {
   openTicketCount: number;
   tickets: JiraTicketPreview[];
   syncedAt: string | null;
+}
+
+interface CombinedRiskTarget {
+  userId: string;
+  name: string;
+  teamName: string;
+  partName: string | null;
+  todayScore: number;
+  recentDelta: number | null;
+  openTicketCount: number;
+  blockerCount: number;
+  tickets: JiraTicketPreview[];
+  level: "critical" | "warning";
 }
 
 function PlusIcon() {
@@ -183,10 +198,12 @@ function ThoughtTooltip({
 interface Team {
   id: string;
   name: string;
+  jira_project_keys: string[] | null;
 }
 
 export default function AdminPageClient() {
   const [authed, setAuthed] = useState(false);
+  const [adminSession, setAdminSession] = useState<AdminSession | null>(null);
   const [emailInput, setEmailInput] = useState("");
   const [pwInput, setPwInput] = useState("");
   const [pwError, setPwError] = useState<string | null>(null);
@@ -210,6 +227,7 @@ export default function AdminPageClient() {
   const [activeThoughtRect, setActiveThoughtRect] = useState<DOMRect | null>(null);
   const thoughtPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const thoughtLongPressTriggeredRef = useRef(false);
+  const jiraSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function copyWithFeedback(text: string, key: string, type: "member" | "link") {
     navigator.clipboard.writeText(text);
@@ -285,6 +303,9 @@ export default function AdminPageClient() {
   const [jiraSnapshots, setJiraSnapshots] = useState<Record<string, JiraTicketSnapshot>>({});
   const [jiraLoading, setJiraLoading] = useState(false);
   const [jiraError, setJiraError] = useState<string | null>(null);
+  const [riskTargets, setRiskTargets] = useState<CombinedRiskTarget[]>([]);
+  const [riskPanelOpen, setRiskPanelOpen] = useState(false);
+  const [loadingRiskTargets, setLoadingRiskTargets] = useState(false);
   const [sendingTeamsAlert, setSendingTeamsAlert] = useState(false);
   const [teamsAlertMessage, setTeamsAlertMessage] = useState<string | null>(null);
   const [memberAddOpen, setMemberAddOpen] = useState(false);
@@ -293,6 +314,15 @@ export default function AdminPageClient() {
   const [newTeamId, setNewTeamId] = useState<string>("");
   const [newPartId, setNewPartId] = useState<string>("");
   const [adding, setAdding] = useState(false);
+
+  // ── Jira 팀원 가져오기
+  const [jiraUsers, setJiraUsers] = useState<{ accountId: string; displayName: string; emailAddress: string | null }[]>([]);
+  const [jiraUsersLoading, setJiraUsersLoading] = useState(false);
+  const [jiraUsersError, setJiraUsersError] = useState<string | null>(null);
+  const [jiraSelected, setJiraSelected] = useState<Set<string>>(new Set());
+  const [jiraImporting, setJiraImporting] = useState(false);
+  const [jiraOpen, setJiraOpen] = useState(false);
+  const [jiraQuery, setJiraQuery] = useState("");
 
   // ── 기분 기록 모달
   const [moodTarget, setMoodTarget] = useState<string | null>(null);
@@ -307,12 +337,21 @@ export default function AdminPageClient() {
   const [teamManageOpen, setTeamManageOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
   const [addingTeam, setAddingTeam] = useState(false);
+  const [jiraKeyInputs, setJiraKeyInputs] = useState<Record<string, string>>({}); // teamId → 입력 중인 키
+  const [savingJiraKeys, setSavingJiraKeys] = useState<Record<string, boolean>>({}); // teamId → 저장 중
 
   // ── 파트 CRUD 상태
   const [partManageOpen, setPartManageOpen] = useState(false);
   const [newPartName, setNewPartName] = useState("");
   const [newPartTeamId, setNewPartTeamId] = useState<string>("");
   const [addingPart, setAddingPart] = useState(false);
+
+  // ── 팀장 초대 (super_admin 전용)
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteWorkEmail, setInviteWorkEmail] = useState("");
+  const [inviteTeamId, setInviteTeamId] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [inviteResult, setInviteResult] = useState<{ ok: boolean; message: string } | null>(null);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 767px)");
@@ -324,10 +363,18 @@ export default function AdminPageClient() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setAuthed(true);
+      if (session) {
+        setAuthed(true);
+        getAdminSession().then(setAdminSession);
+      }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setAuthed(!!session);
+      if (session) {
+        getAdminSession().then(setAdminSession);
+      } else {
+        setAdminSession(null);
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -348,7 +395,7 @@ export default function AdminPageClient() {
   }
 
   async function fetchTeams() {
-    const { data } = await supabase.from("teams").select("id, name").order("name");
+    const { data } = await supabase.from("teams").select("id, name, jira_project_keys").order("name");
     setTeams((data as Team[]) ?? []);
   }
 
@@ -359,10 +406,15 @@ export default function AdminPageClient() {
 
   async function fetchMembers() {
     setLoading(true);
-    const { data } = await supabase
+    const session = adminSession ?? await getAdminSession();
+    let query = supabase
       .from("users")
       .select(`id, name, email, jira_account_id, avatar_emoji, access_token, part_id, team_id, parts (id, name), mood_logs (score, message, logged_at)`)
       .order("logged_at", { referencedTable: "mood_logs", ascending: false });
+    if (session && !isSuperAdmin(session) && session.managedTeamId) {
+      query = query.eq("team_id", session.managedTeamId);
+    }
+    const { data } = await query;
     // mood_logs를 배열로 정규화하고, 최신 1개만 사용
     const normalized = (data ?? []).map((u: unknown) => {
       const user = u as Record<string, unknown>;
@@ -378,6 +430,16 @@ export default function AdminPageClient() {
     setJiraLoading(true);
     setJiraError(null);
     try {
+      // 현재 멤버가 속한 팀들의 Jira 프로젝트 키 수집
+      const teamIdSet = new Set(members.map((m) => m.team_id).filter(Boolean));
+      const projectKeys = Array.from(
+        new Set(
+          teams
+            .filter((t) => teamIdSet.has(t.id))
+            .flatMap((t) => t.jira_project_keys ?? []),
+        ),
+      );
+
       const response = await fetch("/api/admin/jira/open-tickets", {
         method: "POST",
         cache: "no-store",
@@ -391,6 +453,7 @@ export default function AdminPageClient() {
             teamId: member.team_id ?? null,
             jiraAccountId: member.jira_account_id ?? null,
           })),
+          projectKeys: projectKeys.length > 0 ? projectKeys : null,
         }),
       });
       const payload = await response.json();
@@ -409,8 +472,8 @@ export default function AdminPageClient() {
     }
   }
 
-  async function sendCombinedRiskAlert() {
-    setSendingTeamsAlert(true);
+  async function fetchCombinedRiskTargets() {
+    setLoadingRiskTargets(true);
     setTeamsAlertMessage(null);
     try {
       const response = await fetch("/api/admin/alerts/combined-risk", {
@@ -422,6 +485,37 @@ export default function AdminPageClient() {
         throw new Error(payload.error ?? "Teams 알림 전송에 실패했어요.");
       }
 
+      setRiskTargets((payload.targets ?? []) as CombinedRiskTarget[]);
+      setRiskPanelOpen(true);
+
+      if (!payload.sent && payload.reason === "no_targets") {
+        setTeamsAlertMessage("현재 규칙에 걸리는 팀원이 없어 알림을 보내지 않았어요.");
+      } else if (!payload.sent && payload.reason === "no_eligible_users") {
+        setTeamsAlertMessage("Jira 계정이 연결된 팀원이 없어 알림을 보내지 않았어요.");
+      } else if (!payload.sent) {
+        setTeamsAlertMessage("현재 규칙 기준 결과를 불러왔어요.");
+      }
+    } catch (error) {
+      setTeamsAlertMessage(error instanceof Error ? error.message : "주의 필요 팀원을 불러오지 못했어요.");
+    } finally {
+      setLoadingRiskTargets(false);
+    }
+  }
+
+  async function sendCombinedRiskAlert() {
+    setSendingTeamsAlert(true);
+    setTeamsAlertMessage(null);
+    try {
+      const response = await fetch("/api/admin/alerts/combined-risk?send=1", {
+        method: "POST",
+        cache: "no-store",
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Teams 알림 전송에 실패했어요.");
+      }
+
+      setRiskTargets((payload.targets ?? []) as CombinedRiskTarget[]);
       if (!payload.sent) {
         if (payload.reason === "no_targets") {
           setTeamsAlertMessage("현재 규칙에 걸리는 팀원이 없어 알림을 보내지 않았어요.");
@@ -444,8 +538,11 @@ export default function AdminPageClient() {
   async function addMember() {
     if (!newName.trim() || !newEmail.trim() || adding) return;
     setAdding(true);
+    const effectiveTeamId = (!isSuperAdmin(adminSession) && adminSession?.managedTeamId)
+      ? adminSession.managedTeamId
+      : (newTeamId || DEFAULT_TEAM_ID);
     await supabase.from("users").insert({
-      team_id: newTeamId || DEFAULT_TEAM_ID,
+      team_id: effectiveTeamId,
       name: newName.trim(),
       email: newEmail.trim(),
       part_id: newPartId || null,
@@ -456,6 +553,46 @@ export default function AdminPageClient() {
     setNewPartId("");
     await fetchMembers();
     setAdding(false);
+  }
+
+  async function searchJiraUsers(q: string) {
+    if (!q.trim()) { setJiraUsers([]); return; }
+    setJiraUsersLoading(true);
+    setJiraUsersError(null);
+    try {
+      const res = await fetch(`/api/admin/jira/users?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Jira 연결 실패");
+      const existingEmails = new Set(members.map((m) => m.email?.toLowerCase()).filter(Boolean));
+      setJiraUsers((data.users ?? []).filter((u: { emailAddress: string | null }) => !existingEmails.has(u.emailAddress?.toLowerCase() ?? "")));
+    } catch (e) {
+      setJiraUsersError(e instanceof Error ? e.message : "알 수 없는 오류");
+    }
+    setJiraUsersLoading(false);
+  }
+
+  async function importJiraSelected() {
+    if (jiraSelected.size === 0 || jiraImporting) return;
+    setJiraImporting(true);
+    const effectiveTeamId = (!isSuperAdmin(adminSession) && adminSession?.managedTeamId)
+      ? adminSession.managedTeamId
+      : (newTeamId || DEFAULT_TEAM_ID);
+    const toImport = jiraUsers.filter((u) => jiraSelected.has(u.accountId));
+    await Promise.all(
+      toImport.map((u) =>
+        supabase.from("users").insert({
+          team_id: effectiveTeamId,
+          name: u.displayName,
+          email: u.emailAddress,
+          jira_account_id: u.accountId,
+          part_id: newPartId || null,
+        })
+      )
+    );
+    setJiraSelected(new Set());
+    setJiraOpen(false);
+    await fetchMembers();
+    setJiraImporting(false);
   }
 
   // ── Optimistic update 헬퍼 ──────────────────────────────────────────────────
@@ -563,6 +700,32 @@ export default function AdminPageClient() {
     await fetchAll();
   }
 
+  async function addJiraKey(teamId: string) {
+    const key = (jiraKeyInputs[teamId] ?? "").trim().toUpperCase();
+    if (!key) return;
+    const team = teams.find((t) => t.id === teamId);
+    if (!team) return;
+    const currentKeys = team.jira_project_keys ?? [];
+    if (currentKeys.includes(key)) {
+      setJiraKeyInputs((prev) => ({ ...prev, [teamId]: "" }));
+      return;
+    }
+    setSavingJiraKeys((prev) => ({ ...prev, [teamId]: true }));
+    const nextKeys = [...currentKeys, key];
+    await supabase.from("teams").update({ jira_project_keys: nextKeys }).eq("id", teamId);
+    setJiraKeyInputs((prev) => ({ ...prev, [teamId]: "" }));
+    await fetchTeams();
+    setSavingJiraKeys((prev) => ({ ...prev, [teamId]: false }));
+  }
+
+  async function removeJiraKey(teamId: string, key: string) {
+    const team = teams.find((t) => t.id === teamId);
+    if (!team) return;
+    const nextKeys = (team.jira_project_keys ?? []).filter((k) => k !== key);
+    await supabase.from("teams").update({ jira_project_keys: nextKeys }).eq("id", teamId);
+    await fetchTeams();
+  }
+
   async function addPart() {
     if (!newPartName.trim() || addingPart) return;
     setAddingPart(true);
@@ -579,6 +742,31 @@ export default function AdminPageClient() {
   async function deletePart(id: string) {
     await supabase.from("parts").delete().eq("id", id);
     await fetchAll();
+  }
+
+  async function inviteTeamAdmin() {
+    if (!inviteEmail.trim() || !inviteTeamId || inviting) return;
+    setInviting(true);
+    setInviteResult(null);
+    const res = await fetch("/api/admin/invite", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: inviteEmail.trim(),
+        workEmail: inviteWorkEmail.trim() || null,
+        teamId: inviteTeamId,
+      }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setInviteResult({ ok: true, message: `${inviteEmail.trim()}에게 초대 이메일을 발송했습니다.` });
+      setInviteEmail("");
+      setInviteWorkEmail("");
+      setInviteTeamId("");
+    } else {
+      setInviteResult({ ok: false, message: data.error ?? "초대 발송 실패" });
+    }
+    setInviting(false);
   }
 
   async function signIn() {
@@ -846,11 +1034,11 @@ export default function AdminPageClient() {
               {activeTab === "members" && (
                 <ClimaButton
                   variant="secondary"
-                  onClick={sendCombinedRiskAlert}
-                  disabled={sendingTeamsAlert}
+                  onClick={fetchCombinedRiskTargets}
+                  disabled={loadingRiskTargets}
                   className="px-4 py-2.5 text-xs font-black"
                 >
-                  {sendingTeamsAlert ? "Teams 전송 중..." : "Teams 알림 전송"}
+                  {loadingRiskTargets ? "불러오는 중..." : "주의 필요 팀원 보기"}
                 </ClimaButton>
               )}
               <div
@@ -858,10 +1046,15 @@ export default function AdminPageClient() {
                 style={{ background: "var(--surface-overlay)", boxShadow: "var(--button-subtle-shadow)" }}
               >
                 <PrimaryTabToggle
-                  tabs={[
-                    { value: "members" as const, label: "팀원" },
-                    { value: "teams" as const, label: "팀 · 파트" },
-                  ]}
+                  tabs={adminSession === null || isSuperAdmin(adminSession)
+                    ? [
+                        { value: "members" as const, label: "팀원" },
+                        { value: "teams" as const, label: "팀 · 파트" },
+                      ]
+                    : [
+                        { value: "members" as const, label: "팀원" },
+                      ]
+                  }
                   active={activeTab}
                   onChange={setActiveTab}
                 />
@@ -880,6 +1073,111 @@ export default function AdminPageClient() {
             >
               {teamsAlertMessage}
             </div>
+          )}
+          {riskPanelOpen && (
+            <GlassCard className="p-5 md:p-6" intensity="low">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-black tracking-tight" style={{ color: "var(--primary)" }}>
+                    주의 필요 팀원
+                  </p>
+                  <p className="mt-1 text-sm font-medium" style={{ color: "var(--on-surface-variant)" }}>
+                    오늘 점수 50점 이하이면서 미완료 5건 이상 또는 blocker 1건 이상인 팀원입니다.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <ClimaButton
+                    variant="secondary"
+                    onClick={sendCombinedRiskAlert}
+                    disabled={sendingTeamsAlert || riskTargets.length === 0}
+                    className="px-4 py-2.5 text-xs font-black"
+                  >
+                    {sendingTeamsAlert ? "Teams 전송 중..." : "Teams로 전송"}
+                  </ClimaButton>
+                  <button
+                    type="button"
+                    onClick={() => setRiskPanelOpen(false)}
+                    className="flex h-10 w-10 items-center justify-center rounded-full"
+                    style={{ background: "var(--surface-container)", color: "var(--on-surface-variant)" }}
+                    title="닫기"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-col gap-3">
+                {riskTargets.length === 0 ? (
+                  <div
+                    className="rounded-[1.25rem] px-4 py-4 text-sm font-semibold"
+                    style={{ background: "var(--surface-overlay)", color: "var(--on-surface-variant)" }}
+                  >
+                    현재 규칙에 걸리는 팀원이 없습니다.
+                  </div>
+                ) : (
+                  riskTargets.map((target) => (
+                    <div
+                      key={target.userId}
+                      className="rounded-[1.4rem] px-4 py-4"
+                      style={{
+                        background: target.level === "critical"
+                          ? "color-mix(in srgb, var(--tertiary) 12%, transparent)"
+                          : "color-mix(in srgb, var(--surface-container) 78%, transparent)",
+                      }}
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="rounded-full px-2.5 py-1 text-[11px] font-black tracking-[0.08em]"
+                              style={{
+                                background: target.level === "critical"
+                                  ? "color-mix(in srgb, var(--tertiary) 18%, transparent)"
+                                  : "color-mix(in srgb, var(--primary) 12%, transparent)",
+                                color: target.level === "critical" ? "var(--tertiary)" : "var(--primary)",
+                              }}
+                            >
+                              {target.level === "critical" ? "CRITICAL" : "WARNING"}
+                            </span>
+                            <p className="text-sm font-black tracking-tight" style={{ color: "var(--on-surface)" }}>
+                              {target.name}
+                            </p>
+                          </div>
+                          <p className="mt-2 text-sm font-medium" style={{ color: "var(--on-surface-variant)" }}>
+                            {target.teamName}{target.partName ? ` · ${target.partName}` : ""}
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs font-semibold" style={{ color: "var(--on-surface)" }}>
+                          <div>오늘 점수 {target.todayScore}pt</div>
+                          <div>미완료 {target.openTicketCount}건</div>
+                          <div>
+                            최근 3일 {target.recentDelta == null ? "데이터 없음" : `${target.recentDelta > 0 ? "+" : ""}${target.recentDelta}pt`}
+                          </div>
+                          <div>Blocker {target.blockerCount}건</div>
+                        </div>
+                      </div>
+                      {target.tickets.length > 0 && (
+                        <div className="mt-3 flex flex-col gap-2">
+                          {target.tickets.map((ticket) => (
+                            <a
+                              key={ticket.key}
+                              href={ticket.browseUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="rounded-[1rem] px-3 py-2 text-xs font-semibold transition-colors"
+                              style={{ background: "var(--surface-elevated)", color: "var(--on-surface)" }}
+                            >
+                              {ticket.key} · {ticket.summary}
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </GlassCard>
           )}
 
           {activeTab === "members" && (<>
@@ -966,7 +1264,7 @@ export default function AdminPageClient() {
                         <motion.div
                           key={m.id}
                           layout
-                          className="relative flex flex-col gap-4 rounded-[2rem] p-5 shrink-0 group"
+                          className="relative flex min-h-[27rem] flex-col gap-4 rounded-[2rem] p-5 shrink-0 group"
                           onMouseLeave={() => {
                             if (activeThoughtId === m.id) closeThought();
                           }}
@@ -987,10 +1285,19 @@ export default function AdminPageClient() {
                               className="w-12 h-12 rounded-[1.2rem] flex items-center justify-center shrink-0"
                               style={{ background: score !== null ? "var(--highlight-soft)" : "var(--surface-container)" }}
                             >
-                              {score !== null
-                                ? (() => { const Icon = WEATHER_ICON_MAP[scoreToStatus(score)]; return <Icon size={26} />; })()
-                                : <span className="text-lg font-black" style={{ color: "var(--text-soft)" }}>{m.name.slice(0, 1)}</span>
-                              }
+                              {score !== null ? (
+                                (() => {
+                                  const Icon = WEATHER_ICON_MAP[scoreToStatus(score)];
+                                  return <Icon size={26} />;
+                                })()
+                              ) : (
+                                <UserAvatar
+                                  name={m.name}
+                                  avatarEmoji={m.avatar_emoji}
+                                  size={48}
+                                  fallbackTextClassName="text-lg font-black"
+                                />
+                              )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-bold text-base tracking-tight leading-tight truncate">{m.name}</p>
@@ -1052,7 +1359,7 @@ export default function AdminPageClient() {
                           </div>
 
                           <div
-                            className="rounded-[1.4rem] px-4 py-3"
+                            className="flex flex-1 flex-col rounded-[1.4rem] px-4 py-3"
                             style={{ background: "color-mix(in srgb, var(--surface-container) 72%, transparent)" }}
                           >
                             {(() => {
@@ -1089,7 +1396,7 @@ export default function AdminPageClient() {
                               }
 
                               return (
-                                <div className="flex flex-col gap-2">
+                                <div className="flex h-full flex-col gap-2">
                                   <div className="flex items-center justify-between gap-3">
                                     <div className="min-w-0">
                                       <p className="text-[11px] font-black uppercase tracking-[0.16em]" style={{ color: "var(--primary)" }}>
@@ -1109,7 +1416,7 @@ export default function AdminPageClient() {
                                       현재 진행 중인 티켓이 없어요.
                                     </p>
                                   ) : (
-                                    <div className="flex flex-col gap-2">
+                                    <div className="flex min-h-0 flex-1 flex-col gap-2">
                                       {snapshot.tickets.map((ticket) => (
                                         <a
                                           key={ticket.key}
@@ -1123,7 +1430,16 @@ export default function AdminPageClient() {
                                             <p className="text-[11px] font-black tracking-[0.08em]" style={{ color: "var(--primary)" }}>
                                               {ticket.key}
                                             </p>
-                                            <p className="mt-0.5 text-xs font-semibold leading-5" style={{ color: "var(--on-surface)" }}>
+                                            <p
+                                              className="mt-0.5 text-xs font-semibold leading-5"
+                                              style={{
+                                                color: "var(--on-surface)",
+                                                display: "-webkit-box",
+                                                WebkitLineClamp: 2,
+                                                WebkitBoxOrient: "vertical",
+                                                overflow: "hidden",
+                                              }}
+                                            >
                                               {ticket.summary}
                                             </p>
                                           </div>
@@ -1145,7 +1461,7 @@ export default function AdminPageClient() {
                           </div>
 
                           {/* 하단: 액션 */}
-                          <div className="flex justify-between">
+                          <div className="mt-auto flex justify-between pt-1">
                             <button
                               type="button"
                               onClick={() => { setMoodTarget(m.id); setMoodScore(score ?? 50); setMoodMessage(latest?.message ?? ""); setMoodError(null); setMoodDuplicate(false); }}
@@ -1325,7 +1641,80 @@ export default function AdminPageClient() {
                     transition={STANDARD_SPRING}
                     className="overflow-hidden"
                   >
-                    <div className="flex gap-3 flex-wrap pt-4">
+                    {/* Jira에서 가져오기 */}
+                    <div className="pt-4">
+                      <button
+                        type="button"
+                        onClick={() => { setJiraOpen((o) => !o); setJiraUsers([]); setJiraQuery(""); setJiraSelected(new Set()); }}
+                        className="flex items-center gap-2 rounded-[1.2rem] px-4 py-2.5 text-sm font-bold transition-all"
+                        style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
+                      >
+                        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+                          <path d="M11.75 2a9.75 9.75 0 1 0 0 19.5A9.75 9.75 0 0 0 11.75 2zm.5 5.25v4.5h4.5v1.5h-4.5v4.5h-1.5v-4.5h-4.5v-1.5h4.5v-4.5h1.5z" />
+                        </svg>
+                        Jira에서 팀원 검색
+                      </button>
+
+                      {jiraOpen && (
+                        <div className="mt-3 rounded-[1.5rem] p-4" style={{ background: "var(--surface-container)" }}>
+                          <ClimaInput
+                            id="jira-user-search"
+                            type="text"
+                            placeholder="이름 또는 이메일로 검색"
+                            value={jiraQuery}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              const q = e.target.value;
+                              setJiraQuery(q);
+                              if (jiraSearchTimerRef.current) clearTimeout(jiraSearchTimerRef.current);
+                              jiraSearchTimerRef.current = setTimeout(() => searchJiraUsers(q), 350);
+                            }}
+                            className="font-bold w-full mb-3"
+                          />
+                          {jiraUsersLoading && <p className="text-sm font-medium py-2" style={{ color: "var(--text-soft)" }}>검색 중...</p>}
+                          {jiraUsersError && <p className="text-sm font-medium py-2" style={{ color: "var(--error, #e53e3e)" }}>{jiraUsersError}</p>}
+                          {!jiraUsersLoading && jiraQuery && jiraUsers.length === 0 && (
+                            <p className="text-sm font-medium py-2" style={{ color: "var(--text-soft)" }}>검색 결과가 없습니다.</p>
+                          )}
+                          {jiraUsers.length > 0 && (
+                            <>
+                              <div className="flex flex-col gap-1 max-h-60 overflow-y-auto mb-3">
+                                {jiraUsers.map((u) => (
+                                  <label key={u.accountId} className="flex items-center gap-3 rounded-[1rem] px-3 py-2.5 cursor-pointer transition-all" style={{ background: jiraSelected.has(u.accountId) ? "var(--highlight-soft)" : "transparent" }}>
+                                    <input
+                                      type="checkbox"
+                                      checked={jiraSelected.has(u.accountId)}
+                                      onChange={(e) => {
+                                        setJiraSelected((prev) => {
+                                          const next = new Set(prev);
+                                          e.target.checked ? next.add(u.accountId) : next.delete(u.accountId);
+                                          return next;
+                                        });
+                                      }}
+                                      className="h-4 w-4 accent-[var(--primary)]"
+                                    />
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-bold truncate" style={{ color: "var(--on-surface)" }}>{u.displayName}</p>
+                                      {u.emailAddress && <p className="text-xs truncate" style={{ color: "var(--text-soft)" }}>{u.emailAddress}</p>}
+                                    </div>
+                                  </label>
+                                ))}
+                              </div>
+                              <ClimaButton
+                                variant="primary"
+                                onClick={importJiraSelected}
+                                className="py-2.5 text-sm"
+                                style={{ paddingInline: "1.5rem" }}
+                                disabled={jiraSelected.size === 0}
+                              >
+                                {jiraImporting ? "추가 중..." : `선택한 ${jiraSelected.size}명 추가`}
+                              </ClimaButton>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex gap-3 flex-wrap pt-3">
                       <ClimaInput
                         id="add-member-name"
                         type="text"
@@ -1448,45 +1837,93 @@ export default function AdminPageClient() {
                             {teams.map(t => (
                               <div
                                 key={t.id}
-                                className="flex items-center gap-4 rounded-[1.5rem] px-5 py-4"
+                                className="rounded-[1.5rem] px-5 py-4"
                                 style={{ background: "var(--surface-container-low)" }}
                               >
-                                <div
-                                  className="w-9 h-9 rounded-[0.875rem] flex items-center justify-center shrink-0"
-                                  style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
-                                >
-                                  <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
-                                </div>
-                                <p className="font-bold text-base tracking-tight flex-1">{t.name}</p>
-                                {confirmDeleteId === t.id ? (
-                                  <div className="flex items-center gap-2 shrink-0">
+                                <div className="flex items-center gap-4">
+                                  <div
+                                    className="w-9 h-9 rounded-[0.875rem] flex items-center justify-center shrink-0"
+                                    style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
+                                  >
+                                    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+                                  </div>
+                                  <p className="font-bold text-base tracking-tight flex-1">{t.name}</p>
+                                  {confirmDeleteId === t.id ? (
+                                    <div className="flex items-center gap-2 shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => { deleteTeam(t.id); setConfirmDeleteId(null); }}
+                                        className="text-xs font-black px-3 py-1 rounded-full transition-opacity hover:opacity-80"
+                                        style={{ background: "var(--error-container)", color: "var(--error)" }}
+                                      >
+                                        확인
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setConfirmDeleteId(null)}
+                                        className="text-xs font-bold transition-opacity hover:opacity-60"
+                                        style={{ color: "var(--text-soft)" }}
+                                      >
+                                        취소
+                                      </button>
+                                    </div>
+                                  ) : (
                                     <button
                                       type="button"
-                                      onClick={() => { deleteTeam(t.id); setConfirmDeleteId(null); }}
-                                      className="text-xs font-black px-3 py-1 rounded-full transition-opacity hover:opacity-80"
-                                      style={{ background: "var(--error-container)", color: "var(--error)" }}
-                                    >
-                                      확인
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => setConfirmDeleteId(null)}
-                                      className="text-xs font-bold transition-opacity hover:opacity-60"
+                                      onClick={() => setConfirmDeleteId(t.id)}
+                                      className="text-xs font-bold shrink-0 transition-opacity hover:opacity-60"
                                       style={{ color: "var(--text-soft)" }}
                                     >
-                                      취소
+                                      삭제
                                     </button>
+                                  )}
+                                </div>
+                                {/* Jira 프로젝트 키 */}
+                                <div className="mt-3 pl-[3.25rem]">
+                                  <p className="text-xs font-bold mb-1.5" style={{ color: "var(--text-soft)" }}>Jira 프로젝트</p>
+                                  <div className="flex flex-wrap gap-1.5 mb-2">
+                                    {(t.jira_project_keys ?? []).length === 0 && (
+                                      <span className="text-xs" style={{ color: "var(--text-soft)" }}>없음</span>
+                                    )}
+                                    {(t.jira_project_keys ?? []).map((key) => (
+                                      <span
+                                        key={key}
+                                        className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full"
+                                        style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
+                                      >
+                                        {key}
+                                        <button
+                                          type="button"
+                                          onClick={() => removeJiraKey(t.id, key)}
+                                          className="leading-none hover:opacity-60 transition-opacity"
+                                          aria-label={`${key} 제거`}
+                                        >
+                                          ×
+                                        </button>
+                                      </span>
+                                    ))}
                                   </div>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={() => setConfirmDeleteId(t.id)}
-                                    className="text-xs font-bold shrink-0 transition-opacity hover:opacity-60"
-                                    style={{ color: "var(--text-soft)" }}
-                                  >
-                                    삭제
-                                  </button>
-                                )}
+                                  <div className="flex gap-2">
+                                    <ClimaInput
+                                      type="text"
+                                      placeholder="프로젝트 키 (예: IXI-A)"
+                                      value={jiraKeyInputs[t.id] ?? ""}
+                                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                        setJiraKeyInputs((prev) => ({ ...prev, [t.id]: e.target.value }))
+                                      }
+                                      onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && addJiraKey(t.id)}
+                                      className="text-sm flex-1"
+                                    />
+                                    <ClimaButton
+                                      variant="secondary"
+                                      onClick={() => addJiraKey(t.id)}
+                                      className="py-2 text-xs shrink-0"
+                                      style={{ paddingInline: "1rem" }}
+                                    >
+                                      {savingJiraKeys[t.id] ? "..." : "추가"}
+                                    </ClimaButton>
+                                  </div>
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -1752,6 +2189,57 @@ export default function AdminPageClient() {
                     );
                   })}
                 </div>
+              </GlassCard>
+            )}
+
+            {/* 팀장 초대 (super_admin 전용) */}
+            {(adminSession === null || isSuperAdmin(adminSession)) && (
+              <GlassCard className="p-4 md:p-5 mt-4" intensity="low">
+                <SectionHeader
+                  icon={<svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
+                  title="팀장 초대"
+                  subtitle="초대된 팀장은 본인 팀만 관리할 수 있습니다"
+                  className="mb-4"
+                />
+                <div className="flex gap-3 flex-wrap">
+                  <ClimaInput
+                    type="email"
+                    placeholder="초대 이메일 (외부)"
+                    value={inviteEmail}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInviteEmail(e.target.value)}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && inviteTeamAdmin()}
+                    className="font-bold flex-1 min-w-[200px]"
+                  />
+                  <ClimaInput
+                    type="email"
+                    placeholder="사내 이메일 (선택)"
+                    value={inviteWorkEmail}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInviteWorkEmail(e.target.value)}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && inviteTeamAdmin()}
+                    className="font-bold flex-1 min-w-[200px]"
+                  />
+                  <PortalSelect
+                    value={inviteTeamId}
+                    onChange={setInviteTeamId}
+                    placeholder="담당 팀 선택"
+                    options={teams.map(t => ({ value: t.id, label: t.name }))}
+                    className="flex-1"
+                  />
+                  <ClimaButton
+                    variant="primary"
+                    onClick={inviteTeamAdmin}
+                    className="py-3 text-sm shrink-0"
+                    style={{ paddingInline: "1.5rem" }}
+                    disabled={!inviteEmail.trim() || !inviteTeamId}
+                  >
+                    {inviting ? "초대 중..." : "초대 발송"}
+                  </ClimaButton>
+                </div>
+                {inviteResult && (
+                  <p className="mt-3 text-sm font-medium" style={{ color: inviteResult.ok ? "var(--primary)" : "var(--error, #e53e3e)" }}>
+                    {inviteResult.message}
+                  </p>
+                )}
               </GlassCard>
             )}
           </>)}
