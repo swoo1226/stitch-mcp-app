@@ -33,7 +33,8 @@ type RouteMember = {
 export async function POST(request: NextRequest) {
   try {
     const forceRefresh = request.nextUrl.searchParams.get("refresh") === "1";
-    const payload = (await request.json()) as { members?: RouteMember[] };
+    const payload = (await request.json()) as { members?: RouteMember[]; projectKeys?: string[] | null };
+    const projectKeys = payload.projectKeys?.length ? payload.projectKeys : null;
     const eligibleUsers = (payload.members ?? []).filter((user) => user.jiraAccountId);
     if (eligibleUsers.length === 0) {
       return Response.json({ snapshots: [], source: "empty" });
@@ -80,6 +81,7 @@ export async function POST(request: NextRequest) {
 
     const issues = await fetchOpenIssuesForAssignees(
       eligibleUsers.map((user) => user.jiraAccountId as string),
+      projectKeys,
     );
 
     const issuesByAssignee = new Map<string, typeof issues>();

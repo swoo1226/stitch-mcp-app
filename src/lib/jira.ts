@@ -120,7 +120,26 @@ function httpsRequest(
   });
 }
 
-export async function fetchOpenIssuesForAssignees(accountIds: string[]) {
+export type JiraUser = {
+  accountId: string;
+  displayName: string;
+  emailAddress: string | null;
+  active: boolean;
+  accountType: string;
+};
+
+export async function fetchJiraUsers(): Promise<JiraUser[]> {
+  const users = await jiraFetch<JiraUser[]>("/rest/api/3/users/search?maxResults=200");
+  return users.filter((u) => u.active && u.accountType === "atlassian" && u.emailAddress);
+}
+
+export async function searchJiraUsers(query: string): Promise<JiraUser[]> {
+  const params = new URLSearchParams({ query, maxResults: "20" });
+  const users = await jiraFetch<JiraUser[]>(`/rest/api/3/user/search?${params}`);
+  return users.filter((u) => u.active && u.accountType === "atlassian");
+}
+
+export async function fetchOpenIssuesForAssignees(accountIds: string[], projectKey?: string[] | null) {
   const uniqueAccountIds = Array.from(new Set(accountIds.map((id) => id.trim()).filter(Boolean)));
   if (uniqueAccountIds.length === 0) {
     return [] as Array<{
@@ -135,10 +154,13 @@ export async function fetchOpenIssuesForAssignees(accountIds: string[]) {
   }
 
   const jqlAssignees = uniqueAccountIds.map((id) => `"${id.replace(/"/g, '\\"')}"`).join(", ");
+  const projectClause = projectKey && projectKey.length > 0
+    ? ` AND project in (${projectKey.map((k) => `"${k.replace(/"/g, '\\"')}"`).join(", ")})`
+    : "";
   const search = await jiraFetch<JiraSearchResponse>("/rest/api/3/search/jql", {
     method: "POST",
     body: JSON.stringify({
-      jql: `assignee in (${jqlAssignees}) AND statusCategory != Done ORDER BY updated DESC`,
+      jql: `assignee in (${jqlAssignees})${projectClause} AND statusCategory != Done ORDER BY updated DESC`,
       maxResults: 100,
       fields: ["summary", "status", "priority", "updated", "assignee"],
     }),

@@ -1,6 +1,7 @@
 import { createSupabaseAdminClient } from "../../../../../lib/supabase-admin";
 import { fetchOpenIssuesForAssignees } from "../../../../../lib/jira";
 import { sendTeamsAdaptiveCard } from "../../../../../lib/teams";
+import type { NextRequest } from "next/server";
 
 type UserRow = {
   id: string;
@@ -24,6 +25,26 @@ type MoodLogRow = {
   user_id: string;
   score: number;
   logged_at: string;
+};
+
+type RiskLevel = "critical" | "warning";
+
+type CombinedRiskTarget = {
+  userId: string;
+  name: string;
+  teamName: string;
+  partName: string | null;
+  todayScore: number;
+  recentDelta: number | null;
+  openTicketCount: number;
+  blockerCount: number;
+  tickets: Array<{
+    key: string;
+    summary: string;
+    status: string;
+    browseUrl: string;
+  }>;
+  level: RiskLevel;
 };
 
 const LOW_SCORE_THRESHOLD = 50;
@@ -65,8 +86,91 @@ function isBlockerStatus(status: string) {
   return BLOCKER_STATUS_KEYWORDS.some((keyword) => normalized.includes(keyword));
 }
 
-export async function POST() {
+function buildTeamsCard(targets: CombinedRiskTarget[]) {
+  const criticalCount = targets.filter((target) => target.level === "critical").length;
+
+  return {
+    body: [
+      {
+        type: "TextBlock",
+        text: `주의 필요 팀원 ${targets.length}명`,
+        weight: "Bolder",
+        size: "Medium",
+      },
+      {
+        type: "TextBlock",
+        text: `오후 2시 기준 컨디션과 Jira 미완료 티켓을 함께 평가했습니다. Critical ${criticalCount}명.`,
+        wrap: true,
+        spacing: "Small",
+      },
+      ...targets.flatMap((target) => [
+        {
+          type: "Container",
+          style: target.level === "critical" ? "attention" : "warning",
+          spacing: "Medium",
+          items: [
+            {
+              type: "ColumnSet",
+              columns: [
+                {
+                  type: "Column",
+                  width: "stretch",
+                  items: [
+                    {
+                      type: "TextBlock",
+                      text: target.level === "critical" ? "CRITICAL" : "WARNING",
+                      weight: "Bolder",
+                      color: target.level === "critical" ? "attention" : "warning",
+                      spacing: "None",
+                    },
+                    {
+                      type: "TextBlock",
+                      text: `${target.name} · ${target.teamName}${target.partName ? ` · ${target.partName}` : ""}`,
+                      weight: "Bolder",
+                      wrap: true,
+                      spacing: "Small",
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "FactSet",
+              spacing: "Small",
+              facts: [
+                { title: "오늘 점수", value: `${target.todayScore}pt` },
+                {
+                  title: `최근 ${RECENT_DAYS}일 변화`,
+                  value: target.recentDelta == null ? "데이터 없음" : `${target.recentDelta > 0 ? "+" : ""}${target.recentDelta}pt`,
+                },
+                { title: "미완료", value: `${target.openTicketCount}건` },
+                { title: "Blocker", value: `${target.blockerCount}건` },
+              ],
+            },
+            ...target.tickets.map((ticket) => ({
+              type: "TextBlock",
+              text: `• ${ticket.key} · ${ticket.summary}`,
+              wrap: true,
+              spacing: "Small",
+              isSubtle: true,
+            })),
+          ],
+        },
+      ]),
+    ],
+    actions: [
+      {
+        type: "Action.OpenUrl",
+        title: "어드민 열기",
+        url: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/admin`,
+      },
+    ],
+  };
+}
+
+export async function POST(request: NextRequest) {
   try {
+    const shouldSend = request.nextUrl.searchParams.get("send") === "1";
     const supabase = createSupabaseAdminClient();
     const today = new Date();
     const todayIso = isoDate(today);
@@ -124,7 +228,7 @@ export async function POST() {
       logsByUser.set(log.user_id, existing);
     }
 
-    const targets = eligibleUsers.flatMap((user) => {
+    const targets: CombinedRiskTarget[] = eligibleUsers.flatMap((user) => {
       const userLogs = logsByUser.get(user.id) ?? [];
       const latestByDay = new Map<string, number>();
       for (const log of userLogs) {
@@ -162,6 +266,8 @@ export async function POST() {
         return [];
       }
 
+      const level: RiskLevel = todayScore <= 40 || blockerCount > 0 ? "critical" : "warning";
+
       return [{
         userId: user.id,
         name: user.name,
@@ -172,7 +278,7 @@ export async function POST() {
         openTicketCount,
         blockerCount,
         tickets: tickets.slice(0, 2),
-        level: todayScore <= 40 || blockerCount > 0 ? "critical" : "warning",
+        level,
       }];
     });
 
@@ -181,88 +287,13 @@ export async function POST() {
     }
 
     const criticalCount = targets.filter((target) => target.level === "critical").length;
-    const body: Record<string, unknown> = {
-      body: [
-        {
-          type: "TextBlock",
-          text: `주의 필요 팀원 ${targets.length}명`,
-          weight: "Bolder",
-          size: "Medium",
-        },
-        {
-          type: "TextBlock",
-          text: `오후 2시 기준 컨디션과 Jira 미완료 티켓을 함께 평가했습니다. Critical ${criticalCount}명.`,
-          wrap: true,
-          spacing: "Small",
-        },
-        ...targets.flatMap((target) => [
-          {
-            type: "Container",
-            style: target.level === "critical" ? "attention" : "warning",
-            spacing: "Medium",
-            items: [
-              {
-                type: "ColumnSet",
-                columns: [
-                  {
-                    type: "Column",
-                    width: "stretch",
-                    items: [
-                      {
-                        type: "TextBlock",
-                        text: target.level === "critical" ? "CRITICAL" : "WARNING",
-                        weight: "Bolder",
-                        color: target.level === "critical" ? "attention" : "warning",
-                        spacing: "None",
-                      },
-                      {
-                        type: "TextBlock",
-                        text: `${target.name} · ${target.teamName}${target.partName ? ` · ${target.partName}` : ""}`,
-                        weight: "Bolder",
-                        wrap: true,
-                        spacing: "Small",
-                      },
-                    ],
-                  },
-                ],
-              },
-              {
-                type: "FactSet",
-                spacing: "Small",
-                facts: [
-                  { title: "오늘 점수", value: `${target.todayScore}pt` },
-                  {
-                    title: `최근 ${RECENT_DAYS}일 변화`,
-                    value: target.recentDelta == null ? "데이터 없음" : `${target.recentDelta > 0 ? "+" : ""}${target.recentDelta}pt`,
-                  },
-                  { title: "미완료", value: `${target.openTicketCount}건` },
-                  { title: "Blocker", value: `${target.blockerCount}건` },
-                ],
-              },
-              ...target.tickets.map((ticket) => ({
-                type: "TextBlock",
-                text: `• ${ticket.key} · ${ticket.summary}`,
-                wrap: true,
-                spacing: "Small",
-                isSubtle: true,
-              })),
-            ],
-          },
-        ]),
-      ],
-      actions: [
-        {
-          type: "Action.OpenUrl",
-          title: "어드민 열기",
-          url: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/admin`,
-        },
-      ],
-    };
-
-    const webhookResponse = await sendTeamsAdaptiveCard(body);
+    let webhookResponse: string | null = null;
+    if (shouldSend) {
+      webhookResponse = await sendTeamsAdaptiveCard(buildTeamsCard(targets));
+    }
 
     return Response.json({
-      sent: true,
+      sent: shouldSend,
       response: webhookResponse,
       targetCount: targets.length,
       criticalCount,
