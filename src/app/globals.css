@@ -98,21 +98,29 @@
   --button-subtle-shadow: none;
   --button-subtle-text: rgba(37, 50, 40, 0.7);
   --track-bg: rgba(37, 50, 40, 0.08);
-  --weather-radiant-bg: #fdf8ec;
-  --weather-radiant-blob-1: #e6a800;
-  --weather-radiant-blob-2: #fbbf24;
-  --weather-sunny-bg: #fef3e8;
-  --weather-sunny-blob-1: #f97316;
-  --weather-sunny-blob-2: #fb923c;
-  --weather-foggy-bg: #eef1f5;
-  --weather-foggy-blob-1: #94a3b8;
-  --weather-foggy-blob-2: #cbd5e1;
+  /* 날씨 단계: 맑음 > 구름조금 > 흐림 > 비 > 뇌우 */
+  --weather-sunny-bg: #f0fdf8;
+  --weather-sunny-blob-1: #006668;
+  --weather-sunny-blob-2: #52f2f5;
+  --weather-partlycloudy-bg: #f0fdf4;
+  --weather-partlycloudy-blob-1: #22C55E;
+  --weather-partlycloudy-blob-2: #86efac;
+  --weather-cloudy-bg: #f1f5f9;
+  --weather-cloudy-blob-1: #94a3b8;
+  --weather-cloudy-blob-2: #cbd5e1;
   --weather-rainy-bg: #e4ecf7;
   --weather-rainy-blob-1: #3b82f6;
   --weather-rainy-blob-2: #60a5fa;
   --weather-stormy-bg: #e8eaf2;
   --weather-stormy-blob-1: #4b5577;
   --weather-stormy-blob-2: #334155;
+  /* legacy aliases — 기존 CSS variable 참조 호환용 */
+  --weather-radiant-bg: var(--weather-sunny-bg);
+  --weather-radiant-blob-1: var(--weather-sunny-blob-1);
+  --weather-radiant-blob-2: var(--weather-sunny-blob-2);
+  --weather-foggy-bg: var(--weather-cloudy-bg);
+  --weather-foggy-blob-1: var(--weather-cloudy-blob-1);
+  --weather-foggy-blob-2: var(--weather-cloudy-blob-2);
 }
 
 html[data-theme="dark"] {
@@ -173,21 +181,29 @@ html[data-theme="dark"] {
   --button-subtle-shadow: inset 0 0 0 1px rgba(229, 241, 238, 0.06);
   --button-subtle-text: rgba(229, 241, 238, 0.84);
   --track-bg: rgba(229, 241, 238, 0.12);
-  --weather-radiant-bg: #241d10;
-  --weather-radiant-blob-1: #c98d13;
-  --weather-radiant-blob-2: #d7a53a;
-  --weather-sunny-bg: #241710;
-  --weather-sunny-blob-1: #c96b1a;
-  --weather-sunny-blob-2: #d7813e;
-  --weather-foggy-bg: #161d24;
-  --weather-foggy-blob-1: #607287;
-  --weather-foggy-blob-2: #4b5968;
+  /* 날씨 단계 다크 모드 */
+  --weather-sunny-bg: #061414;
+  --weather-sunny-blob-1: #006668;
+  --weather-sunny-blob-2: #0d7375;
+  --weather-partlycloudy-bg: #061208;
+  --weather-partlycloudy-blob-1: #16A34A;
+  --weather-partlycloudy-blob-2: #15803d;
+  --weather-cloudy-bg: #161d24;
+  --weather-cloudy-blob-1: #607287;
+  --weather-cloudy-blob-2: #4b5968;
   --weather-rainy-bg: #101c29;
   --weather-rainy-blob-1: #275aa7;
   --weather-rainy-blob-2: #326fbb;
   --weather-stormy-bg: #0c1016;
   --weather-stormy-blob-1: #273349;
   --weather-stormy-blob-2: #1a2332;
+  /* legacy aliases */
+  --weather-radiant-bg: var(--weather-sunny-bg);
+  --weather-radiant-blob-1: var(--weather-sunny-blob-1);
+  --weather-radiant-blob-2: var(--weather-sunny-blob-2);
+  --weather-foggy-bg: var(--weather-cloudy-bg);
+  --weather-foggy-blob-1: var(--weather-cloudy-blob-1);
+  --weather-foggy-blob-2: var(--weather-cloudy-blob-2);
 }
 
 @layer base {

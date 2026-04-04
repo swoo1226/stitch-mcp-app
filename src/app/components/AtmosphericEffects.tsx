@@ -21,10 +21,10 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
   const { shouldLimitMotion } = useMotionPreferences();
 
   const effect =
-    score >= 80 ? "radiant"
-    : score >= 60 ? "sunny"
-    : score >= 40 ? "foggy"
-    : score >= 20 ? "rainy"
+    score >= 81 ? "sunny"
+    : score >= 61 ? "partlyCloudy"
+    : score >= 41 ? "cloudy"
+    : score >= 21 ? "rainy"
     : "stormy";
 
   // Rain particles
@@ -68,10 +68,10 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
     <div className="fixed inset-0 pointer-events-none z-[25] overflow-hidden">
       <AnimatePresence mode="wait">
 
-        {/* ─── Radiant: 눈부신 광선 + 반짝임 ─── */}
-        {effect === "radiant" && (
+        {/* ─── Sunny: 눈부신 광선 + 반짝임 ─── */}
+        {effect === "sunny" && (
           <motion.div
-            key="radiant"
+            key="sunny"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -123,10 +123,10 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
           </motion.div>
         )}
 
-        {/* ─── Sunny: 따뜻한 빛 bloom ─── */}
-        {effect === "sunny" && (
+        {/* ─── PartlyCloudy: 따뜻한 빛 bloom ─── */}
+        {effect === "partlyCloudy" && (
           <motion.div
-            key="sunny"
+            key="partlyCloudy"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -169,10 +169,10 @@ export default function AtmosphericEffects({ score = 85 }: AtmosphericEffectsPro
           </motion.div>
         )}
 
-        {/* ─── Foggy: 흘러다니는 안개 레이어 ─── */}
-        {effect === "foggy" && (
+        {/* ─── Cloudy: 흘러다니는 구름/흐림 레이어 ─── */}
+        {effect === "cloudy" && (
           <motion.div
-            key="foggy"
+            key="cloudy"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

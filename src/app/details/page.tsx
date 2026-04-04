@@ -40,9 +40,9 @@ export default function DetailsPage() {
         <div className="flex justify-between items-center mb-12">
             <div>
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2 text-primary">Current State</p>
-                <h2 className="text-3xl font-extrabold font-[Plus Jakarta Sans]">안개 (Foggy)</h2>
+                <h2 className="text-3xl font-extrabold font-[Plus Jakarta Sans]">흐림 (Cloudy)</h2>
             </div>
-            <span className="text-6xl opacity-20">🌫️</span>
+            <span className="text-6xl opacity-20">☁️</span>
         </div>
         <p className="text-sm font-medium opacity-60">일부 구성원들의 업무 로드 균형이 무너져 있으며,<br />목표 지점이 다소 불분명한 상태입니다.</p>
         <div className="mt-6 flex gap-2 items-center bg-tertiary-container/45 p-3 rounded-2xl">

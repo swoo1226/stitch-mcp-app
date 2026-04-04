@@ -36,11 +36,11 @@ const WEEK_LABELS = ["MON", "TUE", "WED", "THU", "FRI"];
 function getFallbackStatuses(score: number): WeatherStatus[] {
   const base = scoreToStatus(score);
   const variants: Record<WeatherStatus, WeatherStatus[]> = {
-    Radiant: ["Sunny", "Radiant", "Sunny", "Radiant", "Sunny"],
-    Sunny: ["Foggy", "Sunny", "Sunny", "Radiant", "Sunny"],
-    Foggy: ["Sunny", "Foggy", "Foggy", "Sunny", "Foggy"],
-    Rainy: ["Foggy", "Rainy", "Foggy", "Rainy", "Foggy"],
-    Stormy: ["Rainy", "Stormy", "Rainy", "Foggy", "Rainy"],
+    Sunny:        ["PartlyCloudy", "Sunny", "Sunny", "Sunny", "PartlyCloudy"],
+    PartlyCloudy: ["Cloudy", "PartlyCloudy", "Sunny", "PartlyCloudy", "Sunny"],
+    Cloudy:       ["PartlyCloudy", "Cloudy", "Cloudy", "PartlyCloudy", "Cloudy"],
+    Rainy:        ["Cloudy", "Rainy", "Cloudy", "Rainy", "Cloudy"],
+    Stormy:       ["Rainy", "Stormy", "Rainy", "Cloudy", "Rainy"],
   };
 
   return variants[base];
@@ -48,15 +48,15 @@ function getFallbackStatuses(score: number): WeatherStatus[] {
 
 function iconForStatus(status: WeatherStatus) {
   switch (status) {
-    case "Radiant":
     case "Sunny":
+    case "PartlyCloudy":
       return (
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
           <circle cx="12" cy="12" r="3.8" fill="currentColor" stroke="none" />
           <path d="M12 2.7v3.1M12 18.2v3.1M21.3 12h-3.1M5.8 12H2.7M18.6 5.4l-2.2 2.2M7.6 16.4l-2.2 2.2M18.6 18.6l-2.2-2.2M7.6 7.6 5.4 5.4" />
         </svg>
       );
-    case "Foggy":
+    case "Cloudy":
       return (
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
           <path d="M5 10.5a4.5 4.5 0 0 1 8.5-2 3.7 3.7 0 1 1 2.8 6.2H7.3A3.3 3.3 0 0 1 5 10.5Z" />
@@ -82,24 +82,20 @@ function iconForStatus(status: WeatherStatus) {
 
 function colorForStatus(status: WeatherStatus) {
   switch (status) {
-    case "Radiant":
-    case "Sunny":
-      return "#f5af0e";
-    case "Foggy":
-      return "#95a5c8";
-    case "Rainy":
-      return "#4f8dff";
-    case "Stormy":
-      return "#293f73";
+    case "Sunny":        return "#006668";
+    case "PartlyCloudy": return "#22C55E";
+    case "Cloudy":       return "#95a5c8";
+    case "Rainy":        return "#F97316";
+    case "Stormy":       return "#EF4444";
   }
 }
 
 function statusLabel(status: WeatherStatus) {
-  if (status === "Radiant") return "Bright";
-  if (status === "Sunny") return "Sunny";
-  if (status === "Foggy") return "Partly Cloudy";
-  if (status === "Rainy") return "Rainy";
-  return "Stormy";
+  if (status === "Sunny") return "맑음";
+  if (status === "PartlyCloudy") return "구름조금";
+  if (status === "Cloudy") return "흐림";
+  if (status === "Rainy") return "비";
+  return "뇌우";
 }
 
 function buildRecentStatuses(logs: MoodLog[], score: number) {
@@ -163,23 +159,23 @@ export default function TeamClimatePage() {
           currentScore: 86,
           currentStatus: "Sunny" as WeatherStatus,
           message: "Pushed 4 commits to main with zero friction.",
-          recentStatuses: ["Sunny", "Sunny", "Foggy", "Sunny", "Sunny"] as WeatherStatus[],
+          recentStatuses: ["Sunny", "Sunny", "PartlyCloudy", "Sunny", "Sunny"] as WeatherStatus[],
         },
         {
           id: "fallback-2",
           name: "Sasha K.",
           avatarEmoji: "🧑🏽‍🎨",
           currentScore: 68,
-          currentStatus: "Foggy" as WeatherStatus,
+          currentStatus: "PartlyCloudy" as WeatherStatus,
           message: "Need a lighter review queue before lunch.",
-          recentStatuses: ["Rainy", "Rainy", "Foggy", "Sunny", "Sunny"] as WeatherStatus[],
+          recentStatuses: ["Rainy", "Cloudy", "Cloudy", "PartlyCloudy", "Sunny"] as WeatherStatus[],
         },
         {
           id: "fallback-3",
           name: "Erik J.",
           avatarEmoji: "🧑🏾‍🔧",
           currentScore: 74,
-          currentStatus: "Sunny" as WeatherStatus,
+          currentStatus: "PartlyCloudy" as WeatherStatus,
           message: "Resolved API sync with fewer handoffs than expected.",
           recentStatuses: ["Sunny", "Sunny", "Sunny", "Stormy", "Rainy"] as WeatherStatus[],
         },
@@ -188,9 +184,9 @@ export default function TeamClimatePage() {
           name: "Liam P.",
           avatarEmoji: "🧪",
           currentScore: 57,
-          currentStatus: "Foggy" as WeatherStatus,
+          currentStatus: "Cloudy" as WeatherStatus,
           message: "Documentation needs one tighter pass.",
-          recentStatuses: ["Foggy", "Foggy", "Foggy", "Foggy", "Foggy"] as WeatherStatus[],
+          recentStatuses: ["Cloudy", "Cloudy", "Rainy", "Cloudy", "Cloudy"] as WeatherStatus[],
         },
         {
           id: "fallback-5",
@@ -220,9 +216,9 @@ export default function TeamClimatePage() {
       return accumulator;
     },
     {
-      Radiant: 0,
       Sunny: 0,
-      Foggy: 0,
+      PartlyCloudy: 0,
+      Cloudy: 0,
       Rainy: 0,
       Stormy: 0,
     }
@@ -449,13 +445,15 @@ export default function TeamClimatePage() {
                                   style={{
                                     color: colorForStatus(status),
                                     background:
-                                      status === "Sunny" || status === "Radiant"
-                                        ? "rgba(255, 242, 204, 0.56)"
-                                        : status === "Foggy"
-                                          ? "rgba(232, 238, 250, 0.7)"
-                                          : status === "Rainy"
-                                            ? "rgba(222, 236, 255, 0.72)"
-                                            : "rgba(221, 229, 244, 0.9)",
+                                      status === "Sunny"
+                                        ? "rgba(0,102,104,0.08)"
+                                        : status === "PartlyCloudy"
+                                          ? "rgba(34,197,94,0.1)"
+                                          : status === "Cloudy"
+                                            ? "rgba(148,163,184,0.15)"
+                                            : status === "Rainy"
+                                              ? "rgba(249,115,22,0.12)"
+                                              : "rgba(239,68,68,0.12)",
                                   }}
                                 >
                                   {iconForStatus(status)}
@@ -501,7 +499,7 @@ export default function TeamClimatePage() {
                     <div
                       className="flex h-14 w-14 items-center justify-center rounded-full"
                       style={{
-                        background: frequentStatus === "Sunny" || frequentStatus === "Radiant" ? "#fff4cf" : "#eef2fb",
+                        background: frequentStatus === "Sunny" ? "rgba(0,102,104,0.08)" : frequentStatus === "PartlyCloudy" ? "rgba(34,197,94,0.1)" : "#eef2fb",
                         color: colorForStatus(frequentStatus),
                       }}
                     >

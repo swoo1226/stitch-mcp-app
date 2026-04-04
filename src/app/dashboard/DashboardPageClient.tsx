@@ -6,12 +6,12 @@ import { useEffect, useMemo, useState } from "react";
 import ClimaLogo from "../components/WetherLogo";
 import ThemeToggleButton from "../components/ThemeToggleButton";
 import HeaderNav, { type HeaderNavItem } from "../components/HeaderNav";
-import { ClimaButton, SectionLabel, PrimaryTabToggle, TabToggle, NikoCalendar, type NikoCalendarMember, ViewModeToggle } from "../components/ui";
+import { SectionLabel, PrimaryTabToggle, TabToggle, NikoCalendar, type NikoCalendarMember } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { STANDARD_SPRING } from "../constants/springs";
 import { supabase } from "../../lib/supabase";
-import { scoreToStatus, statusToEmoji, statusToKo, type WeatherStatus } from "../../lib/mood";
-import { DEMO_TEAM_ID, DEMO_PARTS, getDemoMembers } from "../../lib/demo-data";
+import { scoreToStatus, statusToEmoji, statusToKo, checkWarning, WARNING_REASON_KO, type WeatherStatus, type WarningReason } from "../../lib/mood";
+import { DEMO_TEAM_ID, DEMO_PARTS, getDemoMembers, getDemoMonthLogs } from "../../lib/demo-data";
 
 type DisplayWeather = WeatherStatus | null;
 
@@ -96,7 +96,7 @@ function utcToKstDate(utcStr: string): string {
 }
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI"];
-const NIKO_PAGE_SIZE = 5;
+
 const BASE_NAV_ITEMS: HeaderNavItem[] = [
   { label: "홈", href: "/" },
   { label: "개인 현황", href: "/personal" },
@@ -178,7 +178,6 @@ function getDailyScoresInRange(logs: MoodLogRow[], startIso: string, endIso: str
 
 export default function DashboardPageClient({ teamId }: { teamId: string }) {
   const [members, setMembers] = useState<Member[]>([]);
-  const [viewMode, setViewMode] = useState<"icon" | "chart">("icon");
   const [parts, setParts] = useState<Part[]>([]);
   const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -199,10 +198,12 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
 
   useEffect(() => {
     if (teamId === DEMO_TEAM_ID) {
-      const demoMembers = getDemoMembers(weekOffset).map(({ avatar, ...member }) => ({
+      const monthLogs = getDemoMonthLogs();
+      const demoMembers = getDemoMembers(weekOffset).map(({ avatar, logs: weekLogs, ...member }) => ({
         ...member,
         avatarEmoji: avatar,
-        logs: [],
+        // 주간 logs + 월간 고정 logs 합산 → 전주 대비·월 평균 모두 표시
+        logs: [...(weekLogs ?? []), ...monthLogs.filter((l) => l.user_id === member.id)],
       }));
       setMembers(demoMembers);
       setParts(DEMO_PARTS);
@@ -327,6 +328,23 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
   const weeklyDelta = selectedWeekAverage !== null && previousWeekAverage !== null
     ? selectedWeekAverage - previousWeekAverage
     : null;
+  // 경보 배너: 오늘 기록이 있는 팀원 중 경보 조건에 해당하는 사람
+  const alertMembers = useMemo(() => {
+    return visibleMembers
+      .filter((m) => m.score !== null)
+      .map((m) => {
+        const weekScores = m.week.map((e) => e.score);
+        // 오늘은 week의 마지막 날(인덱스 기준 현재 요일)
+        const todayIdx = weekScores.findLastIndex((s) => s !== null);
+        if (todayIdx < 0) return null;
+        const reason = checkWarning(weekScores, todayIdx);
+        if (!reason) return null;
+        return { member: m, reason };
+      })
+      .filter((x): x is { member: Member; reason: WarningReason } => x !== null);
+  }, [visibleMembers]);
+  const [alertBannerDismissed, setAlertBannerDismissed] = useState(false);
+
   const selectedMonthLabel = `${baseMonday.getMonth() + 1}월 평균`;
   const todayAverageLabel = selectedPart ? "오늘 파트 평균" : "오늘 팀 평균";
   const weekAverageLabel = selectedPart
@@ -352,7 +370,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
     });
 
     if (!counts.size) return {
-      mostFrequent: (averageScore !== null ? scoreToStatus(averageScore) : "Foggy") as WeatherStatus,
+      mostFrequent: (averageScore !== null ? scoreToStatus(averageScore) : "Cloudy") as WeatherStatus,
       mostFrequentPct: 0,
     };
 
@@ -508,6 +526,73 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
             </div>
           </section>
 
+          {/* 경보 배너 */}
+          <AnimatePresence>
+            {alertMembers.length > 0 && !alertBannerDismissed && (
+              <motion.section
+                key="alert-banner"
+                initial={{ opacity: 0, y: -8, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: "auto" }}
+                exit={{ opacity: 0, y: -8, height: 0 }}
+                transition={{ duration: 0.28, ease: "easeOut" }}
+                className="mb-4 overflow-hidden"
+              >
+                <div
+                  className="rounded-[1.5rem] px-4 py-4 flex items-start gap-3"
+                  style={{
+                    background: "color-mix(in srgb, var(--error-container) 55%, var(--surface-lowest))",
+                    boxShadow: "0 2px 12px rgba(186,26,26,0.10)",
+                  }}
+                >
+                  {/* 아이콘 */}
+                  <div
+                    className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+                    style={{ background: "color-mix(in srgb, var(--error) 14%, transparent)" }}
+                  >
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="var(--error)" strokeWidth="2">
+                      <path d="M12 9v4M12 17h.01" strokeLinecap="round" />
+                      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                    </svg>
+                  </div>
+
+                  {/* 내용 */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-black" style={{ color: "var(--error)" }}>
+                      {alertMembers.length}명의 팀원이 주의가 필요해요
+                    </p>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {alertMembers.map(({ member, reason }) => (
+                        <span
+                          key={member.id}
+                          className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold"
+                          style={{
+                            background: "color-mix(in srgb, var(--error) 10%, var(--surface-lowest))",
+                            color: "var(--error)",
+                          }}
+                        >
+                          {member.avatarEmoji} {member.name}
+                          <span className="opacity-60 font-medium">· {WARNING_REASON_KO[reason]}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 닫기 */}
+                  <button
+                    onClick={() => setAlertBannerDismissed(true)}
+                    className="shrink-0 flex h-7 w-7 items-center justify-center rounded-full transition-colors hover:bg-black/5"
+                    style={{ color: "var(--error)" }}
+                    aria-label="닫기"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.2">
+                      <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+              </motion.section>
+            )}
+          </AnimatePresence>
+
           <section className="mb-6 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-[1.5rem] px-4 py-4" style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}>
               <SectionLabel color="muted">{todayAverageLabel}</SectionLabel>
@@ -528,7 +613,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
               </div>
             </div>
             <div className="rounded-[1.5rem] px-4 py-4" style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}>
-              <SectionLabel color="muted">전주 대비</SectionLabel>
+              <SectionLabel color="muted">지난 주 대비</SectionLabel>
               <div
                 className="mt-1 text-xl font-black"
                 style={{
@@ -550,7 +635,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
             className="mb-6 rounded-[2rem] px-3 py-4 md:rounded-[2.5rem] md:px-6 md:py-6"
             style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
           >
-            <div className="mb-5 flex flex-col gap-4 lg:mb-7 lg:flex-row lg:items-center lg:justify-between">
+            <div className="mb-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-low text-primary">
                   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -558,56 +643,42 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                     <path d="M7.5 3.5v4M16.5 3.5v4M3.5 10.5h17" />
                   </svg>
                 </div>
-                <div className="text-base font-black tracking-tight text-primary md:text-[1.2rem]">
-                  Niko-Niko 캘린더
+                <div>
+                  <div className="text-base font-black tracking-tight text-primary md:text-[1.1rem]">
+                    이번 주 캘린더
+                  </div>
+                  <div className="text-xs font-semibold" style={{ color: "var(--text-soft)" }}>
+                    미리보기 · 상위 {Math.min(3, visibleMembers.length)}명
+                  </div>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <ViewModeToggle mode={viewMode} onChange={setViewMode} />
-              </div>
+              <Link
+                href="/niko"
+                className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition-colors hover:opacity-80"
+                style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
+              >
+                전체 보기
+                <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M6 3l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Link>
             </div>
 
-            {partVsTeamSummary && (
-              <div
-                className="mb-4 inline-flex max-w-full items-center rounded-full px-3 py-2 text-xs font-black tracking-tight"
-                style={{
-                  background: partVsTeamDelta! > 0
-                    ? "color-mix(in srgb, var(--primary-container) 40%, var(--surface-lowest))"
-                    : partVsTeamDelta! < 0
-                      ? "color-mix(in srgb, var(--tertiary-container) 42%, var(--surface-lowest))"
-                      : "color-mix(in srgb, var(--surface-container-high) 80%, var(--surface-lowest))",
-                  color: partVsTeamDelta! > 0 ? "var(--primary)" : partVsTeamDelta! < 0 ? "var(--tertiary)" : "var(--on-surface)",
-                }}
-              >
-                {partVsTeamSummary}
-              </div>
-            )}
-
-            <section className="mb-4 min-h-[400px]">
+            <section>
               <NikoCalendar
-                members={visibleMembers.map((m): NikoCalendarMember => ({
+                members={visibleMembers.slice(0, 3).map((m): NikoCalendarMember => ({
                   id: m.id,
                   name: m.name,
                   avatarEmoji: m.avatarEmoji,
                   week: m.week,
                 }))}
-                comparisonMembers={selectedPartId
-                  ? members.map((m): NikoCalendarMember => ({
-                    id: m.id,
-                    name: m.name,
-                    avatarEmoji: m.avatarEmoji,
-                    week: m.week,
-                  }))
-                  : undefined}
                 weekDays={weekDays}
                 todayIso={isoDate(today)}
                 loading={loading}
-                pageSize={NIKO_PAGE_SIZE}
                 colTemplate="120px repeat(5, minmax(72px, 1fr))"
-                viewMode={viewMode}
-                summaryLabel={selectedPart ? `${selectedPart.name} 평균` : "팀 평균"}
-                comparisonLabel="팀 평균"
+                viewMode="icon"
+                summaryLabel="팀 평균"
               />
             </section>
           </section>
@@ -623,7 +694,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
               <div className="mb-6 flex justify-center">
                 <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-surface-low">
                   {AverageIcon
-                    ? <AverageIcon size={56} />
+                    ? <AverageIcon size={72} />
                     : <span className="text-4xl opacity-30">🌫️</span>
                   }
                   {AverageIcon && (
@@ -661,7 +732,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
               </div>
               <div className="mb-6 flex justify-center">
                 <div className="flex h-28 w-28 items-center justify-center rounded-full bg-surface-low">
-                  <FrequentIcon size={56} />
+                  <FrequentIcon size={72} />
                 </div>
               </div>
               <div className="text-center">

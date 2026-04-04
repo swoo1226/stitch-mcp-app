@@ -835,24 +835,24 @@ export function WeatherCell({ status, score, message, isToday = false }: Weather
     <div className="flex h-full items-center justify-center">
       <div
         ref={cellRef}
-        className="relative flex h-12 w-12 items-center justify-center rounded-[1.5rem] cursor-pointer select-none"
+        className="relative flex flex-col items-center justify-center gap-0.5 rounded-[1.5rem] cursor-pointer select-none px-1 py-1.5"
         style={{ background: isToday ? "rgba(0,102,104,0.08)" : "transparent" }}
         onMouseEnter={openTooltip}
         onMouseLeave={() => setShowTooltip(false)}
         onClick={(e) => { e.stopPropagation(); if (showTooltip) { setShowTooltip(false); } else { openTooltip(); } }}
       >
         <Icon size={34} />
-        {isToday ? (
-          <div
-            className="absolute bottom-0.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full"
-            style={{ background: "var(--primary)" }}
-          />
-        ) : message ? (
-          <div
-            className="dot-pulse absolute bottom-0.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full"
-            style={{ background: "var(--text-soft)" }}
-          />
-        ) : null}
+        {/* 점 자리를 항상 확보 — 없으면 투명으로 정렬 유지 */}
+        <div
+          className={`h-1.5 w-1.5 rounded-full flex-shrink-0${isToday ? "" : message ? " dot-pulse" : ""}`}
+          style={{
+            background: isToday
+              ? "var(--primary)"
+              : message
+                ? "var(--text-soft)"
+                : "transparent",
+          }}
+        />
         <AnimatePresence>
           {showTooltip && anchorRect && (
             <SmartTooltip text={message || ""} score={score} status={status} anchorRect={anchorRect} />
@@ -978,7 +978,7 @@ function NikoSummaryRow({
       }}
     >
       <div
-        className="sticky left-0 z-10 flex items-center gap-2 py-3 pr-2"
+        className="sticky left-0 z-10 flex h-[60px] items-center gap-2 pr-2"
         style={{ background: rowBackground }}
       >
         <div
@@ -1016,16 +1016,16 @@ function NikoSummaryRow({
                 ? "color-mix(in srgb, var(--tertiary-container) 48%, var(--surface-lowest))"
                 : "color-mix(in srgb, var(--surface-container-high) 80%, var(--surface-lowest))";
           return (
-            <div key={dayIdx} className="flex items-center justify-center py-2">
+            <div key={dayIdx} className="flex items-center justify-center">
               <div
-                className="flex min-w-[56px] flex-col items-center justify-center rounded-[1rem] px-2 py-2"
+                className="flex min-w-[56px] flex-col items-center justify-center rounded-[1rem] px-2 py-1.5"
                 style={{
                   background: isToday ? "color-mix(in srgb, var(--primary) 12%, transparent)" : "transparent",
                   outline: isToday ? `2px solid ${tone === "primary" ? "color-mix(in srgb, var(--primary) 28%, transparent)" : "color-mix(in srgb, var(--on-surface) 18%, transparent)"}` : "none",
                   outlineOffset: "-2px",
                 }}
               >
-                {Icon ? <Icon size={24} /> : <span className="text-sm opacity-30">—</span>}
+                {Icon ? <Icon size={30} /> : <span className="text-sm opacity-30">—</span>}
                 <span className="mt-1 text-[10px] font-black leading-none" style={{ color: "var(--on-surface)" }}>
                   {cell.score !== null ? `${cell.score}pt` : "—"}
                 </span>
@@ -1043,11 +1043,11 @@ function NikoSummaryRow({
           );
         })
       ) : (
-        <div className="col-span-5 h-16 flex items-center pr-4">
+        <div className="col-span-5 h-[60px] flex items-center pr-4">
           <MoodTrendChart
             scores={week.map((w) => w.score)}
-            height={60}
-            className="w-full opacity-90"
+            height={44}
+            className="w-full"
           />
         </div>
       )}
@@ -1097,7 +1097,7 @@ export function NikoMemberRow({
       }}
     >
       {/* Sticky Column with Opaque Base to hide scrolling content underneath */}
-      <div className="sticky left-0 z-10 flex items-center gap-2 pr-2 py-3 bg-[var(--surface-lowest)] isolate">
+      <div className="sticky left-0 z-10 flex h-[60px] items-center gap-2 pr-2 bg-[var(--surface-lowest)] isolate">
         <div
           className="absolute inset-0 z-[-1]"
           style={{ backgroundColor: "var(--row-bg, transparent)" }}
@@ -1149,11 +1149,11 @@ export function NikoMemberRow({
           />
         ))
       ) : (
-        <div className="col-span-5 h-16 flex items-center pr-4">
+        <div className="col-span-5 h-[60px] flex items-center pr-4">
           <MoodTrendChart
             scores={week.map(w => w.score)}
-            height={60}
-            className="w-full opacity-80"
+            height={44}
+            className="w-full"
           />
         </div>
       )}
@@ -1395,13 +1395,13 @@ export function NikoCalendar({
 }
 
 // ─── WeatherLegend ────────────────────────────────────────────────────────────
-// 날씨 범례 바. Stormy~Radiant 아이콘+한글 라벨 + "기록 없음" 항목 고정 포함.
+// 날씨 범례 바. Stormy~Sunny 아이콘+한글 라벨 + "기록 없음" 항목 고정 포함.
 const WEATHER_LEGEND_ITEMS: Array<{ status: WeatherStatus; label: string }> = [
-  { status: "Stormy", label: "번개" },
+  { status: "Stormy", label: "뇌우" },
   { status: "Rainy", label: "비" },
-  { status: "Foggy", label: "안개" },
+  { status: "Cloudy", label: "흐림" },
+  { status: "PartlyCloudy", label: "구름조금" },
   { status: "Sunny", label: "맑음" },
-  { status: "Radiant", label: "쨍함" },
 ];
 
 interface WeatherLegendProps {

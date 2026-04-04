@@ -20,11 +20,11 @@ interface WeatherMetaphor {
 }
 
 const WEATHER_METAPHORS: WeatherMetaphor[] = [
-  { score: 10, label: "Stormy", ko: "번개" },
+  { score: 10, label: "Stormy", ko: "뇌우" },
   { score: 30, label: "Rainy", ko: "비" },
-  { score: 50, label: "Foggy", ko: "안개" },
-  { score: 70, label: "Sunny", ko: "맑음" },
-  { score: 90, label: "Radiant", ko: "쨍함" },
+  { score: 50, label: "Cloudy", ko: "흐림" },
+  { score: 70, label: "PartlyCloudy", ko: "구름조금" },
+  { score: 90, label: "Sunny", ko: "맑음" },
 ];
 
 const currentMetaphorFromScore = (score: number): WeatherMetaphor =>
@@ -60,32 +60,32 @@ const CELEBRATION_CONFIG: Record<string, {
     title: "오늘의 마음 관측 완료!",
     subtitle: "빗소리에 마음을 맡겨봐요 🌧️",
   },
-  Foggy: {
+  Cloudy: {
     overlayClass: "backdrop-blur-md",
-    cardShadow: "0 30px 100px -20px rgba(45,212,191,0.2)",
-    btnGradient: "linear-gradient(135deg, #2DD4BF 0%, #22D3EE 100%)",
-    btnShadow: "0 0 20px rgba(45,212,191,0.4)",
-    glowColor: "rgba(148,163,184,0.25)",
+    cardShadow: "0 30px 100px -20px rgba(100,116,139,0.2)",
+    btnGradient: "linear-gradient(135deg, #64748B 0%, #94A3B8 100%)",
+    btnShadow: "0 0 20px rgba(100,116,139,0.3)",
+    glowColor: "rgba(148,163,184,0.2)",
     title: "오늘의 마음 관측 완료!",
-    subtitle: "안개는 곧 걷혀 나아갈 거예요 🌫️",
+    subtitle: "흐린 날도 괜찮아요, 내일은 개어요 ☁️",
+  },
+  PartlyCloudy: {
+    overlayClass: "backdrop-blur-md",
+    cardShadow: "0 30px 100px -20px rgba(34,197,94,0.2)",
+    btnGradient: "linear-gradient(135deg, #22C55E 0%, #16A34A 100%)",
+    btnShadow: "0 0 20px rgba(34,197,94,0.3)",
+    glowColor: "rgba(34,197,94,0.15)",
+    title: "오늘의 마음 관측 완료!",
+    subtitle: "구름 사이로 햇살이 비쳐요 ⛅",
   },
   Sunny: {
     overlayClass: "backdrop-blur-md",
-    cardShadow: "0 30px 100px -20px rgba(255,153,102,0.2)",
-    btnGradient: "linear-gradient(135deg, #FF9966 0%, #FF5E62 100%)",
-    btnShadow: "0 0 20px rgba(255,153,102,0.4)",
-    glowColor: "rgba(251,191,36,0.2)",
+    cardShadow: "0 30px 100px -20px rgba(0,102,104,0.2)",
+    btnGradient: "linear-gradient(135deg, #006668 0%, #52f2f5 100%)",
+    btnShadow: "0 0 20px rgba(0,102,104,0.4)",
+    glowColor: "rgba(0,102,104,0.15)",
     title: "오늘의 마음은 맑음!",
     subtitle: "따스한 햇살이 기록되었어요 ☀️",
-  },
-  Radiant: {
-    overlayClass: "backdrop-blur-md",
-    cardShadow: "0 30px 100px -20px rgba(255,153,102,0.25)",
-    btnGradient: "linear-gradient(135deg, #FFD600 0%, #FF9966 100%)",
-    btnShadow: "0 0 20px rgba(255,200,0,0.4)",
-    glowColor: "rgba(255,209,102,0.3)",
-    title: "오늘의 마음은 쨍함!",
-    subtitle: "눈부신 에너지가 기록되었어요 🌟",
   },
 };
 
@@ -455,7 +455,7 @@ function ModalWeatherIcon({ label }: { label: string }) {
     );
   }
 
-  if (label === "Radiant") {
+  if (label === "Sunny") {
     return (
       <motion.div
         animate={{ rotate: 360 }}
@@ -488,7 +488,7 @@ function ModalWeatherIcon({ label }: { label: string }) {
     );
   }
 
-  if (label === "Foggy") {
+  if (label === "Cloudy") {
     return (
       <motion.div
         animate={{ opacity: [0.7, 1, 0.7] }}

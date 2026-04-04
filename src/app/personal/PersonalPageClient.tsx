@@ -7,20 +7,13 @@ import ClimaLogo from "../components/WetherLogo";
 import ThemeToggleButton from "../components/ThemeToggleButton";
 import HeaderNav, { type HeaderNavItem } from "../components/HeaderNav";
 import DynamicBackground from "../components/DynamicBackground";
-import {
-  Badge,
-  GlassCard,
-  MiniStatCard,
-  SectionHeader,
-  ViewModeToggle,
-  UserAvatar,
-} from "../components/ui";
+import { SectionLabel, ViewModeToggle, UserAvatar } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { MoodTrendChart } from "../components/MoodTrendChart";
 import { supabase } from "../../lib/supabase";
 import { scoreToStatus, statusToKo, type WeatherStatus } from "../../lib/mood";
 import { DEMO_USER_ID, DEMO_USER } from "../../lib/demo-data";
-import { STANDARD_SPRING } from "../constants/springs";
+import { STANDARD_SPRING, RESPONSIVE_SPRING } from "../constants/springs";
 
 interface MoodLog {
   score: number;
@@ -35,7 +28,8 @@ interface UserData {
   mood_logs: MoodLog[];
 }
 
-const WEEK_DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI"];
+
 const BASE_NAV_ITEMS: HeaderNavItem[] = [
   { label: "홈", href: "/" },
   { label: "개인 현황", href: "/personal" },
@@ -48,61 +42,75 @@ function getTodayKst(): string {
   return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
 }
 
-function scoreToOffset(score: number) {
-  const circumference = 2 * Math.PI * 88;
-  return circumference * (1 - score / 100);
+function getWeekMonday(): Date {
+  const today = new Date(getTodayKst());
+  const dow = today.getDay();
+  const diff = dow === 0 ? -6 : 1 - dow;
+  today.setDate(today.getDate() + diff);
+  return today;
+}
+
+function getWeekDays(): Date[] {
+  const monday = getWeekMonday();
+  return Array.from({ length: 5 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d;
+  });
+}
+
+function isoDate(d: Date): string {
+  return d.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
 }
 
 function getWeeklyLogs(logs: MoodLog[]): (MoodLog | null)[] {
-  const today = new Date(getTodayKst());
-  const dayOfWeek = today.getDay();
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
-
-  return Array.from({ length: 7 }, (_, i) => {
-    const day = new Date(monday);
-    day.setDate(monday.getDate() + i);
-    const isoDate = day.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
-    return logs.find((log) =>
-      new Date(log.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === isoDate,
+  const days = getWeekDays();
+  return days.map((day) => {
+    const iso = isoDate(day);
+    return logs.find((l) =>
+      new Date(l.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === iso
     ) ?? null;
   });
 }
 
-function getWeekRangeLabel() {
-  const today = new Date(getTodayKst());
-  const dayOfWeek = today.getDay();
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-
-  return `${monday.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })} — ${sunday.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })}`;
+function getWeekRangeLabel(): string {
+  const days = getWeekDays();
+  const start = days[0].toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
+  const end = days[4].toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
+  return `${start} — ${end}`;
 }
 
-function TopIcon({ type }: { type: "bell" | "settings" | "profile" }) {
-  if (type === "bell") {
-    return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M12 4.5a4 4 0 0 0-4 4v2.3c0 .7-.2 1.3-.6 1.8L6 14.5h12l-1.4-1.9a3 3 0 0 1-.6-1.8V8.5a4 4 0 0 0-4-4Z" />
-        <path d="M9.5 17.5a2.5 2.5 0 0 0 5 0" />
-      </svg>
-    );
-  }
+function getTodayWeekIndex(): number {
+  const today = getTodayKst();
+  return getWeekDays().findIndex((d) => isoDate(d) === today);
+}
 
-  if (type === "settings") {
-    return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.5-2.4 1a8 8 0 0 0-1.8-1L14.5 3h-5L9.3 6a8 8 0 0 0-1.8 1l-2.4-1-2 3.5 2 1.6A7 7 0 0 0 5 12c0 .34.03.67.1 1l-2 1.6 2 3.5 2.4-1a8 8 0 0 0 1.8 1l.2 3h5l.2-3a8 8 0 0 0 1.8-1l2.4 1 2-3.5-2-1.6c.07-.33.1-.66.1-1Z" />
-      </svg>
-    );
-  }
+// 최근 N일 추이 (개인 이력 차트용)
+function getRecentLogs(logs: MoodLog[], days: number): (MoodLog | null)[] {
+  return Array.from({ length: days }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (days - 1 - i));
+    const iso = d.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+    return logs.find((l) =>
+      new Date(l.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === iso
+    ) ?? null;
+  });
+}
 
+function BellIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <circle cx="12" cy="8" r="3.2" />
-      <path d="M5.5 20a6.5 6.5 0 0 1 13 0" />
+      <path d="M12 4.5a4 4 0 0 0-4 4v2.3c0 .7-.2 1.3-.6 1.8L6 14.5h12l-1.4-1.9a3 3 0 0 1-.6-1.8V8.5a4 4 0 0 0-4-4Z" />
+      <path d="M9.5 17.5a2.5 2.5 0 0 0 5 0" />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="3.5" y="5.5" width="17" height="15" rx="2.5" />
+      <path d="M7.5 3.5v4M16.5 3.5v4M3.5 10.5h17" />
     </svg>
   );
 }
@@ -114,163 +122,6 @@ function TrendIcon() {
       <path d="M16 7h4v4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
-}
-
-function PersonalHeroCard({
-  user,
-  todayScore,
-  todayStatus,
-  insightText,
-}: {
-  user: UserData;
-  todayScore: number | null;
-  todayStatus: WeatherStatus | null;
-  insightText: string;
-}) {
-  const circumference = 2 * Math.PI * 88;
-  const StatusIcon = todayStatus ? WEATHER_ICON_MAP[todayStatus] : null;
-
-  return (
-    <GlassCard className="px-6 py-6 md:px-7 md:py-7" intensity="medium">
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <SectionHeader
-          icon={<TopIcon type="profile" />}
-          title="오늘 상태"
-          subtitle={todayStatus ? `${statusToKo(todayStatus)} 컨디션이에요` : "아직 오늘 체크인이 없어요"}
-        />
-        <div className="hidden sm:flex rounded-full bg-surface-highest/80 p-1.5">
-          <UserAvatar
-            name={user.name}
-            avatarEmoji={user.avatar_emoji}
-            size={48}
-            fallbackTextClassName="text-base font-black"
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex justify-center lg:flex-1">
-          {todayScore !== null ? (
-            <div className="relative flex h-52 w-52 items-center justify-center">
-              <svg className="absolute inset-0 h-full w-full -rotate-90 drop-shadow-lg">
-                <circle cx="104" cy="104" r="88" stroke="var(--surface-container-high)" strokeWidth="12" fill="transparent" />
-                <motion.circle
-                  cx="104"
-                  cy="104"
-                  r="88"
-                  stroke="var(--primary)"
-                  strokeWidth="12"
-                  fill="transparent"
-                  strokeLinecap="round"
-                  strokeDasharray={circumference}
-                  initial={{ strokeDashoffset: circumference }}
-                  animate={{ strokeDashoffset: scoreToOffset(todayScore) }}
-                  transition={{ duration: 1.2, ease: "easeOut", delay: 0.3 }}
-                />
-              </svg>
-              <div className="flex flex-col items-center">
-                <span className="text-5xl font-extrabold leading-none text-primary">{todayScore}pt</span>
-                <span className="mt-2 text-[10px] font-black uppercase tracking-widest opacity-40">TODAY SCORE</span>
-              </div>
-            </div>
-          ) : (
-            <div className="flex h-52 w-full max-w-[20rem] flex-col items-center justify-center rounded-[2rem] bg-surface-lowest/70 px-6 text-center">
-              <span className="text-5xl opacity-30">🌫️</span>
-              <p className="mt-4 text-sm font-semibold" style={{ color: "var(--text-muted)" }}>
-                오늘 기록이 아직 없어요.
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="lg:max-w-sm lg:flex-1">
-          <div className="mb-4 flex items-center gap-2">
-            {todayStatus && <Badge variant="primary">{statusToKo(todayStatus)}</Badge>}
-            {StatusIcon ? (
-              <div
-                className="flex h-9 w-9 items-center justify-center rounded-full"
-                style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)", color: "var(--primary)" }}
-              >
-                <StatusIcon size={20} />
-              </div>
-            ) : null}
-          </div>
-          <p className="text-lg font-black tracking-tight" style={{ color: "var(--on-surface)" }}>
-            {user.name} 님의 오늘 상태를 한눈에 확인해요.
-          </p>
-          <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            {insightText}
-          </p>
-        </div>
-      </div>
-    </GlassCard>
-  );
-}
-
-function WeeklyFlowCard({
-  weeklyLogs,
-  viewMode,
-  onViewModeChange,
-  subtitle,
-}: {
-  weeklyLogs: (MoodLog | null)[];
-  viewMode: "icon" | "chart";
-  onViewModeChange: (mode: "icon" | "chart") => void;
-  subtitle: string;
-}) {
-  return (
-    <GlassCard className="px-6 py-6 md:px-7 md:py-7" intensity="medium">
-      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <SectionHeader icon={<TrendIcon />} title="이번 주 흐름" subtitle={subtitle} />
-        <ViewModeToggle mode={viewMode} onChange={onViewModeChange} />
-      </div>
-
-      {viewMode === "icon" ? (
-        <div className="grid grid-cols-7 gap-2 text-center">
-          {WEEK_DAY_LABELS.map((day) => (
-            <span key={day} className="mb-2 block text-[10px] font-black tracking-widest opacity-40">
-              {day}
-            </span>
-          ))}
-          {weeklyLogs.map((log, index) => {
-            const isToday = index === (new Date().getDay() + 6) % 7;
-            const status = log ? scoreToStatus(log.score) : null;
-            const Icon = status ? WEATHER_ICON_MAP[status] : null;
-            return (
-              <div
-                key={`${dayLabel(index)}-${index}`}
-                className="flex aspect-square items-center justify-center rounded-[1.1rem]"
-                style={{
-                  background: isToday
-                    ? "color-mix(in srgb, var(--primary) 10%, var(--surface-lowest))"
-                    : "color-mix(in srgb, var(--surface-lowest) 88%, transparent)",
-                  outline: isToday ? "2px solid color-mix(in srgb, var(--primary) 38%, transparent)" : "none",
-                  outlineOffset: "-2px",
-                }}
-              >
-                {Icon ? <Icon size={22} /> : <span className="block h-5 w-5 rounded-full bg-surface-container-high" />}
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="px-1 pb-2 pt-3">
-          <div className="mb-4 grid grid-cols-7 gap-2 text-center">
-            {WEEK_DAY_LABELS.map((day) => (
-              <span key={day} className="block text-[10px] font-black tracking-widest opacity-40">
-                {day}
-              </span>
-            ))}
-          </div>
-          <MoodTrendChart scores={weeklyLogs.map((log) => log?.score ?? null)} height={104} className="w-full" />
-        </div>
-      )}
-    </GlassCard>
-  );
-}
-
-function dayLabel(index: number) {
-  return WEEK_DAY_LABELS[index] ?? String(index);
 }
 
 export default function PersonalPageClient({ userId }: { userId: string }) {
@@ -291,7 +142,6 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
         setLoading(false);
         return;
       }
-
       const { data } = await supabase
         .from("users")
         .select("id, name, avatar_emoji, mood_logs (score, message, logged_at)")
@@ -299,62 +149,88 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
         .order("logged_at", { referencedTable: "mood_logs", ascending: false })
         .limit(30, { referencedTable: "mood_logs" })
         .single();
-
       if (data) setUser(data as UserData);
       setLoading(false);
     }
-
     load();
   }, [userId]);
 
   const todayKst = getTodayKst();
   const todayLabel = new Date().toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
+    year: "numeric", month: "long", day: "numeric", weekday: "short",
   });
 
-  const weeklyLogs = useMemo(() => (user ? getWeeklyLogs(user.mood_logs) : Array.from({ length: 7 }, () => null)), [user]);
-  const todayLog = useMemo(
-    () => user?.mood_logs.find((log) =>
-      new Date(log.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === todayKst
-    ) ?? null,
-    [todayKst, user],
+  const weeklyLogs = useMemo(
+    () => (user ? getWeeklyLogs(user.mood_logs) : Array.from({ length: 5 }, () => null)),
+    [user]
   );
+  const recentLogs = useMemo(
+    () => (user ? getRecentLogs(user.mood_logs, 14) : Array.from({ length: 14 }, () => null)),
+    [user]
+  );
+  const todayLog = useMemo(
+    () => user?.mood_logs.find((l) =>
+      new Date(l.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === todayKst
+    ) ?? null,
+    [todayKst, user]
+  );
+
   const todayScore = todayLog?.score ?? null;
-  const todayStatus = todayScore !== null ? scoreToStatus(todayScore) : null;
-  const weeklyScores = weeklyLogs.flatMap((log) => (log ? [log.score] : []));
+  const todayStatus: WeatherStatus | null = todayScore !== null ? scoreToStatus(todayScore) : null;
+  const todayIndex = getTodayWeekIndex();
+
+  const weeklyScores = weeklyLogs.flatMap((l) => (l ? [l.score] : []));
   const weekAverage = weeklyScores.length
-    ? Math.round(weeklyScores.reduce((sum, score) => sum + score, 0) / weeklyScores.length)
+    ? Math.round(weeklyScores.reduce((a, b) => a + b, 0) / weeklyScores.length)
     : null;
-  const bgScore = todayScore ?? 50;
-  const insightText =
-    todayScore === null
-      ? "오늘 체크인을 남기면 팀 화면과 개인 현황이 같은 용어로 바로 정리돼요."
-      : todayScore >= 81
-        ? "에너지가 충분한 날이에요. 너무 과열되지 않게 속도를 조절하면 좋아요."
-        : todayScore >= 61
-          ? "안정적으로 집중하기 좋은 흐름이에요. 오늘 잘 된 포인트를 유지해 보세요."
-          : todayScore >= 41
-            ? "조금 흐릿한 날이에요. 우선순위를 줄이고 회복 시간을 먼저 챙기는 편이 좋아요."
-            : "지금은 무리해서 끌고 가기보다 주변에 도움을 요청하는 편이 좋아 보여요.";
+
+  // 전주 같은 요일 점수 (비교용) — 7일 전 기록
+  const prevWeekSameDay = useMemo(() => {
+    if (!user || todayIndex < 0) return null;
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    const iso = d.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+    return user.mood_logs.find((l) =>
+      new Date(l.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === iso
+    )?.score ?? null;
+  }, [user, todayIndex]);
+
+  const deltaVsLastWeek = todayScore !== null && prevWeekSameDay !== null
+    ? todayScore - prevWeekSameDay
+    : null;
+
+  const StatusIcon = todayStatus ? WEATHER_ICON_MAP[todayStatus] : null;
+
+  const insightText = todayScore === null
+    ? "오늘 체크인을 남기면 팀 화면과 개인 현황이 같은 용어로 바로 정리돼요."
+    : todayScore >= 81
+      ? "에너지가 충분한 날이에요. 너무 과열되지 않게 속도를 조절하면 좋아요."
+      : todayScore >= 61
+        ? "안정적으로 집중하기 좋은 흐름이에요. 오늘 잘 된 포인트를 유지해 보세요."
+        : todayScore >= 41
+          ? "조금 흐릿한 날이에요. 우선순위를 줄이고 회복 시간을 먼저 챙기는 편이 좋아요."
+          : "지금은 무리해서 끌고 가기보다 주변에 도움을 요청하는 편이 좋아 보여요.";
+
+  const bgScore = todayScore ?? 55;
 
   if (loading) {
     return (
-      <div className="relative min-h-screen overflow-hidden" style={{ background: "var(--hero-gradient)" }}>
-        <DynamicBackground score={50} />
-        <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1200px] items-center justify-center px-4">
-          <div className="h-56 w-full max-w-xl animate-pulse rounded-[2rem] bg-surface-container" />
+      <div className="relative min-h-screen" style={{ background: "var(--hero-gradient)" }}>
+        <DynamicBackground score={55} />
+        <div className="relative z-10 flex min-h-screen items-center justify-center">
+          <div className="h-48 w-full max-w-lg animate-pulse rounded-[2rem] bg-surface-container mx-4" />
         </div>
       </div>
     );
   }
 
+  const navItems = [...BASE_NAV_ITEMS, ...(isAdmin ? [{ label: "어드민", href: "/admin" }] : [])];
+
   return (
-    <div className="relative min-h-screen overflow-hidden" style={{ background: "var(--hero-gradient)" }}>
+    <div className="relative min-h-screen" style={{ background: "var(--hero-gradient)" }}>
       <DynamicBackground score={bgScore} />
 
+      {/* 헤더 */}
       <motion.header
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -363,28 +239,18 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
         style={{ background: "var(--header-bg)", backdropFilter: "var(--glass-blur)", boxShadow: "var(--header-shadow)" }}
       >
         <div className="flex items-center gap-4 md:gap-8">
-          <Link href="/" className="flex shrink-0 items-center">
-            <ClimaLogo />
-          </Link>
+          <Link href="/" className="flex shrink-0 items-center"><ClimaLogo /></Link>
           <nav className="hidden md:flex items-center gap-1">
-            <HeaderNav items={[...BASE_NAV_ITEMS, ...(isAdmin ? [{ label: "어드민", href: "/admin" }] : [])]} />
+            <HeaderNav items={navItems} />
           </nav>
         </div>
         <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
           <ThemeToggleButton />
           <button className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
-            <TopIcon type="bell" />
+            <BellIcon />
           </button>
-          <button className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
-            <TopIcon type="settings" />
-          </button>
-          <div className="hidden md:flex items-center rounded-full bg-surface-high px-2 py-1.5 shadow-sm">
-            <UserAvatar
-              name={user?.name ?? "User"}
-              avatarEmoji={user?.avatar_emoji}
-              size={32}
-              fallbackTextClassName="text-sm font-black"
-            />
+          <div className="hidden md:flex h-10 w-10 items-center justify-center rounded-full overflow-hidden bg-surface-high">
+            <UserAvatar name={user?.name ?? "User"} avatarEmoji={user?.avatar_emoji} size={32} fallbackTextClassName="text-sm font-black" />
           </div>
           <button
             className="md:hidden flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
@@ -398,29 +264,23 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
         </div>
       </motion.header>
 
+      {/* 모바일 드로어 */}
       <AnimatePresence>
         {mobileNavOpen && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setMobileNavOpen(false)}
               className="fixed inset-0 z-[60]"
               style={{ background: "var(--drawer-scrim)", backdropFilter: "blur(4px)" }}
             />
             <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={STANDARD_SPRING}
+              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={STANDARD_SPRING}
               className="fixed right-0 top-0 h-full w-72 z-[70] flex flex-col"
               style={{ background: "var(--drawer-bg)", backdropFilter: "var(--glass-blur)" }}
             >
               <div className="flex items-center justify-between px-6 h-16 shrink-0">
                 <ClimaLogo />
-                <button
-                  onClick={() => setMobileNavOpen(false)}
+                <button onClick={() => setMobileNavOpen(false)}
                   className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-low transition-colors"
                   style={{ color: "var(--text-soft)" }}
                 >
@@ -430,98 +290,247 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                 </button>
               </div>
               <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
-                <HeaderNav items={[...BASE_NAV_ITEMS, ...(isAdmin ? [{ label: "어드민", href: "/admin" }] : [])]} mobile onNavigate={() => setMobileNavOpen(false)} />
+                <HeaderNav items={navItems} mobile onNavigate={() => setMobileNavOpen(false)} />
               </nav>
             </motion.div>
           </>
         )}
       </AnimatePresence>
 
-      <motion.main
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ ...STANDARD_SPRING, delay: 0.06 }}
-        className="relative z-10 mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-4 pb-12 pt-20 md:px-8"
-      >
-        <section
-          className="rounded-[1.9rem] px-4 py-5 md:rounded-[2.25rem] md:px-7 md:py-8"
-          style={{
-            background:
-              "linear-gradient(90deg, color-mix(in srgb, var(--surface-container-low) 92%, transparent) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 50%, color-mix(in srgb, var(--surface-container-low) 92%, transparent) 100%)",
-          }}
+      <div className="pt-20 px-4 md:px-8 max-w-[1200px] mx-auto pb-12">
+        <motion.main
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...STANDARD_SPRING, delay: 0.08 }}
+          className="rounded-[1.8rem] md:rounded-[2rem] px-3 py-3 md:px-5 md:py-5"
+          style={{ background: "var(--panel-tint)" }}
         >
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="max-w-2xl">
-              <SectionHeader
-                icon={<TopIcon type="profile" />}
-                title="개인 현황"
-                subtitle={todayLabel}
-              />
+          {/* 히어로 섹션 */}
+          <section
+            className="mb-5 rounded-[1.9rem] px-4 py-5 md:rounded-[2.25rem] md:px-7 md:py-8"
+            style={{
+              background: "linear-gradient(90deg, color-mix(in srgb, var(--surface-container-low) 92%, transparent) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 50%, color-mix(in srgb, var(--surface-container-low) 92%, transparent) 100%)",
+            }}
+          >
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h1 className="text-[2rem] font-black tracking-tight text-primary md:text-[3.1rem]">
+                  개인 현황
+                </h1>
+                <p className="mt-1 text-sm font-bold" style={{ color: "var(--text-soft)" }}>
+                  {todayLabel}
+                </p>
+                <p className="mt-3 text-base leading-relaxed md:text-lg" style={{ color: "var(--text-muted)" }}>
+                  {insightText}
+                </p>
+              </div>
+              <div
+                className="flex items-center gap-3 self-start rounded-[1.5rem] px-4 py-3"
+                style={{ background: "var(--surface-overlay)", boxShadow: "var(--shadow-level-1)" }}
+              >
+                <UserAvatar name={user?.name ?? "User"} avatarEmoji={user?.avatar_emoji} size={44} fallbackTextClassName="text-base font-black" />
+                <div>
+                  <p className="text-sm font-black tracking-tight" style={{ color: "var(--on-surface)" }}>
+                    {user?.name ?? "—"}
+                  </p>
+                  <p className="text-xs font-semibold" style={{ color: "var(--text-soft)" }}>
+                    {todayStatus ? statusToKo(todayStatus) : "오늘 미기록"}
+                  </p>
+                </div>
+                {StatusIcon && (
+                  <div className="ml-1">
+                    <StatusIcon size={32} />
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* 스탯 카드 4개 */}
+          <section className="mb-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            {[
+              {
+                label: "오늘 지수",
+                value: todayScore !== null ? `${todayScore}pt` : "—",
+              },
+              {
+                label: "오늘 상태",
+                value: statusToKo(todayStatus),
+              },
+              {
+                label: "이번 주 평균",
+                value: weekAverage !== null ? `${weekAverage}pt` : "—",
+              },
+              {
+                label: "지난 주 같은 요일 대비",
+                value: deltaVsLastWeek !== null
+                  ? `${deltaVsLastWeek > 0 ? "+" : ""}${deltaVsLastWeek}pt`
+                  : "—",
+                color: deltaVsLastWeek === null ? undefined : deltaVsLastWeek > 0 ? "var(--primary)" : deltaVsLastWeek < 0 ? "var(--tertiary)" : undefined,
+              },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-[1.5rem] px-4 py-4"
+                style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
+              >
+                <SectionLabel color="muted">{stat.label}</SectionLabel>
+                <div
+                  className="mt-1 text-xl font-black"
+                  style={{ color: stat.color ?? "var(--primary)" }}
+                >
+                  {stat.value}
+                </div>
+              </div>
+            ))}
+          </section>
+
+          {/* 이번 주 흐름 */}
+          <section
+            className="mb-5 rounded-[2rem] px-3 py-4 md:rounded-[2.5rem] md:px-6 md:py-6"
+            style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
+          >
+            <div className="mb-5 flex flex-col gap-4 lg:mb-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-low text-primary">
+                  <CalendarIcon />
+                </div>
+                <div>
+                  <p className="text-base font-black tracking-tight text-primary md:text-[1.1rem]">
+                    이번 주 흐름
+                  </p>
+                  <p className="text-xs font-semibold" style={{ color: "var(--text-soft)" }}>
+                    {getWeekRangeLabel()}
+                  </p>
+                </div>
+              </div>
+              <ViewModeToggle mode={viewMode} onChange={setViewMode} />
             </div>
 
-            <div className="flex items-center gap-3 self-start rounded-full bg-surface-high px-3 py-2 shadow-sm">
-              <UserAvatar
-                name={user?.name ?? "User"}
-                avatarEmoji={user?.avatar_emoji}
-                size={44}
-                fallbackTextClassName="text-base font-black"
-              />
+            {/* 요일 헤더 */}
+            <div
+              className="grid gap-2 mb-2"
+              style={{ gridTemplateColumns: `repeat(5, 1fr)` }}
+            >
+              {DAY_LABELS.map((day, i) => (
+                <div key={day} className="flex flex-col items-center gap-1">
+                  <span
+                    className="text-[10px] font-black tracking-widest"
+                    style={{ color: i === todayIndex ? "var(--primary)" : "var(--text-soft)", opacity: i === todayIndex ? 1 : 0.6 }}
+                  >
+                    {day}
+                  </span>
+                  {/* 오늘 표시 도트 */}
+                  <div
+                    className="h-1 w-5 rounded-full transition-colors"
+                    style={{ background: i === todayIndex ? "var(--primary)" : "transparent" }}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <AnimatePresence mode="wait">
+              {viewMode === "icon" ? (
+                <motion.div
+                  key="icon"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={RESPONSIVE_SPRING}
+                  className="grid gap-2"
+                  style={{ gridTemplateColumns: `repeat(5, 1fr)` }}
+                >
+                  {weeklyLogs.map((log, i) => {
+                    const status = log ? scoreToStatus(log.score) : null;
+                    const Icon = status ? WEATHER_ICON_MAP[status] : null;
+                    const isToday = i === todayIndex;
+                    return (
+                      <div
+                        key={i}
+                        className="flex h-[60px] flex-col items-center justify-center rounded-[1.3rem] gap-1"
+                        style={{
+                          background: isToday
+                            ? "color-mix(in srgb, var(--primary) 8%, var(--surface-lowest))"
+                            : "color-mix(in srgb, var(--surface-lowest) 70%, transparent)",
+                        }}
+                      >
+                        {Icon
+                          ? <Icon size={30} />
+                          : <div className="h-7 w-7 rounded-full" style={{ background: "var(--surface-container-high)" }} />
+                        }
+                        {log?.score != null && (
+                          <span className="text-[9px] font-black" style={{ color: "var(--text-soft)" }}>
+                            {log.score}pt
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="chart"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={RESPONSIVE_SPRING}
+                  className="h-[60px]"
+                >
+                  <MoodTrendChart
+                    scores={weeklyLogs.map((l) => l?.score ?? null)}
+                    height={44}
+                    className="w-full"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </section>
+
+          {/* 최근 2주 추이 */}
+          <section
+            className="rounded-[2rem] px-3 py-4 md:rounded-[2.5rem] md:px-6 md:py-6"
+            style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
+          >
+            <div className="mb-5 flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-low text-primary">
+                <TrendIcon />
+              </div>
               <div>
-                <p className="text-sm font-black tracking-tight" style={{ color: "var(--on-surface)" }}>
-                  {user?.name ?? "—"}
+                <p className="text-base font-black tracking-tight text-primary md:text-[1.1rem]">
+                  최근 2주 추이
                 </p>
                 <p className="text-xs font-semibold" style={{ color: "var(--text-soft)" }}>
-                  {todayStatus ? `오늘 상태 · ${statusToKo(todayStatus)}` : "오늘 상태 · 미기록"}
+                  일별 점수 변화
                 </p>
               </div>
             </div>
-          </div>
-        </section>
 
-        <section className="grid grid-cols-2 gap-2 xl:grid-cols-3">
-          <MiniStatCard
-            label="오늘 지수"
-            value={todayScore !== null ? `${todayScore}pt` : "—"}
-            valueColor="primary"
-          />
-          <MiniStatCard
-            label="오늘 상태"
-            value={statusToKo(todayStatus)}
-            valueColor="primary"
-          />
-          <MiniStatCard
-            label="이번 주 평균"
-            value={weekAverage !== null ? `${weekAverage}pt` : "—"}
-            valueColor="primary"
-          />
-        </section>
+            <MoodTrendChart
+              scores={recentLogs.map((l) => l?.score ?? null)}
+              height={80}
+              className="w-full"
+            />
 
-        {user ? (
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-            <PersonalHeroCard
-              user={user}
-              todayScore={todayScore}
-              todayStatus={todayStatus}
-              insightText={insightText}
-            />
-            <WeeklyFlowCard
-              weeklyLogs={weeklyLogs}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              subtitle={getWeekRangeLabel()}
-            />
-          </div>
-        ) : (
-          <GlassCard className="px-6 py-8 text-center" intensity="medium">
-            <p className="text-lg font-black tracking-tight" style={{ color: "var(--on-surface)" }}>
-              개인 현황을 불러오지 못했어요.
-            </p>
-            <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-              사용자 정보가 없거나 접근할 수 없는 상태예요.
-            </p>
-          </GlassCard>
-        )}
-      </motion.main>
+            {/* 날짜 레이블 */}
+            <div className="mt-3 flex justify-between px-1">
+              {recentLogs.map((_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - (13 - i));
+                const isToday = i === 13;
+                return (
+                  <span
+                    key={i}
+                    className="text-[9px] font-bold"
+                    style={{ color: isToday ? "var(--primary)" : "var(--text-soft)", opacity: isToday ? 1 : 0.5 }}
+                  >
+                    {i % 3 === 0 || isToday ? d.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" }) : ""}
+                  </span>
+                );
+              })}
+            </div>
+          </section>
+        </motion.main>
+      </div>
     </div>
   );
 }

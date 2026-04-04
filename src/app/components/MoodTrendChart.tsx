@@ -2,163 +2,199 @@
 
 import { motion } from "framer-motion";
 import { RESPONSIVE_SPRING } from "../constants/springs";
-import { scoreToStatus, type WeatherStatus } from "../../lib/mood";
+import { scoreToStatus, checkWarning, type WeatherStatus } from "../../lib/mood";
 
 interface MoodTrendChartProps {
-  scores: Array<number | null>; // 5일간의 점수 (월~금)
+  scores: Array<number | null>;
   height?: number;
   className?: string;
 }
 
-type TrendDirection = "up" | "down" | "flat";
-
-function getDeltaFromPrevious(scores: Array<number | null>, index: number) {
-  const previous = scores[index - 1];
-  const current = scores[index];
-  if (previous === null || current === null || previous === undefined) return null;
-
-  const delta = current - previous;
-  const direction: TrendDirection = delta > 0 ? "up" : delta < 0 ? "down" : "flat";
-  return { delta, direction };
+function getWeatherColor(status: WeatherStatus): { fill: string; glow: string } {
+  switch (status) {
+    case "Stormy":       return { fill: "#2d3a52", glow: "rgba(45,58,82,0.45)" };
+    case "Rainy":        return { fill: "#4a72b0", glow: "rgba(74,114,176,0.4)" };
+    case "Cloudy":       return { fill: "#7fa3c0", glow: "rgba(127,163,192,0.35)" };
+    case "PartlyCloudy": return { fill: "#4ab0e8", glow: "rgba(74,176,232,0.4)" };
+    case "Sunny":        return { fill: "#1e9de0", glow: "rgba(30,157,224,0.45)" };
+    default:             return { fill: "var(--primary)", glow: "transparent" };
+  }
 }
 
-function TrendArrow({ direction }: { direction: TrendDirection }) {
-  if (direction === "flat") {
-    return <span className="block h-[2px] w-[9px] rounded-full bg-current" />;
+// score 0~100을 height의 10%~90% 범위에 매핑해 시각적 차이를 명확히 함
+function pillCenterY(score: number, height: number, pillH: number): number {
+  const pad = height * 0.1;
+  const usable = height - pad * 2;
+  const bottomPx = pad + (score / 100) * usable - pillH / 2;
+  const clamped = Math.max(0, Math.min(height - pillH, bottomPx));
+  return height - clamped - pillH / 2;
+}
+
+function pillCenterX(index: number, total: number): number {
+  return (index + 0.5) / total;
+}
+
+// 제어점을 수직 방향으로 당겨 곡률 확보
+// 간격이 넓어도 눈에 보이는 곡률을 위해 cpY를 중간값에서 벗어나게 함
+function cubicPath(x1: number, y1: number, x2: number, y2: number): string {
+  const cpX = (x1 + x2) / 2;
+  const midY = (y1 + y2) / 2;
+  // 수직 차이에 비례해 제어점을 중간 y 쪽으로 당김 → S자 대신 완만한 아치
+  const tension = 0.4;
+  const cp1Y = y1 + (midY - y1) * tension;
+  const cp2Y = y2 + (midY - y2) * tension;
+  return `M ${x1} ${y1} C ${cpX} ${cp1Y}, ${cpX} ${cp2Y}, ${x2} ${y2}`;
+}
+
+export function MoodTrendChart({ scores, height = 44, className = "" }: MoodTrendChartProps) {
+  const PILL_H = 16;
+  const PILL_W = 12;
+  const n = scores.length;
+  const W = 100;
+
+  const segments = [];
+  for (let i = 1; i < n; i++) {
+    const prev = scores[i - 1];
+    const curr = scores[i];
+    if (prev === null || curr === null) continue;
+    const x1 = pillCenterX(i - 1, n) * W;
+    const y1 = pillCenterY(prev, height, PILL_H);
+    const x2 = pillCenterX(i, n) * W;
+    const y2 = pillCenterY(curr, height, PILL_H);
+    segments.push({ path: cubicPath(x1, y1, x2, y2), idx: i });
   }
 
-  const path = direction === "down" ? "M6 2v8 M3 7l3 3 3-3" : "M6 10V2 M3 5l3-3 3 3";
-
   return (
-    <svg
-      viewBox="0 0 12 12"
-      aria-hidden="true"
-      className="block h-[10px] w-[10px] shrink-0 overflow-visible"
-      fill="none"
-    >
-      <path
-        d={path}
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
+    <div className={`relative w-full ${className}`} style={{ height: `${height}px` }}>
+      {/* 가이드라인 */}
+      {[75, 50, 25].map((level) => (
+        <div
+          key={level}
+          className="absolute w-full pointer-events-none"
+          style={{
+            bottom: `${level}%`,
+            borderTop: "1px dashed color-mix(in srgb, var(--on-surface) 7%, transparent)",
+          }}
+        />
+      ))}
 
-/**
- * 5일간의 무드를 이산적인 기둥(Bar)으로 표현하는 초경량 차트.
- * 연속적인 선보다 하루 단위의 기록을 더 명확하게 전달하며 색상으로 상태를 개별 표현.
- */
-export function MoodTrendChart({ scores, height = 40, className = "" }: MoodTrendChartProps) {
-  const getBarColor = (score: number | null) => {
-    if (score === null) return "var(--surface-container-high)";
-    const status: WeatherStatus = scoreToStatus(score);
-    switch (status) {
-      case "Radiant": return "#FBBF24";
-      case "Sunny": return "#FDE047";
-      case "Foggy": return "#94A3B8";
-      case "Rainy": return "#60A5FA";
-      case "Stormy": return "#818CF8";
-      default: return "var(--primary)";
-    }
-  };
-
-  return (
-    <div className={`relative w-full flex items-end justify-between gap-1 px-1 ${className}`} style={{ height: `${height}px` }}>
-      <div className="absolute inset-0 pointer-events-none overflow-hidden pb-1">
-        {[100, 75, 50, 25].map((level) => (
-          <div
-            key={level}
-            className="absolute w-full border-t border-current opacity-[0.05] flex items-center"
-            style={{ bottom: `${level}%` }}
-          >
-            <span className="absolute -left-1 text-[8px] font-black opacity-40 transform -translate-x-full">
-              {level}%
-            </span>
-          </div>
+      {/* 곡선 SVG */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
+        viewBox={`0 0 ${W} ${height}`}
+        preserveAspectRatio="none"
+      >
+        {segments.map((seg, i) => (
+          <motion.path
+            key={i}
+            d={seg.path}
+            fill="none"
+            stroke="color-mix(in srgb, var(--on-surface) 22%, transparent)"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            vectorEffect="non-scaling-stroke"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 1 }}
+            transition={{ duration: 0.55, delay: 0.12 + i * 0.07, ease: "easeOut" }}
+          />
         ))}
-      </div>
+      </svg>
 
+      {/* 캡슐 레이어 */}
       {scores.map((score, i) => {
         const hasScore = score !== null;
-        const barHeight = hasScore ? Math.max(12, score) : 8;
-        const barColor = getBarColor(score);
-        const deltaFromPrevious = getDeltaFromPrevious(scores, i);
-        const trendColor = deltaFromPrevious
-          ? deltaFromPrevious.direction === "up"
-            ? "var(--primary-dim)"
-            : deltaFromPrevious.direction === "down"
-              ? "var(--tertiary)"
-              : "color-mix(in srgb, var(--on-surface) 56%, transparent)"
-          : "transparent";
-        const trendBackground = deltaFromPrevious
-          ? deltaFromPrevious.direction === "up"
-            ? "color-mix(in srgb, var(--primary-container) 44%, var(--surface-lowest))"
-            : deltaFromPrevious.direction === "down"
-              ? "color-mix(in srgb, var(--tertiary-container) 48%, var(--surface-lowest))"
-              : "color-mix(in srgb, var(--surface-container-high) 72%, var(--surface-lowest))"
-          : "transparent";
+        const prev = scores[i - 1];
+        const isDropping = checkWarning(scores, i) !== null;
+
+        const xPct = pillCenterX(i, n) * 100;
+        const bottomPx = hasScore
+          ? (() => {
+              const pad = height * 0.1;
+              const usable = height - pad * 2;
+              return Math.max(0, Math.min(height - PILL_H, pad + (score! / 100) * usable - PILL_H / 2));
+            })()
+          : (height - PILL_H) / 2;
+
+        const status = hasScore ? scoreToStatus(score!) : null;
+        const { fill, glow } = status
+          ? getWeatherColor(status)
+          : { fill: "color-mix(in srgb, var(--on-surface) 15%, transparent)", glow: "transparent" };
 
         return (
-          <div key={i} className="relative flex-1 flex flex-col items-center group h-full justify-end">
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{
-                height: `${barHeight}%`,
-                opacity: hasScore ? 1 : 0.2
-              }}
-              transition={{
-                ...RESPONSIVE_SPRING,
-                delay: 0.1 + i * 0.05
-              }}
-              className="w-[12px] md:w-[16px] rounded-full shadow-sm relative overflow-hidden"
+          <div
+            key={i}
+            className="absolute group"
+            style={{ left: `${xPct}%`, transform: "translateX(-50%)", width: PILL_W + 16, height: `${height}px` }}
+          >
+            {/* 세로 트랙 */}
+            <div
+              className="absolute left-1/2 -translate-x-1/2 w-px"
               style={{
-                background: barColor,
-                boxShadow: hasScore ? `0 4px 12px ${barColor}33` : "none"
+                top: 0,
+                height: `${height}px`,
+                background: "color-mix(in srgb, var(--on-surface) 5%, transparent)",
+              }}
+            />
+
+            {/* 캡슐 */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: hasScore ? 1 : 0.2, scale: 1, bottom: bottomPx }}
+              transition={{ ...RESPONSIVE_SPRING, delay: 0.08 + i * 0.06 }}
+              className="absolute left-1/2 -translate-x-1/2"
+              style={{
+                width: PILL_W,
+                height: PILL_H,
+                borderRadius: 999,
+                background: fill,
+                boxShadow: isDropping
+                  ? `0 0 12px 4px rgba(239,68,68,0.35), 0 2px 6px ${glow}`
+                  : `0 2px 8px ${glow}`,
               }}
             >
-              <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/20 to-transparent" />
+              <div className="absolute top-0 left-0 w-full h-1/2 rounded-t-full bg-gradient-to-b from-white/25 to-transparent" />
+              {/* breathing glow 레이어 — opacity만 애니메이팅해서 GPU 보간 */}
+              {isDropping && (
+                <motion.div
+                  className="absolute inset-0 rounded-full pointer-events-none"
+                  style={{
+                    borderRadius: 999,
+                    boxShadow: "0 0 16px 6px rgba(239,68,68,0.6), 0 0 32px 12px rgba(239,68,68,0.25)",
+                  }}
+                  animate={{ opacity: [0.1, 1, 0.1] }}
+                  transition={{
+                    duration: 3.2,
+                    repeat: Infinity,
+                    ease: [0.45, 0, 0.55, 1],
+                    times: [0, 0.4, 1],
+                    repeatType: "loop",
+                  }}
+                />
+              )}
             </motion.div>
 
-            {deltaFromPrevious && (
-              <motion.div
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  ...RESPONSIVE_SPRING,
-                  delay: 0.18 + i * 0.05
-                }}
-                className="absolute z-10 flex items-center gap-1 rounded-full px-1.5 py-1 text-[9px] font-black shadow-sm md:text-[10px]"
-                style={{
-                  left: "50%",
-                  top: 0,
-                  transform: "translateX(-50%)",
-                  color: trendColor,
-                  background: trendBackground,
-                }}
-              >
-                <TrendArrow direction={deltaFromPrevious.direction} />
-                {deltaFromPrevious.direction !== "flat" && (
-                  <span className="leading-none">
-                    {deltaFromPrevious.delta > 0 ? "+" : ""}
-                    {deltaFromPrevious.delta}
-                  </span>
-                )}
-              </motion.div>
-            )}
-
+            {/* hover 툴팁 */}
             {hasScore && (
               <div
-                className="absolute opacity-0 group-hover:opacity-100 transition-opacity bg-surface-elevated px-2 py-1 rounded-md text-[11px] md:text-xs font-black shadow-lg z-20 border border-white/10 leading-none"
+                className="absolute left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none"
                 style={{
-                  left: "50%",
-                  bottom: `calc(${barHeight}% / 2)`,
-                  transform: "translate(-50%, 50%)",
+                  bottom: bottomPx + PILL_H + 5,
+                  background: "var(--surface-elevated)",
+                  borderRadius: 6,
+                  padding: "2px 6px",
+                  fontSize: 10,
+                  fontWeight: 900,
+                  color: "var(--on-surface)",
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
                 }}
               >
-                {score}
+                {score}pt
+                {prev !== null && prev !== undefined && score! !== prev && (
+                  <span style={{ color: score! > prev ? "#1e9de0" : "#EF4444", marginLeft: 4 }}>
+                    {score! > prev ? "↑" : "↓"}{Math.abs(score! - prev)}
+                  </span>
+                )}
               </div>
             )}
           </div>

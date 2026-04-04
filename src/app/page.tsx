@@ -7,7 +7,7 @@ import ClimaLogo from "./components/WetherLogo";
 import ThemeToggleButton from "./components/ThemeToggleButton";
 import { STANDARD_SPRING } from "./constants/springs";
 import {
-  IconSunny, IconFoggy, IconRainy, IconStormy, IconRadiant,
+  IconSunny, IconPartlyCloudy, IconCloudy, IconRainy, IconStormy,
 } from "./components/WeatherIcons";
 import { statusToKo } from "../lib/mood";
 import { supabase } from "../lib/supabase";
@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { label: "개인 현황", href: "/personal" },
   { label: "팀", href: "/dashboard" },
   { label: "Niko-Niko", href: "/niko" },
+  { label: "우리 팀도 써보기", href: "/request-access" },
   { label: "알림", href: "/alerts", disabled: true },
 ];
 
@@ -26,7 +27,7 @@ const WEATHER_STATES = [
     icon: IconStormy,
     status: "Stormy" as const,
     range: "0–20",
-    desc: "위기 상태예요 — 즉각적인 보살핌과 체크인이 필요해요.",
+    desc: "뇌우 — 많이 지쳐 있어요. 즉각적인 관심과 체크인이 필요한 상태예요.",
     bg: "color-mix(in srgb, var(--weather-stormy-blob-2) 18%, var(--surface-elevated))",
     accent: "var(--weather-stormy-blob-2)",
   },
@@ -34,33 +35,33 @@ const WEATHER_STATES = [
     icon: IconRainy,
     status: "Rainy" as const,
     range: "21–40",
-    desc: "오늘은 많이 힘들어요 — 지지와 관심이 필요한 상태예요.",
+    desc: "비 — 오늘은 힘든 하루예요. 지지와 격려가 필요한 상태예요.",
     bg: "color-mix(in srgb, var(--weather-rainy-blob-2) 14%, var(--surface-elevated))",
     accent: "var(--weather-rainy-blob-2)",
   },
   {
-    icon: IconFoggy,
-    status: "Foggy" as const,
+    icon: IconCloudy,
+    status: "Cloudy" as const,
     range: "41–60",
-    desc: "앞이 잘 보이지 않아요 — 에너지가 낮고 방향감이 흐릿한 상태예요.",
-    bg: "color-mix(in srgb, var(--weather-foggy-blob-2) 16%, var(--surface-elevated))",
-    accent: "var(--weather-foggy-blob-1)",
+    desc: "흐림 — 에너지가 낮고 무거운 느낌이에요. 천천히 살펴봐 주세요.",
+    bg: "color-mix(in srgb, var(--weather-cloudy-blob-2) 16%, var(--surface-elevated))",
+    accent: "var(--weather-cloudy-blob-1)",
+  },
+  {
+    icon: IconPartlyCloudy,
+    status: "PartlyCloudy" as const,
+    range: "61–80",
+    desc: "구름조금 — 안정적이고 괜찮은 하루예요. 집중력도 잘 유지되고 있어요.",
+    bg: "color-mix(in srgb, var(--weather-partlycloudy-blob-2) 14%, var(--surface-elevated))",
+    accent: "var(--weather-partlycloudy-blob-1)",
   },
   {
     icon: IconSunny,
     status: "Sunny" as const,
-    range: "61–80",
-    desc: "집중력이 좋고 긍정적인 하루예요 — 맑고 생산적인 기운이 가득해요.",
-    bg: "color-mix(in srgb, var(--weather-sunny-blob-2) 12%, var(--surface-elevated))",
-    accent: "var(--weather-sunny-blob-1)",
-  },
-  {
-    icon: IconRadiant,
-    status: "Radiant" as const,
     range: "81–100",
-    desc: "에너지가 넘쳐흘러요 — 아이디어가 쏟아지고 팀 전체가 들떠 있어요.",
-    bg: "color-mix(in srgb, var(--weather-radiant-blob-2) 14%, var(--surface-elevated))",
-    accent: "var(--weather-radiant-blob-1)",
+    desc: "맑음 — 에너지가 넘치는 하루예요. 팀 전체가 생산적이고 긍정적이에요.",
+    bg: "color-mix(in srgb, var(--primary) 8%, var(--surface-elevated))",
+    accent: "var(--primary)",
   },
 ];
 
@@ -68,18 +69,18 @@ const WEATHER_STATES = [
 const HOW_IT_WORKS = [
   {
     num: "01",
-    title: "팀원이 매일 체크인해요",
-    desc: "1~100 사이의 점수 하나면 끝이에요. 부담 없이, 솔직하게.",
+    title: "팀원: 하루 10초, 오늘 컨디션 남기기",
+    desc: "1~100 사이 점수 하나면 끝이에요. 코멘트를 남기면 더 솔직하게 전달돼요.",
   },
   {
     num: "02",
-    title: "점수가 날씨로 변환돼요",
-    desc: "숫자가 직관적인 날씨 메타포로 바뀌어요 — 설명 없이도 팀 전체가 바로 이해해요.",
+    title: "점수 → 날씨로 자동 변환",
+    desc: "맑음·구름조금·흐림·비·뇌우. 숫자보다 날씨가 팀 분위기를 훨씬 빠르게 전달해요.",
   },
   {
     num: "03",
-    title: "팀장이 먼저 알아채요",
-    desc: "실시간 팀 컨디션과 주간 추이를 보고, 문제가 커지기 전에 선제적으로 움직일 수 있어요.",
+    title: "팀장: 패턴을 먼저 발견하기",
+    desc: "Niko-Niko 캘린더와 주간 추이로 문제가 커지기 전에 선제적으로 다가갈 수 있어요.",
   },
 ];
 
@@ -121,7 +122,7 @@ function WeatherCarousel() {
   const trackRef = useRef<HTMLDivElement>(null);
   const xRef = useRef(0);
   const rafRef = useRef<number | null>(null);
-  const SPEED = 1.5; // 원래 0.6에서 속도 대폭 상향
+  const SPEED = 0.8; // 원래 0.6에서 속도 대폭 상향
 
   useEffect(() => {
     function tick() {
@@ -351,7 +352,7 @@ export default function LandingPage() {
                 style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-current inline-block" />
-                팀 컨디션 관리 도구
+                팀 컨디션 관리 도구, 클라이마(Clima)
               </motion.div>
 
               <motion.h1
@@ -383,7 +384,7 @@ export default function LandingPage() {
                 className="text-base md:text-lg font-medium leading-relaxed mb-8 max-w-md"
                 style={{ color: "var(--text-muted)" }}
               >
-                팀원의 컨디션을 날씨로 표현해요. 팀장은 한눈에 팀 분위기를 파악하고, 문제가 커지기 전에 먼저 움직일 수 있어요.
+                팀원은 하루 10초로 컨디션을 공유하고, 팀장은 뇌우가 몰아치기 전에 먼저 알아챌 수 있어요.
               </motion.p>
 
               <motion.div
@@ -393,7 +394,7 @@ export default function LandingPage() {
                 className="flex flex-wrap gap-3"
               >
                 <Link
-                  href="/dashboard"
+                  href="/request-access"
                   className="inline-flex items-center gap-2 h-14 px-8 rounded-[1.5rem] text-base font-bold transition-all hover:opacity-90 hover:scale-[1.02] active:scale-95"
                   style={{
                     background: "var(--button-primary-gradient)",
@@ -401,14 +402,14 @@ export default function LandingPage() {
                     boxShadow: "var(--button-primary-shadow)",
                   }}
                 >
-                  팀 컨디션 확인하기
+                  우리 팀도 써보기
                 </Link>
                 <Link
-                  href="/input"
+                  href="/dashboard"
                   className="inline-flex items-center gap-2 h-14 px-8 rounded-[1.5rem] text-base font-bold transition-all hover:bg-surface-container active:scale-95"
                   style={{ background: "var(--surface-overlay)", color: "var(--primary)", backdropFilter: "var(--glass-blur-low)", boxShadow: "var(--button-subtle-shadow)" }}
                 >
-                  오늘 체크인하기
+                  대시보드 미리보기
                 </Link>
               </motion.div>
             </div>
@@ -433,7 +434,7 @@ export default function LandingPage() {
                     boxShadow: "0 0 60px color-mix(in srgb, var(--weather-radiant-blob-2) 35%, transparent), 0 0 120px color-mix(in srgb, var(--weather-radiant-blob-1) 18%, transparent)",
                   }}
                 >
-                  <IconSunny size={100} />
+                  <IconSunny size={136} />
                 </div>
               </motion.div>
 
@@ -517,12 +518,12 @@ export default function LandingPage() {
                   이런 식으로 작동해요
                 </p>
                 <h2 className="text-3xl md:text-4xl font-black tracking-tight leading-tight mb-6" style={{ fontFamily: "'Public Sans', sans-serif" }}>
-                  팀 컨디션을
+                  팀원은 기록하고,
                   <br />
-                  <span style={{ color: "var(--primary)" }}>날씨로 읽어요</span>
+                  <span style={{ color: "var(--primary)" }}>팀장은 먼저 알아채요</span>
                 </h2>
                 <p className="text-base font-medium leading-relaxed max-w-sm" style={{ color: "var(--text-muted)" }}>
-                  숫자보다 날씨가 더 빠르게 전달돼요. 팀장은 한눈에 팀의 분위기를 파악하고, 팀원은 부담 없이 솔직하게 표현할 수 있어요.
+                  맑음·구름조금·흐림·비·뇌우 — 5단계 날씨가 숫자보다 빠르게 팀 분위기를 전달해요.
                 </p>
               </FadeIn>
             </div>
@@ -561,13 +562,13 @@ export default function LandingPage() {
         <div className="max-w-[1280px] mx-auto">
           <FadeIn className="text-center mb-14">
             <p className="text-xs font-extrabold uppercase tracking-[0.18em] mb-4" style={{ color: "var(--primary)", opacity: 0.7 }}>
-              5가지 날씨 상태
+              5단계 날씨
             </p>
             <h2 className="text-3xl md:text-4xl font-black tracking-tight" style={{ fontFamily: "'Public Sans', sans-serif" }}>
-              내 마음의 날씨를 읽어요
+              뇌우부터 맑음까지
             </h2>
             <p className="text-base font-medium mt-4 max-w-lg mx-auto" style={{ color: "var(--text-muted)" }}>
-              기분 점수가 날씨 상태로 자동 변환돼요 — 팀 전체가 별도 설명 없이 바로 이해할 수 있어요.
+              점수가 자동으로 날씨로 변환돼요. 나쁜 상태일수록 색이 선명하게 달라서 한눈에 알아볼 수 있어요.
             </p>
           </FadeIn>
 
@@ -673,9 +674,9 @@ export default function LandingPage() {
                 {/* Mock member list */}
                 <div className="px-6 pb-6 flex flex-col gap-2">
                   {[
-                    { name: "팀원 A", status: "Sunny" as const, score: 82, Icon: IconSunny, color: "color-mix(in srgb, var(--weather-sunny-blob-2) 18%, var(--surface-overlay))" },
-                    { name: "팀원 B", status: "Foggy" as const, score: 58, Icon: IconFoggy, color: "color-mix(in srgb, var(--weather-foggy-blob-2) 18%, var(--surface-overlay))" },
-                    { name: "팀원 C", status: "Rainy" as const, score: 18, Icon: IconRainy, color: "color-mix(in srgb, var(--weather-rainy-blob-2) 14%, var(--surface-overlay))" },
+                    { name: "팀원 A", status: "Sunny" as const, score: 82, Icon: IconSunny, color: "color-mix(in srgb, var(--primary) 12%, var(--surface-overlay))" },
+                    { name: "팀원 B", status: "Cloudy" as const, score: 52, Icon: IconCloudy, color: "color-mix(in srgb, #EAB308 10%, var(--surface-overlay))" },
+                    { name: "팀원 C", status: "Rainy" as const, score: 18, Icon: IconRainy, color: "color-mix(in srgb, #F97316 10%, var(--surface-overlay))" },
                   ].map((m) => (
                     <div key={m.name} className="flex items-center gap-3 rounded-[1.2rem] px-4 py-2.5" style={{ background: "var(--button-subtle-bg)" }}>
                       <div className="w-8 h-8 rounded-[0.75rem] flex items-center justify-center shrink-0" style={{ background: m.color }}>
@@ -693,21 +694,21 @@ export default function LandingPage() {
             <div className="flex flex-col gap-6">
               <FadeIn>
                 <p className="text-xs font-extrabold uppercase tracking-[0.18em] mb-4" style={{ color: "var(--primary)", opacity: 0.7 }}>
-                  팀장을 위한 인사이트
+                  팀장을 위한 기능
                 </p>
                 <h2 className="text-3xl md:text-4xl font-black tracking-tight leading-tight mb-4" style={{ fontFamily: "'Public Sans', sans-serif" }}>
-                  팀 컨디션{" "}
-                  <span style={{ color: "var(--primary)" }}>한눈에 파악</span>
+                  뇌우가 오기 전에{" "}
+                  <span style={{ color: "var(--primary)" }}>먼저 다가가요</span>
                 </h2>
                 <p className="text-base font-medium leading-relaxed max-w-sm" style={{ color: "var(--text-muted)" }}>
-                  Niko-Niko 캘린더와 주간 추이를 통해 팀장이 문제가 커지기 전에 패턴을 먼저 발견할 수 있어요.
+                  일별 체크인 히스토리와 주간 추이로 팀 컨디션의 패턴을 한눈에 파악할 수 있어요.
                 </p>
               </FadeIn>
 
               <div className="flex flex-col gap-4">
                 {[
                   { icon: "📅", title: "주간 체크인 기록", desc: "팀 전체의 일별 체크인 패턴을 한눈에 파악해요." },
-                  { icon: "⚡", title: "즉각 알림", desc: "팀원의 날씨가 비 또는 번개로 떨어지면 바로 알려줘요." },
+                  { icon: "⚡", title: "즉각 알림", desc: "팀원의 날씨가 '비' 또는 '뇌우'로 떨어지면 팀장에게 바로 알려줘요." },
                 ].map((feat, i) => (
                   <FadeIn key={feat.title} delay={0.1 + i * 0.1}>
                     <div
@@ -731,7 +732,7 @@ export default function LandingPage() {
 
               <FadeIn delay={0.3}>
                 <Link
-                  href="/dashboard"
+                  href="/request-access"
                   className="inline-flex items-center gap-2 h-14 px-8 rounded-[1.5rem] text-base font-bold transition-all hover:opacity-90 hover:scale-[1.01]"
                   style={{
                     background: "var(--button-primary-gradient)",
@@ -739,7 +740,7 @@ export default function LandingPage() {
                     boxShadow: "var(--button-primary-shadow)",
                   }}
                 >
-                  대시보드 둘러보기 →
+                  우리 팀도 써보기 →
                 </Link>
               </FadeIn>
             </div>
@@ -770,22 +771,22 @@ export default function LandingPage() {
                   우리 팀, 오늘 어때요?
                 </h2>
                 <p className="text-base md:text-lg font-medium mb-10 max-w-md mx-auto" style={{ color: "color-mix(in srgb, var(--on-primary) 72%, transparent)" }}>
-                  10초면 충분해요. 팀장도, 팀원도 지금 바로 시작할 수 있어요.
+                  팀원은 10초로 오늘 날씨를 남기고, 팀장은 뇌우가 오기 전에 먼저 다가가세요.
                 </p>
                 <div className="flex flex-wrap gap-4 justify-center">
                   <Link
-                    href="/input"
+                    href="/request-access"
                     className="inline-flex items-center gap-2 h-14 px-10 rounded-[1.5rem] text-base font-bold transition-all hover:scale-[1.02] active:scale-95"
                     style={{ background: "var(--surface-lowest)", color: "var(--primary)", boxShadow: "var(--glass-shadow)" }}
                   >
-                    오늘 체크인하기 ☀️
+                    우리 팀도 써보기
                   </Link>
                   <Link
-                    href="/admin"
+                    href="/dashboard"
                     className="inline-flex items-center gap-2 h-14 px-10 rounded-[1.5rem] text-base font-bold transition-all hover:opacity-90 active:scale-95"
                     style={{ background: "color-mix(in srgb, var(--on-primary) 14%, transparent)", color: "var(--on-primary)", backdropFilter: "var(--glass-blur-low)" }}
                   >
-                    팀장 대시보드
+                    팀 화면 먼저 보기
                   </Link>
                 </div>
               </div>

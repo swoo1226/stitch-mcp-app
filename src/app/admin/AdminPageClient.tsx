@@ -29,11 +29,11 @@ import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 
 
 const WEATHER_METAPHORS = [
-  { score: 10, label: "Stormy", ko: "번개" },
+  { score: 10, label: "Stormy", ko: "뇌우" },
   { score: 30, label: "Rainy", ko: "비" },
-  { score: 50, label: "Foggy", ko: "안개" },
-  { score: 70, label: "Sunny", ko: "맑음" },
-  { score: 90, label: "Radiant", ko: "쨍함" },
+  { score: 50, label: "Cloudy", ko: "흐림" },
+  { score: 70, label: "PartlyCloudy", ko: "구름조금" },
+  { score: 90, label: "Sunny", ko: "맑음" },
 ] as const;
 
 function currentMetaphorFromScore(score: number) {
@@ -305,6 +305,9 @@ export default function AdminPageClient() {
   const [jiraSnapshots, setJiraSnapshots] = useState<Record<string, JiraTicketSnapshot>>({});
   const [jiraLoading, setJiraLoading] = useState(false);
   const [jiraError, setJiraError] = useState<string | null>(null);
+  const [jiraLastSource, setJiraLastSource] = useState<string | null>(null);
+  const jiraLastRefreshRef = useRef<number>(0);
+  const JIRA_RATE_LIMIT_MS = 30_000;
   const [riskTargets, setRiskTargets] = useState<CombinedRiskTarget[]>([]);
   const [riskPanelOpen, setRiskPanelOpen] = useState(false);
   const [loadingRiskTargets, setLoadingRiskTargets] = useState(false);
@@ -389,7 +392,7 @@ export default function AdminPageClient() {
 
   useEffect(() => {
     if (!authed || activeTab !== "members") return;
-    fetchJiraSnapshots();
+    fetchJiraSnapshots(false);
   }, [authed, activeTab, members]);
 
   async function fetchAll() {
@@ -428,7 +431,16 @@ export default function AdminPageClient() {
     setLoading(false);
   }
 
-  async function fetchJiraSnapshots() {
+  async function fetchJiraSnapshots(forceRefresh = false) {
+    if (forceRefresh) {
+      const now = Date.now();
+      if (now - jiraLastRefreshRef.current < JIRA_RATE_LIMIT_MS) {
+        const remaining = Math.ceil((JIRA_RATE_LIMIT_MS - (now - jiraLastRefreshRef.current)) / 1000);
+        setJiraError(`너무 자주 요청하고 있어요. ${remaining}초 후에 다시 시도해주세요.`);
+        return;
+      }
+      jiraLastRefreshRef.current = now;
+    }
     setJiraLoading(true);
     setJiraError(null);
     try {
@@ -442,7 +454,10 @@ export default function AdminPageClient() {
         ),
       );
 
-      const response = await fetch("/api/admin/jira/open-tickets", {
+      const url = forceRefresh
+        ? "/api/admin/jira/open-tickets?refresh=1"
+        : "/api/admin/jira/open-tickets";
+      const response = await fetch(url, {
         method: "POST",
         cache: "no-store",
         headers: {
@@ -467,6 +482,7 @@ export default function AdminPageClient() {
         ((payload.snapshots ?? []) as JiraTicketSnapshot[]).map((snapshot) => [snapshot.userId, snapshot]),
       );
       setJiraSnapshots(nextSnapshots);
+      setJiraLastSource(payload.source ?? null);
     } catch (error) {
       setJiraError(error instanceof Error ? error.message : "Jira 티켓 정보를 불러오지 못했어요.");
     } finally {
@@ -1036,7 +1052,8 @@ export default function AdminPageClient() {
                   variant="secondary"
                   onClick={fetchCombinedRiskTargets}
                   disabled={loadingRiskTargets}
-                  className="px-4 py-2.5 text-xs font-black"
+                  className="px-4 py-2 text-xs font-black"
+                  style={{ minHeight: "2rem" }}
                 >
                   {loadingRiskTargets ? "불러오는 중..." : "주의 필요 팀원 보기"}
                 </ClimaButton>
@@ -1225,6 +1242,37 @@ export default function AdminPageClient() {
                   {jiraError && (
                     <Badge variant="tertiary">Jira 조회 오류</Badge>
                   )}
+                  {/* Jira 동기화 버튼 + 시각 */}
+                  {Object.keys(jiraSnapshots).length > 0 && (() => {
+                    const firstSynced = Object.values(jiraSnapshots).find((s) => s.syncedAt)?.syncedAt;
+                    const timeLabel = firstSynced
+                      ? new Date(firstSynced).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
+                      : null;
+                    return (
+                      <span className="text-[10px] font-bold" style={{ color: "var(--text-soft)" }}>
+                        {jiraLastSource === "snapshot" ? "캐시" : "최신"}{timeLabel ? ` · ${timeLabel}` : ""}
+                      </span>
+                    );
+                  })()}
+                  <button
+                    type="button"
+                    onClick={() => fetchJiraSnapshots(true)}
+                    disabled={jiraLoading}
+                    className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-surface-low disabled:opacity-40"
+                    style={{ color: "var(--primary)" }}
+                    title="Jira 티켓 동기화"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      className={`h-4 w-4 ${jiraLoading ? "animate-spin [animation-direction:reverse]" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M1 4v6h6M23 20v-6h-6" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
                   {!loading && members.length > 0 && (
                     <Badge variant="primary">총 {members.length}명</Badge>
                   )}

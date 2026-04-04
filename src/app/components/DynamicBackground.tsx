@@ -11,10 +11,10 @@ interface DynamicBackgroundProps {
 export default function DynamicBackground({ score = 85 }: DynamicBackgroundProps) {
   const { shouldLimitMotion } = useMotionPreferences();
 
-  let bgColor = "var(--weather-radiant-bg)";
-  if (score >= 81) bgColor = "var(--weather-radiant-bg)";
-  else if (score >= 61) bgColor = "var(--weather-sunny-bg)";
-  else if (score >= 41) bgColor = "var(--weather-foggy-bg)";
+  let bgColor = "var(--weather-sunny-bg)";
+  if (score >= 81) bgColor = "var(--weather-sunny-bg)";
+  else if (score >= 61) bgColor = "var(--weather-partlycloudy-bg)";
+  else if (score >= 41) bgColor = "var(--weather-cloudy-bg)";
   else if (score >= 21) bgColor = "var(--weather-rainy-bg)";
   else bgColor = "var(--weather-stormy-bg)";
 
@@ -30,15 +30,15 @@ export default function DynamicBackground({ score = 85 }: DynamicBackgroundProps
       {/* Organic Blobs — 날씨별 색조 */}
       {(() => {
         const blob1 =
-          score >= 81 ? "var(--weather-radiant-blob-1)"
-          : score >= 61 ? "var(--weather-sunny-blob-1)"
-          : score >= 41 ? "var(--weather-foggy-blob-1)"
+          score >= 81 ? "var(--weather-sunny-blob-1)"
+          : score >= 61 ? "var(--weather-partlycloudy-blob-1)"
+          : score >= 41 ? "var(--weather-cloudy-blob-1)"
           : score >= 21 ? "var(--weather-rainy-blob-1)"
           : "var(--weather-stormy-blob-1)";
         const blob2 =
-          score >= 81 ? "var(--weather-radiant-blob-2)"
-          : score >= 61 ? "var(--weather-sunny-blob-2)"
-          : score >= 41 ? "var(--weather-foggy-blob-2)"
+          score >= 81 ? "var(--weather-sunny-blob-2)"
+          : score >= 61 ? "var(--weather-partlycloudy-blob-2)"
+          : score >= 41 ? "var(--weather-cloudy-blob-2)"
           : score >= 21 ? "var(--weather-rainy-blob-2)"
           : "var(--weather-stormy-blob-2)";
         return (

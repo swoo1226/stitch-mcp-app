@@ -7,20 +7,18 @@ import ClimaLogo from "../components/WetherLogo";
 import HeaderNav, { type HeaderNavItem } from "../components/HeaderNav";
 import ThemeToggleButton from "../components/ThemeToggleButton";
 import {
-  GlassCard,
-  MiniStatCard,
   NikoCalendar,
   type NikoCalendarMember,
   PrimaryTabToggle,
-  SectionHeader,
+  SectionLabel,
   WeatherLegend,
   ViewModeToggle,
 } from "../components/ui";
-import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
+
 import { STANDARD_SPRING } from "../constants/springs";
 import { supabase } from "../../lib/supabase";
 import { scoreToStatus, type WeatherStatus } from "../../lib/mood";
-import { DEMO_TEAM_ID, DEMO_PARTS, getDemoMembers } from "../../lib/demo-data";
+import { DEMO_TEAM_ID, DEMO_PARTS, getDemoMembers, getDemoMonthLogs } from "../../lib/demo-data";
 
 // ─── 날짜 유틸 ──────────────────────────────────────────────────────────────
 function getWeekStart(date: Date): Date {
@@ -117,18 +115,6 @@ function getAverageFromScores(scores: number[]) {
   return scores.length ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length) : null;
 }
 
-function getDailyScoresInRange(logs: MoodLogRow[], startIso: string, endIso: string) {
-  const latestByDay = new Map<string, number>();
-
-  logs.forEach((log) => {
-    const dayIso = utcToKstDate(log.logged_at);
-    if (dayIso >= startIso && dayIso <= endIso) {
-      latestByDay.set(dayIso, log.score);
-    }
-  });
-
-  return Array.from(latestByDay.values());
-}
 
 // ─── Nav ────────────────────────────────────────────────────────────────────
 const BASE_NAV_ITEMS: HeaderNavItem[] = [
@@ -148,14 +134,6 @@ function CalendarIcon() {
   );
 }
 
-function SearchIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <circle cx="11" cy="11" r="6.5" />
-      <path d="m16 16 4 4" />
-    </svg>
-  );
-}
 
 function TopIcon({ type }: { type: "bell" | "settings" | "profile" }) {
   if (type === "bell") {
@@ -207,10 +185,11 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
 
   useEffect(() => {
     if (teamId === DEMO_TEAM_ID) {
-      const demoMembers = getDemoMembers(weekOffset).map(({ avatar, ...member }) => ({
+      const monthLogs = getDemoMonthLogs();
+      const demoMembers = getDemoMembers(weekOffset).map(({ avatar, logs: weekLogs, ...member }) => ({
         ...member,
         avatarEmoji: avatar,
-        logs: [],
+        logs: [...(weekLogs ?? []), ...monthLogs.filter((l) => l.user_id === member.id)],
       }));
       setMembers(demoMembers);
       setParts(DEMO_PARTS);
@@ -285,15 +264,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
     ? members.filter(m => m.part_id === selectedPartId)
     : members;
 
-  const todayScores = visibleMembers.map((m) => m.todayScore).filter((s): s is number => s !== null);
-  const avgToday = todayScores.length
-    ? Math.round(todayScores.reduce((a, b) => a + b, 0) / todayScores.length)
-    : null;
-  const previousWeekDays = useMemo(() => {
-    const previousMonday = new Date(baseMonday);
-    previousMonday.setDate(baseMonday.getDate() - 7);
-    return getWeekDays(previousMonday);
-  }, [baseMonday]);
+  // 파트 vs 팀 비교
   const selectedWeekAverage = useMemo(
     () => getAverageFromScores(
       visibleMembers.flatMap((member) => member.week.map((entry) => entry.score).filter((score): score is number => score !== null))
@@ -306,31 +277,6 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
     ),
     [members]
   );
-  const previousWeekAverage = useMemo(
-    () => getAverageFromScores(
-      visibleMembers.flatMap((member) =>
-        buildWeekEntries(member.logs, previousWeekDays)
-          .map((entry) => entry.score)
-          .filter((score): score is number => score !== null)
-      )
-    ),
-    [previousWeekDays, visibleMembers]
-  );
-  const monthAverage = useMemo(() => {
-    const monthStartIso = isoDate(getMonthStart(baseMonday));
-    const monthEndIso = isoDate(getMonthEnd(baseMonday));
-    return getAverageFromScores(
-      visibleMembers.flatMap((member) => getDailyScoresInRange(member.logs, monthStartIso, monthEndIso))
-    );
-  }, [baseMonday, visibleMembers]);
-  const weeklyDelta = selectedWeekAverage !== null && previousWeekAverage !== null
-    ? selectedWeekAverage - previousWeekAverage
-    : null;
-  const selectedMonthLabel = `${baseMonday.getMonth() + 1}월 파트 평균`;
-  const todayAverageLabel = selectedPart ? `오늘 파트 평균` : "오늘 팀 평균";
-  const weekAverageLabel = selectedPart
-    ? `${weekOffset === 0 ? "이번 주" : "지난 주"} 파트 평균`
-    : weekOffset === 0 ? "이번 주 평균" : "지난 주 평균";
   const partVsTeamDelta = selectedPart && selectedWeekAverage !== null && teamWeekAverage !== null
     ? selectedWeekAverage - teamWeekAverage
     : null;
@@ -429,147 +375,142 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
         )}
       </AnimatePresence>
 
-      {/* ── 본문 ── */}
-      <motion.main
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ ...STANDARD_SPRING, delay: 0.06 }}
-        className="mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-4 pb-12 pt-20 md:px-8 xl:px-10"
-      >
-        {/* 타이틀 + 주차 전환 + 통계 */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <SectionHeader
-            icon={<CalendarIcon />}
-            title="Niko-Niko 캘린더"
-            subtitle={dateRangeLabel}
-          />
-          <div className="flex flex-col gap-3 sm:items-end">
-            <div className="flex flex-wrap gap-2 sm:justify-end items-center">
-              {teamParts.length > 0 && (
-                <div className="flex items-center gap-1 rounded-full p-1" style={{ background: "var(--surface-overlay)", boxShadow: "var(--button-subtle-shadow)" }}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPartId(null)}
-                    className="rounded-full px-3 py-1.5 text-xs font-black tracking-tight transition-all"
-                    style={!selectedPartId
-                      ? { background: "var(--primary)", color: "var(--on-primary)", boxShadow: "var(--button-primary-shadow)" }
-                      : { color: "var(--text-soft)" }
-                    }
-                  >
-                    전체
-                  </button>
-                  {teamParts.map(p => (
+      <div className="pt-20 px-4 md:px-8 max-w-[1440px] mx-auto pb-12">
+        <motion.main
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...STANDARD_SPRING, delay: 0.06 }}
+          className="rounded-[1.8rem] md:rounded-[2rem] px-3 py-3 md:px-5 md:py-5"
+          style={{ background: "var(--panel-tint)" }}
+        >
+          {/* 히어로 */}
+          <section
+            className="mb-5 rounded-[1.9rem] px-4 py-5 md:rounded-[2.25rem] md:px-7 md:py-8"
+            style={{
+              background: "linear-gradient(90deg, color-mix(in srgb, var(--surface-container-low) 92%, transparent) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 50%, color-mix(in srgb, var(--surface-container-low) 92%, transparent) 100%)",
+            }}
+          >
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="max-w-2xl">
+                <h1 className="mb-2 text-[2rem] font-black tracking-tight text-primary md:text-[3.1rem]">
+                  Niko-Niko 캘린더
+                </h1>
+                <p className="text-sm font-bold" style={{ color: "var(--text-soft)" }}>
+                  {dateRangeLabel}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 self-start">
+                {teamParts.length > 0 && (
+                  <div className="flex items-center gap-1 rounded-full p-1" style={{ background: "var(--surface-overlay)", boxShadow: "var(--button-subtle-shadow)" }}>
                     <button
-                      key={p.id}
                       type="button"
-                      onClick={() => setSelectedPartId(p.id)}
+                      onClick={() => setSelectedPartId(null)}
                       className="rounded-full px-3 py-1.5 text-xs font-black tracking-tight transition-all"
-                      style={selectedPartId === p.id
+                      style={!selectedPartId
                         ? { background: "var(--primary)", color: "var(--on-primary)", boxShadow: "var(--button-primary-shadow)" }
                         : { color: "var(--text-soft)" }
                       }
                     >
-                      {p.name}
+                      전체
                     </button>
-                  ))}
-                </div>
-              )}
-              <PrimaryTabToggle
-                tabs={[
-                  { value: "this", label: "이번 주" },
-                  { value: "last", label: "지난 주" },
-                ]}
-                active={weekOffset === 0 ? "this" : "last"}
-                onChange={(v) => setWeekOffset(v === "this" ? 0 : -1)}
-              />
+                    {teamParts.map(p => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setSelectedPartId(p.id)}
+                        className="rounded-full px-3 py-1.5 text-xs font-black tracking-tight transition-all"
+                        style={selectedPartId === p.id
+                          ? { background: "var(--primary)", color: "var(--on-primary)", boxShadow: "var(--button-primary-shadow)" }
+                          : { color: "var(--text-soft)" }
+                        }
+                      >
+                        {p.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <PrimaryTabToggle
+                  tabs={[
+                    { value: "this", label: "이번 주" },
+                    { value: "last", label: "지난 주" },
+                  ]}
+                  active={weekOffset === 0 ? "this" : "last"}
+                  onChange={(v) => setWeekOffset(v === "this" ? 0 : -1)}
+                />
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2 sm:justify-end">
-              <MiniStatCard
-                label="오늘 체크인"
-                value={loading ? "—" : `${checkedInCount} / ${visibleMembers.length}`}
-                valueColor="primary"
-              />
-              <MiniStatCard
-                label={todayAverageLabel}
-                value={loading ? "—" : avgToday !== null ? `${avgToday}pt` : "—"}
-                valueColor="primary"
-              />
-              <MiniStatCard
-                label={weekAverageLabel}
-                value={loading ? "—" : selectedWeekAverage !== null ? `${selectedWeekAverage}pt` : "—"}
-                valueColor="primary"
-              />
-              <MiniStatCard
-                label={selectedMonthLabel}
-                value={loading ? "—" : monthAverage !== null ? `${monthAverage}pt` : "—"}
-                valueColor="primary"
-              />
-              <MiniStatCard
-                label="전주 대비"
-                value={loading ? "—" : weeklyDelta !== null ? `${weeklyDelta > 0 ? "+" : ""}${weeklyDelta}pt` : "—"}
-                valueColor={weeklyDelta === null ? "default" : weeklyDelta < 0 ? "tertiary" : "primary"}
-              />
-            </div>
-          </div>
-        </div>
+          </section>
 
-        {/* 캘린더 그리드 */}
-        <section
-          className="rounded-[2.5rem] px-4 py-5 md:px-7 md:py-8"
-          style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
-        >
-          <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+          {/* 캘린더 */}
+          <section
+            className="mb-5 rounded-[2rem] px-3 py-4 md:rounded-[2.5rem] md:px-6 md:py-6"
+            style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-low text-primary">
+                  <CalendarIcon />
+                </div>
+                <div>
+                  <p className="text-base font-black tracking-tight text-primary md:text-[1.1rem]">
+                    {selectedPart ? `${selectedPart.name} 캘린더` : "팀 캘린더"}
+                  </p>
+                  <p className="text-xs font-semibold" style={{ color: "var(--text-soft)" }}>
+                    체크인 {checkedInCount}/{visibleMembers.length}명
+                  </p>
+                </div>
+              </div>
               <ViewModeToggle mode={viewMode} onChange={setViewMode} />
             </div>
-          </div>
 
-          {partVsTeamSummary && (
-            <div
-              className="mb-4 inline-flex max-w-full items-center rounded-full px-3 py-2 text-xs font-black tracking-tight"
-              style={{
-                background: partVsTeamDelta! > 0
-                  ? "color-mix(in srgb, var(--primary-container) 40%, var(--surface-lowest))"
-                  : partVsTeamDelta! < 0
-                    ? "color-mix(in srgb, var(--tertiary-container) 42%, var(--surface-lowest))"
-                    : "color-mix(in srgb, var(--surface-container-high) 80%, var(--surface-lowest))",
-                color: partVsTeamDelta! > 0 ? "var(--primary)" : partVsTeamDelta! < 0 ? "var(--tertiary)" : "var(--on-surface)",
-              }}
-            >
-              {partVsTeamSummary}
-            </div>
-          )}
+            {partVsTeamSummary && (
+              <div
+                className="mb-4 inline-flex max-w-full items-center rounded-full px-3 py-2 text-xs font-black tracking-tight"
+                style={{
+                  background: partVsTeamDelta! > 0
+                    ? "color-mix(in srgb, var(--primary-container) 40%, var(--surface-lowest))"
+                    : partVsTeamDelta! < 0
+                      ? "color-mix(in srgb, var(--tertiary-container) 42%, var(--surface-lowest))"
+                      : "color-mix(in srgb, var(--surface-container-high) 80%, var(--surface-lowest))",
+                  color: partVsTeamDelta! > 0 ? "var(--primary)" : partVsTeamDelta! < 0 ? "var(--tertiary)" : "var(--on-surface)",
+                }}
+              >
+                {partVsTeamSummary}
+              </div>
+            )}
 
-          <section className="min-h-[400px]">
-            <NikoCalendar
-              members={visibleMembers.map((m): NikoCalendarMember => ({
-                id: m.id,
-                name: m.name,
-                avatarEmoji: m.avatarEmoji,
-                week: m.week,
-              }))}
-              comparisonMembers={selectedPartId
-                ? members.map((m): NikoCalendarMember => ({
+            <section className="min-h-[400px]">
+              <NikoCalendar
+                members={visibleMembers.map((m): NikoCalendarMember => ({
                   id: m.id,
                   name: m.name,
                   avatarEmoji: m.avatarEmoji,
                   week: m.week,
-                }))
-                : undefined}
-              weekDays={weekDays}
-              todayIso={todayIso}
-              loading={loading}
-              colTemplate={COL_TEMPLATE}
-              viewMode={viewMode}
-              summaryLabel={selectedPart ? `파트 평균` : "팀 평균"}
-              comparisonLabel="팀 평균"
-            />
+                }))}
+                comparisonMembers={selectedPartId
+                  ? members.map((m): NikoCalendarMember => ({
+                    id: m.id,
+                    name: m.name,
+                    avatarEmoji: m.avatarEmoji,
+                    week: m.week,
+                  }))
+                  : undefined}
+                weekDays={weekDays}
+                todayIso={todayIso}
+                loading={loading}
+                colTemplate={COL_TEMPLATE}
+                viewMode={viewMode}
+                summaryLabel={selectedPart ? `파트 평균` : "팀 평균"}
+                comparisonLabel="팀 평균"
+              />
+            </section>
           </section>
-        </section>
 
-        {/* 범례 */}
-        <WeatherLegend className="px-1" />
-      </motion.main>
+          {/* 범례 */}
+          <WeatherLegend className="px-1" />
+        </motion.main>
+      </div>
     </div>
   );
 }

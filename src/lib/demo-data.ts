@@ -124,36 +124,100 @@ export const DEMO_PARTS = [
 ];
 
 // ─── Dashboard / Niko 용 멤버 데이터 생성 ────────────────────────────────────
+// 데모는 날짜에 독립적으로 항상 이번 주 월~금 + 전주 데이터가 채워져야 함.
+// weekDays(실제 날짜)에 RAW_MEMBERS 점수를 1:1 매핑하고, logs도 함께 생성해
+// 월 평균·전주 대비 등 모든 통계가 항상 표시되도록 한다.
 export function getDemoMembers(weekOffset = 0) {
   const today = new Date();
   const baseMonday = getWeekStart(today);
   baseMonday.setDate(baseMonday.getDate() + weekOffset * 7);
   const weekDays = getWeekDays(baseMonday);
+
+  // 전주 날짜
+  const prevMonday = new Date(baseMonday);
+  prevMonday.setDate(prevMonday.getDate() - 7);
+  const prevWeekDays = getWeekDays(prevMonday);
+
+  // 오늘이 주중이면 그 인덱스, 주말이면 금요일(4)을 오늘로 취급
   const todayIso = isoDate(today);
-  const todayIndex = weekDays.findIndex((d) => isoDate(d) === todayIso);
+  const rawTodayIndex = weekDays.findIndex((d) => isoDate(d) === todayIso);
+  const todayIndex = weekOffset === 0
+    ? (rawTodayIndex >= 0 ? rawTodayIndex : 4) // 주말엔 금요일 기준
+    : -1;
 
   return RAW_MEMBERS.map((m) => {
-    const week = m.scores.map((score, i) => {
+    // 이번 주 week 배열 — 오늘 인덱스까지만 채움 (미래는 null)
+    const week = weekDays.map((_, i) => {
+      const score = m.scores[i] ?? null;
       if (score === null) return { status: null as WeatherStatus | null, score: null as number | null, message: null as string | null };
+      // weekOffset=0 이면 오늘 이후는 null (미래 데이터 없음)
+      if (weekOffset === 0 && i > todayIndex) return { status: null as WeatherStatus | null, score: null as number | null, message: null as string | null };
       return { status: scoreToStatus(score), score, message: (m.messages[i] ?? null) as string | null };
     });
 
-    const todayScore = weekOffset === 0 && todayIndex >= 0 ? (week[todayIndex]?.score ?? null) : null;
-    const todayEntry = week[todayIndex];
-    const isToday = weekOffset === 0 && todayIndex >= 0 && todayEntry?.score !== null;
+    // 전주 점수 — 이번 주 점수에서 ±5~10 변동으로 자연스럽게 생성
+    const prevScoreOffset = [4, -6, 5, -3, 7, -5, 3];
+    const prevWeekLogs: MoodLogRow[] = prevWeekDays.map((day, i) => {
+      const base = m.scores[i] ?? 60;
+      const score = Math.max(10, Math.min(99, base + (prevScoreOffset[parseInt(m.id.slice(1)) + i] ?? 0)));
+      return { user_id: m.id, score, message: null, logged_at: new Date(Date.UTC(day.getFullYear(), day.getMonth(), day.getDate(), 1)).toISOString() };
+    });
+
+    // 이번 주 logs
+    const thisWeekLogs: MoodLogRow[] = weekDays.reduce<MoodLogRow[]>((acc, day, i) => {
+      const score = week[i]?.score;
+      if (score === null || score === undefined) return acc;
+      acc.push({ user_id: m.id, score, message: null, logged_at: new Date(Date.UTC(day.getFullYear(), day.getMonth(), day.getDate(), 1)).toISOString() });
+      return acc;
+    }, []);
+
+    const todayScore = todayIndex >= 0 ? (week[todayIndex]?.score ?? null) : null;
 
     return {
       id: m.id,
       name: m.name,
       avatar: m.avatar,
       part_id: m.part_id,
-      score: todayScore,
-      status: todayScore !== null ? scoreToStatus(todayScore) : null,
-      message: isToday ? "데모 데이터입니다." : "오늘 체크인이 아직 없어요.",
+      score: weekOffset === 0 ? todayScore : null,
+      status: todayScore !== null && weekOffset === 0 ? scoreToStatus(todayScore) : null,
+      message: weekOffset === 0 && todayScore !== null ? "데모 데이터입니다." : "오늘 체크인이 아직 없어요.",
       week,
-      todayScore,
+      todayScore: weekOffset === 0 ? todayScore : null,
+      logs: [...prevWeekLogs, ...thisWeekLogs],
     };
   });
+}
+
+// ─── 데모용 고정 월간 logs 생성 ───────────────────────────────────────────────
+// 날짜에 독립적으로 항상 의미 있는 월 평균이 나오도록 이번 달 1~28일에 고정 점수를 심음
+type MoodLogRow = { user_id: string; score: number; message: string | null; logged_at: string };
+
+function fixedMonthLogs(memberId: string, scores: number[]): MoodLogRow[] {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-based
+  return scores.map((score, i) => {
+    const day = i + 1;
+    const date = new Date(Date.UTC(year, month, day, 1, 0, 0));
+    return { user_id: memberId, score, message: null, logged_at: date.toISOString() };
+  });
+}
+
+// 멤버별 이번 달 고정 점수 (28개, 1일~28일)
+const DEMO_MONTH_SCORES: Record<string, number[]> = {
+  d1: [80,82,78,85,83,79,88,81,76,84,87,80,83,75,79,82,86,78,80,84,81,77,85,83,79,82,88,84],
+  d2: [58,62,55,60,63,57,61,59,64,56,60,62,58,63,61,57,59,62,60,58,63,61,57,60,62,59,61,63],
+  d3: [32,28,35,30,25,33,29,31,27,34,26,30,28,35,32,29,27,31,33,26,30,28,34,32,29,27,31,28],
+  d4: [88,92,85,90,93,87,91,89,94,86,90,92,88,85,93,91,87,89,92,86,90,88,85,93,91,87,89,92],
+  d5: [68,72,65,70,73,67,71,69,66,74,68,72,65,70,73,67,71,69,74,66,70,72,68,65,73,71,67,69],
+  d6: [44,40,47,43,38,45,41,39,46,42,40,44,47,43,38,45,41,42,39,46,43,40,44,47,42,38,45,41],
+  d7: [79,77,81,80,76,78,82,75,79,77,80,78,76,81,79,77,83,75,80,78,76,82,79,77,80,78,75,81],
+};
+
+export function getDemoMonthLogs(): MoodLogRow[] {
+  return Object.entries(DEMO_MONTH_SCORES).flatMap(([id, scores]) =>
+    fixedMonthLogs(id, scores)
+  );
 }
 
 // ─── Personal 용 유저 데이터 ─────────────────────────────────────────────────
@@ -174,7 +238,7 @@ const DEMO_MOOD_LOGS = [
 ];
 
 export const DEMO_USER = {
-  name: "데모 사용자",
+  name: "김상우",
   avatar_emoji: "🌟",
   mood_logs: DEMO_MOOD_LOGS,
 };

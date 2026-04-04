@@ -93,15 +93,26 @@ export default function ClimaLogo() {
           <rect x="1" y="1" width="38" height="38" rx="19" fill="url(#clGloss)" />
         </svg>
       </motion.span>
-      <div className="logo-text text-2xl">
-        Cli
+      <div className="logo-text text-2xl flex items-baseline relative">
+        <span style={{ fontWeight: 800 }}>Cl</span>
         <motion.span
-          animate={shouldLimitMotion ? undefined : { opacity: [0.55, 0.95, 0.55] }}
-          transition={shouldLimitMotion ? undefined : { duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          style={shouldLimitMotion ? { opacity: 0.78 } : undefined}
+          animate={shouldLimitMotion ? undefined : { opacity: [0.6, 1, 0.6] }}
+          transition={shouldLimitMotion ? undefined : { duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          style={{ 
+            color: "var(--primary)", 
+            fontWeight: 900,
+            opacity: shouldLimitMotion ? 1 : undefined 
+          }}
         >
-          ma
+          i
         </motion.span>
+        <span style={{ fontWeight: 800 }}>ma</span>
+        <span 
+          className="ml-1.5 text-[0.55rem] tracking-[0.15em] font-black" 
+          style={{ opacity: 0.35, alignSelf: "center", marginBottom: "-0.2rem" }}
+        >
+          클라이마
+        </span>
       </div>
     </div>
   );
