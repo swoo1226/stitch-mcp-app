@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "../../../../lib/supabase-admin";
+import { requireRole } from "../../../../lib/api-auth";
 
 export async function POST(req: NextRequest) {
+  const auth = await requireRole(req, "super_admin");
+  if (auth instanceof NextResponse) return auth;
+
   const { email, workEmail, teamId } = await req.json();
   if (!email || !teamId) {
     return NextResponse.json({ error: "email과 teamId가 필요합니다." }, { status: 400 });
@@ -19,7 +23,7 @@ export async function POST(req: NextRequest) {
   }
 
   // admin_users 테이블에 team_admin으로 등록
-  const { error: insertError } = await supabase.from("admin_users").upsert({
+  const { error: insertError } = await supabase.from("user_roles").upsert({
     auth_user_id: inviteData.user.id,
     email: email.toLowerCase(),
     work_email: workEmail ? workEmail.toLowerCase() : null,

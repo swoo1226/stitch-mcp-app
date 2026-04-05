@@ -204,6 +204,7 @@ interface Team {
 export default function AdminPageClient() {
   const [authed, setAuthed] = useState(false);
   const [adminSession, setAdminSession] = useState<AdminSession | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [emailInput, setEmailInput] = useState("");
   const [pwInput, setPwInput] = useState("");
   const [pwError, setPwError] = useState<string | null>(null);
@@ -358,6 +359,14 @@ export default function AdminPageClient() {
   const [inviting, setInviting] = useState(false);
   const [inviteResult, setInviteResult] = useState<{ ok: boolean; message: string } | null>(null);
 
+  // ── 팀원 초대 (team_admin + super_admin)
+  const [memberInviteEmail, setMemberInviteEmail] = useState("");
+  const [memberInviteName, setMemberInviteName] = useState("");
+  const [memberInviteTeamId, setMemberInviteTeamId] = useState("");
+  const [memberInvitePartId, setMemberInvitePartId] = useState("");
+  const [memberInviting, setMemberInviting] = useState(false);
+  const [memberInviteResult, setMemberInviteResult] = useState<{ ok: boolean; message: string } | null>(null);
+
   useEffect(() => {
     const media = window.matchMedia("(max-width: 767px)");
     const sync = () => setIsMobileViewport(media.matches);
@@ -370,11 +379,13 @@ export default function AdminPageClient() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setAuthed(true);
+        setAccessToken(session.access_token);
         getAdminSession().then(setAdminSession);
       }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setAuthed(!!session);
+      setAccessToken(session?.access_token ?? null);
       if (session) {
         getAdminSession().then(setAdminSession);
       } else {
@@ -389,6 +400,14 @@ export default function AdminPageClient() {
       fetchAll();
     }
   }, [authed]);
+
+  // team_admin인 경우 팀 선택을 자동 고정
+  useEffect(() => {
+    if (adminSession && !isSuperAdmin(adminSession) && adminSession.managedTeamId) {
+      setNewTeamId(adminSession.managedTeamId);
+      setMemberInviteTeamId(adminSession.managedTeamId);
+    }
+  }, [adminSession]);
 
   useEffect(() => {
     if (!authed || activeTab !== "members") return;
@@ -431,6 +450,14 @@ export default function AdminPageClient() {
     setLoading(false);
   }
 
+  function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
+    return {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...extra,
+    };
+  }
+
   async function fetchJiraSnapshots(forceRefresh = false) {
     if (forceRefresh) {
       const now = Date.now();
@@ -460,9 +487,7 @@ export default function AdminPageClient() {
       const response = await fetch(url, {
         method: "POST",
         cache: "no-store",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: authHeaders(),
         body: JSON.stringify({
           members: members.map((member) => ({
             userId: member.id,
@@ -497,6 +522,7 @@ export default function AdminPageClient() {
       const response = await fetch("/api/admin/alerts/combined-risk", {
         method: "POST",
         cache: "no-store",
+        headers: authHeaders(),
       });
       const payload = await response.json();
       if (!response.ok) {
@@ -527,6 +553,7 @@ export default function AdminPageClient() {
       const response = await fetch("/api/admin/alerts/combined-risk?send=1", {
         method: "POST",
         cache: "no-store",
+        headers: authHeaders(),
       });
       const payload = await response.json();
       if (!response.ok) {
@@ -578,7 +605,9 @@ export default function AdminPageClient() {
     setJiraUsersLoading(true);
     setJiraUsersError(null);
     try {
-      const res = await fetch(`/api/admin/jira/users?q=${encodeURIComponent(q)}`);
+      const res = await fetch(`/api/admin/jira/users?q=${encodeURIComponent(q)}`, {
+        headers: authHeaders(),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Jira 연결 실패");
       const existingEmails = new Set(members.map((m) => m.email?.toLowerCase()).filter(Boolean));
@@ -762,13 +791,41 @@ export default function AdminPageClient() {
     await fetchAll();
   }
 
+  async function inviteMember() {
+    if (!memberInviteEmail.trim() || !memberInviteName.trim() || !memberInviteTeamId || memberInviting) return;
+    setMemberInviting(true);
+    setMemberInviteResult(null);
+    const res = await fetch("/api/admin/invite-member", {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({
+        email: memberInviteEmail.trim(),
+        name: memberInviteName.trim(),
+        teamId: memberInviteTeamId,
+        partId: memberInvitePartId || null,
+      }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setMemberInviteResult({ ok: true, message: `${memberInviteName.trim()}님에게 초대 이메일을 발송했습니다.` });
+      setMemberInviteEmail("");
+      setMemberInviteName("");
+      setMemberInviteTeamId("");
+      setMemberInvitePartId("");
+      await fetchMembers();
+    } else {
+      setMemberInviteResult({ ok: false, message: data.error ?? "초대 발송 실패" });
+    }
+    setMemberInviting(false);
+  }
+
   async function inviteTeamAdmin() {
     if (!inviteEmail.trim() || !inviteTeamId || inviting) return;
     setInviting(true);
     setInviteResult(null);
     const res = await fetch("/api/admin/invite", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({
         email: inviteEmail.trim(),
         workEmail: inviteWorkEmail.trim() || null,
@@ -1236,47 +1293,45 @@ export default function AdminPageClient() {
 
             {/* 2. 팀원 목록 */}
             <GlassCard className="p-6 md:p-8" intensity="low">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-4">
                 <SectionHeader icon={<UsersIcon />} title="팀원 목록" />
-                <div className="flex items-center gap-2">
-                  {jiraError && (
-                    <Badge variant="tertiary">Jira 조회 오류</Badge>
-                  )}
-                  {/* Jira 동기화 버튼 + 시각 */}
-                  {Object.keys(jiraSnapshots).length > 0 && (() => {
-                    const firstSynced = Object.values(jiraSnapshots).find((s) => s.syncedAt)?.syncedAt;
-                    const timeLabel = firstSynced
-                      ? new Date(firstSynced).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
-                      : null;
-                    return (
-                      <span className="text-[10px] font-bold" style={{ color: "var(--text-soft)" }}>
-                        {jiraLastSource === "snapshot" ? "캐시" : "최신"}{timeLabel ? ` · ${timeLabel}` : ""}
-                      </span>
-                    );
-                  })()}
-                  <button
-                    type="button"
-                    onClick={() => fetchJiraSnapshots(true)}
-                    disabled={jiraLoading}
-                    className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-surface-low disabled:opacity-40"
+                {!loading && members.length > 0 && (
+                  <Badge variant="primary" className="shrink-0">총 {members.length}명</Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-2 mb-4">
+                {jiraError && (
+                  <Badge variant="tertiary">Jira 조회 오류</Badge>
+                )}
+                <button
+                  type="button"
+                  onClick={() => fetchJiraSnapshots(true)}
+                  disabled={jiraLoading}
+                  className="flex items-center gap-1.5 rounded-full px-2.5 h-7 transition-colors hover:bg-surface-low disabled:opacity-40"
+                  style={{ color: "var(--text-soft)", background: "var(--surface-overlay)" }}
+                  title="Jira 티켓 동기화"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className={`h-3.5 w-3.5 shrink-0 ${jiraLoading ? "animate-spin [animation-direction:reverse]" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
                     style={{ color: "var(--primary)" }}
-                    title="Jira 티켓 동기화"
                   >
-                    <svg
-                      viewBox="0 0 24 24"
-                      className={`h-4 w-4 ${jiraLoading ? "animate-spin [animation-direction:reverse]" : ""}`}
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M1 4v6h6M23 20v-6h-6" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                  {!loading && members.length > 0 && (
-                    <Badge variant="primary">총 {members.length}명</Badge>
-                  )}
-                </div>
+                    <path d="M1 4v6h6M23 20v-6h-6" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span className="text-[10px] font-bold leading-none">
+                    {(() => {
+                      const firstSynced = Object.values(jiraSnapshots).find((s) => s.syncedAt)?.syncedAt;
+                      const timeLabel = firstSynced
+                        ? new Date(firstSynced).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
+                        : null;
+                      return timeLabel ? `Jira · ${timeLabel}` : "Jira 동기화";
+                    })()}
+                  </span>
+                </button>
               </div>
               {loading ? (
                 <p className="text-sm font-bold py-4" style={{ color: "var(--text-soft)" }}>불러오는 중...</p>
@@ -1820,7 +1875,9 @@ export default function AdminPageClient() {
                         value={newTeamId}
                         onChange={(v) => { setNewTeamId(v); setNewPartId(""); }}
                         placeholder="팀 선택 (선택)"
-                        options={teams.map(t => ({ value: t.id, label: t.name }))}
+                        options={adminSession && !isSuperAdmin(adminSession) && adminSession.managedTeamId
+                          ? teams.filter(t => t.id === adminSession.managedTeamId).map(t => ({ value: t.id, label: t.name }))
+                          : teams.map(t => ({ value: t.id, label: t.name }))}
                         className="flex-1"
                       />
                       <PortalSelect
@@ -1842,6 +1899,69 @@ export default function AdminPageClient() {
                   </motion.div>
                 )}
               </AnimatePresence>
+            </GlassCard>
+
+            {/* 4. 팀원 초대 (이메일 발송) */}
+            <GlassCard className="p-4 md:p-5" intensity="low">
+              <SectionHeader
+                icon={<svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
+                title="팀원 초대"
+                subtitle="이메일로 초대장을 발송합니다. 초대된 팀원은 로그인 후 본인 현황을 볼 수 있습니다."
+                className="mb-4"
+              />
+              <p
+                className="text-xs font-medium mb-4 rounded-[1.5rem] px-4 py-3"
+                style={{ background: "color-mix(in srgb, var(--primary) 8%, transparent)", color: "var(--on-surface-variant)" }}
+              >
+                위 &lsquo;팀원 추가&rsquo;는 관리자가 직접 등록하는 방식이고, 이 &lsquo;팀원 초대&rsquo;는 이메일로 초대장을 보내 본인이 가입하는 방식입니다. Jira 연동이 필요하면 위 팀원 추가에서 &lsquo;Jira에서 팀원 검색&rsquo;을 이용하세요.
+              </p>
+              <div className="flex gap-3 flex-wrap">
+                <ClimaInput
+                  type="text"
+                  placeholder="이름"
+                  value={memberInviteName}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMemberInviteName(e.target.value)}
+                  className="font-bold flex-1 min-w-[140px]"
+                />
+                <ClimaInput
+                  type="email"
+                  placeholder="이메일"
+                  value={memberInviteEmail}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMemberInviteEmail(e.target.value)}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && inviteMember()}
+                  className="font-bold flex-1 min-w-[200px]"
+                />
+                <PortalSelect
+                  value={memberInviteTeamId}
+                  onChange={setMemberInviteTeamId}
+                  placeholder="팀 선택"
+                  options={adminSession && !isSuperAdmin(adminSession) && adminSession.managedTeamId
+                    ? teams.filter(t => t.id === adminSession.managedTeamId).map(t => ({ value: t.id, label: t.name }))
+                    : teams.map(t => ({ value: t.id, label: t.name }))}
+                  className="flex-1"
+                />
+                <PortalSelect
+                  value={memberInvitePartId}
+                  onChange={setMemberInvitePartId}
+                  placeholder="파트 선택 (선택)"
+                  options={parts.filter(p => !memberInviteTeamId || p.team_id === memberInviteTeamId || !p.team_id).map(p => ({ value: p.id, label: p.name }))}
+                  className="flex-1"
+                />
+                <ClimaButton
+                  variant="primary"
+                  onClick={inviteMember}
+                  className="py-3 text-sm shrink-0"
+                  style={{ paddingInline: "1.5rem" }}
+                  disabled={!memberInviteEmail.trim() || !memberInviteName.trim() || !memberInviteTeamId}
+                >
+                  {memberInviting ? "초대 중..." : "초대 발송"}
+                </ClimaButton>
+              </div>
+              {memberInviteResult && (
+                <p className="mt-3 text-sm font-medium" style={{ color: memberInviteResult.ok ? "var(--primary)" : "var(--error, #e53e3e)" }}>
+                  {memberInviteResult.message}
+                </p>
+              )}
             </GlassCard>
 
           </>)}
@@ -2271,12 +2391,14 @@ export default function AdminPageClient() {
             {/* 팀장 초대 (super_admin 전용) */}
             {(adminSession === null || isSuperAdmin(adminSession)) && (
               <GlassCard className="p-4 md:p-5 mt-4" intensity="low">
-                <SectionHeader
-                  icon={<svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
-                  title="팀장 초대"
-                  subtitle="초대된 팀장은 본인 팀만 관리할 수 있습니다"
-                  className="mb-4"
-                />
+                <div className="flex items-center gap-2 mb-4">
+                  <SectionHeader
+                    icon={<svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
+                    title="팀장 초대"
+                    subtitle="초대된 팀장은 본인 팀만 관리할 수 있습니다"
+                  />
+                  <Badge variant="tertiary" className="shrink-0">SUPER ADMIN</Badge>
+                </div>
                 <div className="flex gap-3 flex-wrap">
                   <ClimaInput
                     type="email"

@@ -5,7 +5,9 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import ClimaLogo from "../components/WetherLogo";
 import ThemeToggleButton from "../components/ThemeToggleButton";
-import HeaderNav, { type HeaderNavItem } from "../components/HeaderNav";
+import HeaderNav from "../components/HeaderNav";
+import { getNavItems } from "../../lib/nav-items";
+import { getUserSession, type UserRole } from "../../lib/auth";
 import DynamicBackground from "../components/DynamicBackground";
 import { SectionLabel, ViewModeToggle, UserAvatar } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
@@ -30,13 +32,6 @@ interface UserData {
 
 const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI"];
 
-const BASE_NAV_ITEMS: HeaderNavItem[] = [
-  { label: "홈", href: "/" },
-  { label: "개인 현황", href: "/personal" },
-  { label: "팀", href: "/dashboard", matchPaths: ["/dashboard", "/team"] },
-  { label: "Niko-Niko", href: "/niko" },
-  { label: "알림", href: "/alerts", disabled: true },
-];
 
 function getTodayKst(): string {
   return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
@@ -129,10 +124,10 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"icon" | "chart">("icon");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setIsAdmin(!!session));
+    getUserSession().then((s) => setUserRole(s?.role ?? null));
   }, []);
 
   useEffect(() => {
@@ -224,7 +219,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
     );
   }
 
-  const navItems = [...BASE_NAV_ITEMS, ...(isAdmin ? [{ label: "어드민", href: "/admin" }] : [])];
+  const navItems = getNavItems(userRole);
 
   return (
     <div className="relative min-h-screen" style={{ background: "var(--hero-gradient)" }}>

@@ -1,6 +1,7 @@
-import type { NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { fetchOpenIssuesForAssignees } from "../../../../../lib/jira";
 import { createSupabaseAdminClient } from "../../../../../lib/supabase-admin";
+import { requireRole } from "../../../../../lib/api-auth";
 
 const SNAPSHOT_TTL_MS = 10 * 60 * 1000;
 const PREVIEW_LIMIT = 3;
@@ -31,6 +32,9 @@ type RouteMember = {
 };
 
 export async function POST(request: NextRequest) {
+  const auth = await requireRole(request, "super_admin", "team_admin");
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const forceRefresh = request.nextUrl.searchParams.get("refresh") === "1";
     const payload = (await request.json()) as { members?: RouteMember[]; projectKeys?: string[] | null };

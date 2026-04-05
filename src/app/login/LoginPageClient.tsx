@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { supabase } from "../../lib/supabase";
+import { getUserSession } from "../../lib/auth";
 import { STANDARD_SPRING } from "../constants/springs";
 import {
   ClimaButton,
@@ -25,6 +26,16 @@ export default function LoginPageClient({ redirectTo }: { redirectTo: string }) 
     });
   }, [redirectTo, router]);
 
+  async function getRedirectTarget(): Promise<string> {
+    // redirect 파라미터가 기본값(/login)이 아닌 경우 그대로 사용
+    if (redirectTo && redirectTo !== "/login") return redirectTo;
+    // 역할에 따라 기본 랜딩 결정
+    const session = await getUserSession();
+    if (!session) return "/";
+    if (session.role === "member") return "/personal";
+    return "/dashboard";
+  }
+
   async function signIn() {
     if (signingIn) return;
     setSigningIn(true);
@@ -37,7 +48,8 @@ export default function LoginPageClient({ redirectTo }: { redirectTo: string }) 
       setPwError("이메일 또는 비밀번호가 맞지 않아요.");
       setSigningIn(false);
     } else {
-      router.replace(redirectTo);
+      const target = await getRedirectTarget();
+      router.replace(target);
     }
   }
 

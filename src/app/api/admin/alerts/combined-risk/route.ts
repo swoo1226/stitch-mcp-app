@@ -1,7 +1,11 @@
 import { runCombinedRiskAlert } from "../../../../../lib/combined-risk-alert";
-import type { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireRole } from "../../../../../lib/api-auth";
 
 export async function POST(request: NextRequest) {
+  const auth = await requireRole(request, "super_admin", "team_admin");
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const shouldSend = request.nextUrl.searchParams.get("send") === "1";
     const result = await runCombinedRiskAlert({ shouldSend });

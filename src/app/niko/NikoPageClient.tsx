@@ -4,7 +4,9 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import ClimaLogo from "../components/WetherLogo";
-import HeaderNav, { type HeaderNavItem } from "../components/HeaderNav";
+import HeaderNav from "../components/HeaderNav";
+import { getNavItems } from "../../lib/nav-items";
+import { getUserSession, type UserRole } from "../../lib/auth";
 import ThemeToggleButton from "../components/ThemeToggleButton";
 import {
   NikoCalendar,
@@ -117,13 +119,6 @@ function getAverageFromScores(scores: number[]) {
 
 
 // ─── Nav ────────────────────────────────────────────────────────────────────
-const BASE_NAV_ITEMS: HeaderNavItem[] = [
-  { label: "홈", href: "/" },
-  { label: "개인 현황", href: "/personal" },
-  { label: "팀", href: "/dashboard", matchPaths: ["/dashboard", "/team"] },
-  { label: "Niko-Niko", href: "/niko", matchPaths: ["/niko"] },
-  { label: "알림", href: "/alerts", disabled: true },
-];
 
 function CalendarIcon() {
   return (
@@ -169,7 +164,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
   const [weekOffset, setWeekOffset] = useState(0);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"icon" | "chart">("icon");
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
 
   const today = new Date();
   const baseMonday = getWeekStart(today);
@@ -180,7 +175,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
   const todayIndex = weekDays.findIndex((d) => isoDate(d) === todayIso);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setIsAdmin(!!session));
+    getUserSession().then((s) => setUserRole(s?.role ?? null));
   }, []);
 
   useEffect(() => {
@@ -308,7 +303,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
             <ClimaLogo />
           </Link>
           <nav className="hidden md:flex items-center gap-1">
-            <HeaderNav items={[...BASE_NAV_ITEMS, ...(isAdmin ? [{ label: "어드민", href: "/admin" }] : [])]} />
+            <HeaderNav items={getNavItems(userRole)} />
           </nav>
         </div>
         <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
@@ -368,7 +363,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
                 </button>
               </div>
               <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
-                <HeaderNav items={[...BASE_NAV_ITEMS, ...(isAdmin ? [{ label: "어드민", href: "/admin" }] : [])]} mobile onNavigate={() => setMobileNavOpen(false)} />
+                <HeaderNav items={getNavItems(userRole)} mobile onNavigate={() => setMobileNavOpen(false)} />
               </nav>
             </motion.div>
           </>

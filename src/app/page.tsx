@@ -11,6 +11,7 @@ import {
 } from "./components/WeatherIcons";
 import { statusToKo } from "../lib/mood";
 import { supabase } from "../lib/supabase";
+import { getUserSession, type UserSession } from "../lib/auth";
 
 // ─── Nav ────────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
@@ -176,11 +177,17 @@ function WeatherCarousel() {
 // ─── Main ────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [userSession, setUserSession] = useState<UserSession | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setIsAdmin(!!session));
+    getUserSession().then(setUserSession);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      getUserSession().then(setUserSession);
+    });
+    return () => subscription.unsubscribe();
   }, []);
+
+  const isAdmin = userSession?.role === "super_admin" || userSession?.role === "team_admin";
 
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });

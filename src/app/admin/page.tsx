@@ -6,7 +6,7 @@ import AuthGuard from "../components/AuthGuard";
 export default function AdminPage() {
   return (
     <Suspense fallback={null}>
-      <AuthGuard>
+      <AuthGuard requiredRole={["super_admin", "team_admin"]}>
         <AdminPageClient />
       </AuthGuard>
     </Suspense>

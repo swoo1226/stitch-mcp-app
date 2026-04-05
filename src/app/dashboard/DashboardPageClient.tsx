@@ -5,7 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import ClimaLogo from "../components/WetherLogo";
 import ThemeToggleButton from "../components/ThemeToggleButton";
-import HeaderNav, { type HeaderNavItem } from "../components/HeaderNav";
+import HeaderNav from "../components/HeaderNav";
+import { getNavItems } from "../../lib/nav-items";
+import { getUserSession, type UserRole } from "../../lib/auth";
 import { SectionLabel, PrimaryTabToggle, TabToggle, NikoCalendar, type NikoCalendarMember } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { STANDARD_SPRING } from "../constants/springs";
@@ -97,13 +99,6 @@ function utcToKstDate(utcStr: string): string {
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI"];
 
-const BASE_NAV_ITEMS: HeaderNavItem[] = [
-  { label: "홈", href: "/" },
-  { label: "개인 현황", href: "/personal" },
-  { label: "팀", href: "/dashboard", matchPaths: ["/dashboard", "/team"] },
-  { label: "Niko-Niko", href: "/niko" },
-  { label: "알림", href: "/alerts", disabled: true },
-];
 
 
 function TopIcon({ type }: { type: "bell" | "settings" | "profile" }) {
@@ -183,7 +178,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
   const [loading, setLoading] = useState(true);
   const [weekTab, setWeekTab] = useState<"this" | "last">("this");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
 
   const weekOffset = weekTab === "this" ? 0 : -1;
   const today = new Date();
@@ -193,7 +188,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
 
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setIsAdmin(!!session));
+    getUserSession().then((s) => setUserRole(s?.role ?? null));
   }, []);
 
   useEffect(() => {
@@ -411,7 +406,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
             <ClimaLogo />
           </Link>
           <nav className="hidden md:flex items-center gap-1">
-            <HeaderNav items={[...BASE_NAV_ITEMS, ...(isAdmin ? [{ label: "어드민", href: "/admin" }] : [])]} />
+            <HeaderNav items={getNavItems(userRole)} />
           </nav>
         </div>
         <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
@@ -471,7 +466,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                 </button>
               </div>
               <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
-                <HeaderNav items={[...BASE_NAV_ITEMS, ...(isAdmin ? [{ label: "어드민", href: "/admin" }] : [])]} mobile onNavigate={() => setMobileNavOpen(false)} />
+                <HeaderNav items={getNavItems(userRole)} mobile onNavigate={() => setMobileNavOpen(false)} />
               </nav>
             </motion.div>
           </>

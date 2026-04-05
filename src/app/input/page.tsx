@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useRef, Suspense } from "react";
+import { useState, useRef, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import ClimaLogo from "../components/WetherLogo";
@@ -12,6 +12,7 @@ import { ClimaButton, FAB, WeatherTile, PrimaryTabToggle, ClimaTextarea } from "
 import GlassModal from "../components/GlassModal";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { supabase } from "../../lib/supabase";
+import { getUserSession } from "../../lib/auth";
 
 interface WeatherMetaphor {
   score: number;
@@ -103,9 +104,18 @@ function ClimaInputInner() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [resolvedUserId, setResolvedUserId] = useState<string | null>(null);
+  const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
 
   const currentMetaphor = currentMetaphorFromScore(score);
+
+  // 로그인 사용자의 linked_user_id 자동 resolve
+  useEffect(() => {
+    if (token) return; // token이 있으면 token 우선
+    getUserSession().then((session) => {
+      if (session?.linkedUserId) setLoggedInUserId(session.linkedUserId);
+    });
+  }, [token]);
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newScore = parseInt(e.target.value);
@@ -134,7 +144,9 @@ function ClimaInputInner() {
     if (submitting) return;
     setSubmitting(true);
     setErrorMsg(null);
+
     if (token) {
+      // token 기반 (기존 방식)
       const { data: user } = await supabase
         .from("users")
         .select("id")
@@ -146,8 +158,12 @@ function ClimaInputInner() {
       } else {
         setErrorMsg("유효하지 않은 접속 패스예요.");
       }
+    } else if (loggedInUserId) {
+      // 로그인 사용자 기반 (신규)
+      const ok = await doInsert(loggedInUserId);
+      if (ok) { setResolvedUserId(loggedInUserId); setIsSubmitted(true); }
     } else {
-      // 토큰 없이 접속 — 로컬 피드백만
+      // 비인증 — 로컬 피드백만
       setIsSubmitted(true);
     }
     setSubmitting(false);
