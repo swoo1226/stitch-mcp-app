@@ -73,6 +73,16 @@ export default function NotificationBell() {
     setNotifications((prev) => prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() })));
   }
 
+  async function deleteNotification(id: string) {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    await fetch("/api/notifications", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+  }
+
+  async function deleteReadNotifications() {
+    setNotifications((prev) => prev.filter((n) => !n.read_at));
+    await fetch("/api/notifications", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ readOnly: true }) });
+  }
+
   useEffect(() => {
     fetchNotifications();
   }, []);
@@ -154,15 +164,26 @@ export default function NotificationBell() {
           >
             <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--surface-overlay)" }}>
               <span className="text-sm font-black" style={{ color: "var(--on-surface)" }}>알림</span>
-              {notifications.some((n) => !n.read_at) && (
-                <button
-                  onClick={markAllRead}
-                  className="text-xs font-bold transition-opacity hover:opacity-70"
-                  style={{ color: "var(--primary)" }}
-                >
-                  모두 읽음
-                </button>
-              )}
+              <div className="flex items-center gap-3">
+                {notifications.some((n) => !n.read_at) && (
+                  <button
+                    onClick={markAllRead}
+                    className="text-xs font-bold transition-opacity hover:opacity-70"
+                    style={{ color: "var(--primary)" }}
+                  >
+                    모두 읽음
+                  </button>
+                )}
+                {notifications.some((n) => n.read_at) && (
+                  <button
+                    onClick={deleteReadNotifications}
+                    className="text-xs font-bold transition-opacity hover:opacity-70"
+                    style={{ color: "var(--text-soft)" }}
+                  >
+                    읽은 것 삭제
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="max-h-[400px] overflow-y-auto">
@@ -178,7 +199,7 @@ export default function NotificationBell() {
                 notifications.map((n) => (
                   <div
                     key={n.id}
-                    className="flex items-start gap-3 px-4 py-3 transition-colors"
+                    className="group flex items-start gap-3 px-4 py-3 transition-colors"
                     style={{
                       background: n.read_at ? "transparent" : "color-mix(in srgb, var(--primary) 6%, transparent)",
                       borderBottom: "1px solid var(--surface-overlay)",
@@ -225,9 +246,21 @@ export default function NotificationBell() {
                       </p>
                     </div>
 
-                    {!n.read_at && (
-                      <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ background: "var(--primary)" }} />
-                    )}
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      {!n.read_at && (
+                        <div className="h-2 w-2 rounded-full" style={{ background: "var(--primary)" }} />
+                      )}
+                      <button
+                        onClick={() => deleteNotification(n.id)}
+                        className="flex h-5 w-5 items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-surface-low"
+                        style={{ color: "var(--text-soft)" }}
+                        aria-label="알림 삭제"
+                      >
+                        <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 ))
               )}

@@ -24,5 +24,9 @@ export function getNavItems(role: UserRole | null): HeaderNavItem[] {
     items.push({ label: "어드민", href: "/admin" });
   }
 
+  if (role === "super_admin") {
+    items.push({ label: "도입 요청", href: "/admin/access-requests", matchPaths: ["/admin/access-requests"] });
+  }
+
   return items;
 }
