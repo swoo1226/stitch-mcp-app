@@ -40,16 +40,21 @@ export default function LoginPageClient({ redirectTo }: { redirectTo: string }) 
     if (signingIn) return;
     setSigningIn(true);
     setPwError(null);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: emailInput.trim(),
-      password: pwInput,
-    });
-    if (error) {
-      setPwError("이메일 또는 비밀번호가 맞지 않아요.");
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: emailInput.trim(),
+        password: pwInput,
+      });
+      if (error) {
+        setPwError("이메일 또는 비밀번호가 맞지 않아요.");
+        setSigningIn(false);
+      } else {
+        const target = await getRedirectTarget().catch(() => "/dashboard");
+        router.replace(target);
+      }
+    } catch {
+      setPwError("네트워크 오류가 발생했어요. 다시 시도해 주세요.");
       setSigningIn(false);
-    } else {
-      const target = await getRedirectTarget();
-      router.replace(target);
     }
   }
 
