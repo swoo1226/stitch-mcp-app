@@ -54,7 +54,7 @@ export default function UpdateToast() {
         >
           <div
             className="flex items-center gap-3 rounded-full px-5 py-3 shadow-xl"
-            style={{ background: "var(--surface-highest)", boxShadow: "var(--glass-shadow)" }}
+            style={{ background: "var(--surface-container-highest)", boxShadow: "var(--glass-shadow)" }}
           >
             <span className="text-sm font-bold" style={{ color: "var(--on-surface)" }}>
               새 버전이 있어요
@@ -65,15 +65,6 @@ export default function UpdateToast() {
               style={{ background: "var(--button-primary-gradient)", color: "var(--on-primary)" }}
             >
               업데이트
-            </button>
-            <button
-              onClick={() => setWaiting(null)}
-              className="flex h-7 w-7 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
-              style={{ color: "var(--text-soft)" }}
-            >
-              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.2">
-                <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
-              </svg>
             </button>
           </div>
         </motion.div>
