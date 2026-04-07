@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { getThemeInitScript } from "./components/themeScript";
 import UpdateToast from "./components/UpdateToast";
+import SplashScreen from "./components/SplashScreen";
 
 export const metadata: Metadata = {
   title: "Clima | Check how the team feels today.",
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: getThemeInitScript() }} />
         <script dangerouslySetInnerHTML={{ __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'})})}` }} />
         <ThemeProvider>
+          <SplashScreen />
           <main className="relative min-h-screen">
             {children}
           </main>
