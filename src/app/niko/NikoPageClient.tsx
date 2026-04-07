@@ -8,6 +8,7 @@ import HeaderNav from "../components/HeaderNav";
 import NotificationBell from "../components/NotificationBell";
 import { getNavItems } from "../../lib/nav-items";
 import { getUserSession, type UserRole } from "../../lib/auth";
+import { displayName as getDisplayName } from "../../lib/user";
 import ThemeToggleButton from "../components/ThemeToggleButton";
 import {
   NikoCalendar,
@@ -85,6 +86,7 @@ interface MoodLogRow {
 interface UserRow {
   id: string;
   name: string;
+  nickname: string | null;
   avatar_emoji: string;
   part_id: string | null;
 }
@@ -209,7 +211,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
       const rangeEnd = isoDate(rangeEndDate);
 
       const [{ data: users, error: usersError }, { data: partsData }] = await Promise.all([
-        supabase.from("users").select("id, name, avatar_emoji, part_id").eq("team_id", teamId),
+        supabase.from("users").select("id, name, nickname, avatar_emoji, part_id").eq("team_id", teamId),
         supabase.from("parts").select("id, name").order("name"),
       ]);
 
@@ -237,7 +239,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
 
         return {
           id: user.id,
-          name: user.name,
+          name: getDisplayName(user),
           avatarEmoji: user.avatar_emoji || "",
           part_id: user.part_id ?? null,
           week,

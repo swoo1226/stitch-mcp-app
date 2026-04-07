@@ -28,6 +28,7 @@ import {
   UserAvatar,
 } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
+import { displayName as getDisplayName } from "../../lib/user";
 
 
 const WEATHER_METAPHORS = [
@@ -58,6 +59,7 @@ interface Part {
 interface Member {
   id: string;
   name: string;
+  nickname: string | null;
   email: string | null;
   jira_account_id: string | null;
   avatar_emoji: string;
@@ -440,7 +442,7 @@ export default function AdminPageClient() {
     const session = adminSession ?? await getAdminSession();
     let query = supabase
       .from("users")
-      .select(`id, name, email, jira_account_id, avatar_emoji, access_token, part_id, team_id, parts (id, name), mood_logs (score, message, logged_at)`)
+      .select(`id, name, nickname, email, jira_account_id, avatar_emoji, access_token, part_id, team_id, parts (id, name), mood_logs (score, message, logged_at)`)
       .order("logged_at", { referencedTable: "mood_logs", ascending: false });
     if (session && !isSuperAdmin(session) && session.managedTeamId) {
       query = query.eq("team_id", session.managedTeamId);
@@ -1420,7 +1422,7 @@ export default function AdminPageClient() {
                                 })()
                               ) : (
                                 <UserAvatar
-                                  name={m.name}
+                                  name={getDisplayName(m)}
                                   avatarEmoji={m.avatar_emoji}
                                   size={48}
                                   fallbackTextClassName="text-lg font-black"
@@ -1428,7 +1430,7 @@ export default function AdminPageClient() {
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-base tracking-tight leading-tight truncate">{m.name}</p>
+                              <p className="font-bold text-base tracking-tight leading-tight truncate">{getDisplayName(m)}</p>
                               <div className="mt-1 flex items-center gap-2">
                                 <p className="text-xs font-medium min-w-0 truncate" style={{ color: "var(--text-soft)" }}>
                                   {score !== null

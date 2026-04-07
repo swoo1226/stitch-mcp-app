@@ -3,6 +3,7 @@ import { createSupabaseAdminClient } from "../../../lib/supabase-admin";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { emitNotificationEvent, type NotificationPayload, type NotificationType } from "../../../lib/notification-events";
+import { displayName } from "../../../lib/user";
 
 // 알림 생성 조건
 const LOW_SCORE_THRESHOLD = 40;
@@ -127,7 +128,7 @@ async function createAlertsIfNeeded(admin: any, userId: string, todayScore: numb
   // team_admin의 auth_user_id 조회 (같은 팀)
   const { data: userRow } = await admin
     .from("users")
-    .select("team_id, name")
+    .select("team_id, name, nickname")
     .eq("id", userId)
     .single();
   if (!userRow?.team_id) return;
@@ -143,7 +144,7 @@ async function createAlertsIfNeeded(admin: any, userId: string, todayScore: numb
 
   // 알림 타입 판단
   let type: NotificationType | null = null;
-  const payload: NotificationPayload = { score: todayScore, userName: userRow.name, targetUserId: userId };
+  const payload: NotificationPayload = { score: todayScore, userName: displayName(userRow), targetUserId: userId };
 
   if (todayScore <= LOW_SCORE_THRESHOLD) {
     type = "low_mood_alert";

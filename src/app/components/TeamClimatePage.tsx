@@ -7,6 +7,7 @@ import { scoreToStatus, statusToEmoji, WeatherStatus } from "../../lib/mood";
 import { motion } from "framer-motion";
 import { STANDARD_SPRING } from "../constants/springs";
 import { UserAvatar } from "./ui";
+import { displayName } from "../../lib/user";
 
 type MoodLog = {
   score: number;
@@ -17,6 +18,7 @@ type MoodLog = {
 type RawUser = {
   id: string;
   name: string;
+  nickname: string | null;
   avatar_emoji: string;
   mood_logs: MoodLog[];
 };
@@ -119,7 +121,7 @@ export default function TeamClimatePage() {
     async function fetchMembers() {
       const { data } = await supabase
         .from("users")
-        .select("id, name, avatar_emoji, mood_logs (score, message, logged_at)")
+        .select("id, name, nickname, avatar_emoji, mood_logs (score, message, logged_at)")
         .eq("team_id", DEFAULT_TEAM_ID)
         .order("logged_at", { referencedTable: "mood_logs", ascending: false });
 
@@ -131,7 +133,7 @@ export default function TeamClimatePage() {
 
           return {
             id: user.id,
-            name: user.name,
+            name: displayName(user),
             avatarEmoji: user.avatar_emoji || statusToEmoji(currentStatus),
             currentScore,
             currentStatus,

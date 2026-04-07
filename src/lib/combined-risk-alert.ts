@@ -2,10 +2,12 @@ import { fetchOpenIssuesForAssignees } from "./jira";
 import { toKoreanIsoDate } from "./korean-holidays";
 import { createSupabaseAdminClient } from "./supabase-admin";
 import { sendTeamsAdaptiveCard } from "./teams";
+import { displayName } from "./user";
 
 type UserRow = {
   id: string;
   name: string;
+  nickname: string | null;
   team_id: string | null;
   part_id: string | null;
   jira_account_id: string | null;
@@ -172,7 +174,7 @@ export async function runCombinedRiskAlert(options: { shouldSend: boolean }) {
   const [{ data: users, error: usersError }, { data: teams, error: teamsError }, { data: parts, error: partsError }] = await Promise.all([
     supabase
       .from("users")
-      .select("id, name, team_id, part_id, jira_account_id")
+      .select("id, name, nickname, team_id, part_id, jira_account_id")
       .not("jira_account_id", "is", null)
       .order("name", { ascending: true }),
     supabase.from("teams").select("id, name"),
@@ -262,7 +264,7 @@ export async function runCombinedRiskAlert(options: { shouldSend: boolean }) {
 
     return [{
       userId: user.id,
-      name: user.name,
+      name: displayName(user),
       teamName: teamNameById.get(user.team_id ?? "") ?? "미지정 팀",
       partName: partNameById.get(user.part_id ?? "") ?? null,
       todayScore,

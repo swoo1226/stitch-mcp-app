@@ -17,6 +17,7 @@ import { supabase } from "../../lib/supabase";
 import { scoreToStatus, statusToKo, type WeatherStatus } from "../../lib/mood";
 import { DEMO_USER_ID, DEMO_USER } from "../../lib/demo-data";
 import { STANDARD_SPRING, RESPONSIVE_SPRING } from "../constants/springs";
+import { displayName as getDisplayName } from "../../lib/user";
 
 interface MoodLog {
   score: number;
@@ -27,6 +28,7 @@ interface MoodLog {
 interface UserData {
   id: string;
   name: string;
+  nickname?: string | null;
   avatar_emoji: string;
   mood_logs: MoodLog[];
 }
@@ -144,7 +146,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
       }
       const { data } = await supabase
         .from("users")
-        .select("id, name, avatar_emoji, mood_logs (score, message, logged_at)")
+        .select("id, name, nickname, avatar_emoji, mood_logs (score, message, logged_at)")
         .eq("id", userId)
         .order("logged_at", { referencedTable: "mood_logs", ascending: false })
         .limit(30, { referencedTable: "mood_logs" })
@@ -334,10 +336,10 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                 className="flex items-center gap-3 self-start rounded-[1.5rem] px-4 py-3"
                 style={{ background: "var(--surface-overlay)", boxShadow: "var(--shadow-level-1)" }}
               >
-                <UserAvatar name={user?.name ?? "User"} avatarEmoji={user?.avatar_emoji} size={44} fallbackTextClassName="text-base font-black" />
+                <UserAvatar name={user ? getDisplayName(user) : "User"} avatarEmoji={user?.avatar_emoji} size={44} fallbackTextClassName="text-base font-black" />
                 <div>
                   <p className="text-sm font-black tracking-tight" style={{ color: "var(--on-surface)" }}>
-                    {user?.name ?? "—"}
+                    {user ? getDisplayName(user) : "—"}
                   </p>
                   <p className="text-xs font-semibold" style={{ color: "var(--text-soft)" }}>
                     {todayStatus ? statusToKo(todayStatus) : "오늘 미기록"}

@@ -8,6 +8,7 @@ import ThemeToggleButton from "../components/ThemeToggleButton";
 import HeaderNav from "../components/HeaderNav";
 import { getNavItems } from "../../lib/nav-items";
 import { getUserSession, type UserRole } from "../../lib/auth";
+import { displayName as getDisplayName } from "../../lib/user";
 import { SectionLabel, PrimaryTabToggle, TabToggle, NikoCalendar, type NikoCalendarMember } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import NotificationBell from "../components/NotificationBell";
@@ -28,6 +29,7 @@ interface MoodLogRow {
 interface RawUser {
   id: string;
   name: string;
+  nickname: string | null;
   avatar_emoji: string;
   part_id: string | null;
   mood_logs: Array<{ score: number; message: string | null; logged_at: string }>;
@@ -225,7 +227,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
       const [{ data: users }, { data: partsData }] = await Promise.all([
         supabase
           .from("users")
-          .select("id, name, avatar_emoji, part_id, mood_logs (score, message, logged_at)")
+          .select("id, name, nickname, avatar_emoji, part_id, mood_logs (score, message, logged_at)")
           .eq("team_id", teamId)
           .order("logged_at", { referencedTable: "mood_logs", ascending: false }),
         supabase.from("parts").select("id, name").order("name"),
@@ -260,7 +262,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
 
         return {
           id: user.id,
-          name: user.name,
+          name: getDisplayName(user),
           avatarEmoji: user.avatar_emoji || "",
           score,
           status: score !== null ? scoreToStatus(score) : null,
