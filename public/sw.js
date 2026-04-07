@@ -30,6 +30,72 @@ self.addEventListener('message', (event) => {
   }
 });
 
+async function broadcastPushMessage(payload) {
+  const clientList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  clientList.forEach((client) => {
+    client.postMessage({ type: 'PUSH_NOTIFICATION_RECEIVED', payload });
+  });
+  return clientList;
+}
+
+self.addEventListener('push', (event) => {
+  const payload = event.data ? event.data.json() : {};
+
+  event.waitUntil((async () => {
+    const clientList = await broadcastPushMessage(payload);
+    const hasVisibleClient = clientList.some((client) => client.visibilityState === 'visible');
+
+    if (hasVisibleClient) {
+      return;
+    }
+
+    await self.registration.showNotification(payload.title || 'Clima 알림', {
+      body: payload.summary || '새로운 알림이 도착했어요.',
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      tag: payload.notificationId || 'clima-notification',
+      data: {
+        targetUrl: payload.targetUrl || '/',
+      },
+    });
+  })());
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.targetUrl || '/';
+
+  event.waitUntil((async () => {
+    const clientList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of clientList) {
+      if ('focus' in client) {
+        await client.focus();
+        client.postMessage({ type: 'PUSH_NOTIFICATION_CLICKED', targetUrl });
+        if ('navigate' in client) {
+          await client.navigate(targetUrl);
+        }
+        return;
+      }
+    }
+
+    await self.clients.openWindow(targetUrl);
+  })());
+});
+
+self.addEventListener('pushsubscriptionchange', (event) => {
+  event.waitUntil((async () => {
+    if (!event.oldSubscription) {
+      return;
+    }
+
+    await fetch('/api/push/subscribe', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint: event.oldSubscription.endpoint }),
+    }).catch(() => null);
+  })());
+});
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);

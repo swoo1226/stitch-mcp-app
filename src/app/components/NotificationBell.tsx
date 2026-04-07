@@ -1,18 +1,23 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { STANDARD_SPRING } from "../constants/springs";
 
 interface Notification {
   id: string;
-  type: "low_mood_alert" | "mood_drop_alert" | "checkin_reminder";
+  type: "low_mood_alert" | "mood_drop_alert" | "checkin_reminder" | "team_admin_access_request" | "member_access_request";
   target_user_id: string | null;
   payload: {
     score?: number;
     userName?: string;
     reason?: string;
     prevScore?: number;
+    requesterName?: string;
+    requesterEmail?: string;
+    organization?: string;
+    teamName?: string;
   };
   read_at: string | null;
   created_at: string;
@@ -22,6 +27,8 @@ const TYPE_LABEL: Record<Notification["type"], string> = {
   low_mood_alert: "저점수 알림",
   mood_drop_alert: "컨디션 하락",
   checkin_reminder: "체크인 리마인더",
+  team_admin_access_request: "팀장 도입 요청",
+  member_access_request: "팀원 도입 요청",
 };
 
 const REASON_LABEL: Record<string, string> = {
@@ -70,6 +77,18 @@ export default function NotificationBell() {
     fetchNotifications();
   }, []);
 
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === "PUSH_NOTIFICATION_RECEIVED") {
+        fetchNotifications();
+      }
+    };
+
+    navigator.serviceWorker.addEventListener("message", handleMessage);
+    return () => navigator.serviceWorker.removeEventListener("message", handleMessage);
+  }, []);
+
   // 패널 외부 클릭 시 닫기
   useEffect(() => {
     if (!open) return;
@@ -83,7 +102,11 @@ export default function NotificationBell() {
   }, [open]);
 
   function handleOpen() {
-    setOpen((v) => !v);
+    const nextOpen = !open;
+    setOpen(nextOpen);
+    if (nextOpen) {
+      fetchNotifications();
+    }
     if (!open && unreadCount > 0) markAllRead();
   }
 
@@ -121,8 +144,13 @@ export default function NotificationBell() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={STANDARD_SPRING}
-            className="absolute right-0 top-12 z-[100] w-80 rounded-[1.5rem] overflow-hidden"
-            style={{ background: "var(--surface-highest)", boxShadow: "var(--glass-shadow)" }}
+            className="fixed right-3 top-[4.5rem] z-[260] w-[min(20rem,calc(100vw-1.5rem))] rounded-[1.5rem] overflow-hidden md:right-8 md:top-[4.75rem]"
+            style={{
+              background: "var(--surface-lowest)",
+              boxShadow: "0 24px 56px -18px rgba(18, 28, 31, 0.28), 0 10px 24px -12px rgba(18, 28, 31, 0.16)",
+              border: "1px solid color-mix(in srgb, var(--on-surface) 10%, transparent)",
+              isolation: "isolate",
+            }}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--surface-overlay)" }}>
               <span className="text-sm font-black" style={{ color: "var(--on-surface)" }}>알림</span>
@@ -179,12 +207,18 @@ export default function NotificationBell() {
 
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-black" style={{ color: "var(--on-surface)" }}>
-                        {n.payload.userName && `${n.payload.userName} · `}{TYPE_LABEL[n.type]}
+                        {(n.payload.userName || n.payload.requesterName) && `${n.payload.userName ?? n.payload.requesterName} · `}{TYPE_LABEL[n.type]}
                       </p>
                       <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
-                        {n.payload.score !== undefined && `${n.payload.score}pt`}
-                        {n.payload.reason && ` · ${REASON_LABEL[n.payload.reason] ?? n.payload.reason}`}
-                        {n.payload.prevScore !== undefined && ` (이전 ${n.payload.prevScore}pt)`}
+                        {(n.type === "team_admin_access_request" || n.type === "member_access_request")
+                          ? [n.payload.organization, n.payload.teamName].filter(Boolean).join(" · ")
+                          : (
+                            <>
+                              {n.payload.score !== undefined && `${n.payload.score}pt`}
+                              {n.payload.reason && ` · ${REASON_LABEL[n.payload.reason] ?? n.payload.reason}`}
+                              {n.payload.prevScore !== undefined && ` (이전 ${n.payload.prevScore}pt)`}
+                            </>
+                          )}
                       </p>
                       <p className="mt-1 text-[10px]" style={{ color: "var(--text-soft)" }}>
                         {timeAgo(n.created_at)}
@@ -197,6 +231,20 @@ export default function NotificationBell() {
                   </div>
                 ))
               )}
+            </div>
+
+            <div className="flex items-center justify-between border-t px-4 py-3" style={{ borderColor: "var(--surface-overlay)" }}>
+              <p className="text-[11px] font-medium" style={{ color: "var(--text-soft)" }}>
+                푸시는 요약만 보내고 상세는 여기서 확인해요.
+              </p>
+              <Link
+                href="/settings/notifications"
+                className="text-xs font-black"
+                style={{ color: "var(--primary)" }}
+                onClick={() => setOpen(false)}
+              >
+                푸시 설정
+              </Link>
             </div>
           </motion.div>
         )}

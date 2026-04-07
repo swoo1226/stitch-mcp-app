@@ -19,6 +19,16 @@ const DEMO_ALLOWED_PATHS = ["/dashboard", "/niko", "/personal"];
 export async function middleware(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
 
+  // cron API는 route handler 내부 secret 검사로 보호한다.
+  if (pathname.startsWith("/api/cron/")) {
+    return NextResponse.next({ request: req });
+  }
+
+  // 공개 신청 API는 로그인 없이 접근 가능해야 한다.
+  if (pathname === "/api/access-request") {
+    return NextResponse.next({ request: req });
+  }
+
   // 공개 경로
   if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
     return await updateSession(req);

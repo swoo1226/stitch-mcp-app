@@ -421,7 +421,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
         </div>
         <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
           <ThemeToggleButton />
-          <div className="hidden md:flex">
+          <div className="flex">
             <NotificationBell />
           </div>
           <button className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
@@ -477,6 +477,14 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
               </div>
               <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
                 <HeaderNav items={getNavItems(userRole)} mobile onNavigate={() => setMobileNavOpen(false)} />
+                <Link
+                  href="/settings/notifications"
+                  onClick={() => setMobileNavOpen(false)}
+                  className="rounded-[1.5rem] px-5 py-4 text-base font-semibold tracking-tight transition-all duration-200"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  알림 설정
+                </Link>
               </nav>
             </motion.div>
           </>

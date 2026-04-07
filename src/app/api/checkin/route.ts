@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "../../../lib/supabase-admin";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { emitNotificationEvent, type NotificationPayload, type NotificationType } from "../../../lib/notification-events";
 
 // 알림 생성 조건
 const LOW_SCORE_THRESHOLD = 40;
@@ -141,8 +142,8 @@ async function createAlertsIfNeeded(admin: any, userId: string, todayScore: numb
   const recipientIds: string[] = admins.map((a: { auth_user_id: string }) => a.auth_user_id);
 
   // 알림 타입 판단
-  let type: string | null = null;
-  let payload: Record<string, unknown> = { score: todayScore, userName: userRow.name, targetUserId: userId };
+  let type: NotificationType | null = null;
+  const payload: NotificationPayload = { score: todayScore, userName: userRow.name, targetUserId: userId };
 
   if (todayScore <= LOW_SCORE_THRESHOLD) {
     type = "low_mood_alert";
@@ -181,25 +182,11 @@ async function createAlertsIfNeeded(admin: any, userId: string, todayScore: numb
 
   if (!type) return;
 
-  // 중복 방지: 오늘 같은 타입 + 같은 대상 알림이 이미 있으면 skip
-  const todayIso = utcToKstDate(new Date().toISOString());
-  const { data: existing } = await admin
-    .from("notifications")
-    .select("id")
-    .in("recipient_auth_id", recipientIds)
-    .eq("type", type)
-    .eq("target_user_id", userId)
-    .gte("created_at", kstDayStart(todayIso))
-    .limit(1);
-  if (existing?.length) return;
-
-  // 알림 INSERT
-  await admin.from("notifications").insert(
-    recipientIds.map((recipientAuthId: string) => ({
-      recipient_auth_id: recipientAuthId,
-      type,
-      target_user_id: userId,
-      payload,
-    }))
-  );
+  await emitNotificationEvent({
+    recipientAuthIds: recipientIds,
+    type,
+    targetUserId: userId,
+    payload,
+    skipIfExistsToday: true,
+  });
 }

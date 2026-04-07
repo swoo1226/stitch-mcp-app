@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { emitNotificationEvent } from "../../../../lib/notification-events";
 import { createSupabaseAdminClient } from "../../../../lib/supabase-admin";
 import { getKoreanBusinessDaySkipReason } from "../../../../lib/korean-holidays";
 
@@ -75,14 +76,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ sent: false, reason: "already_reminded" });
     }
 
-    // notifications INSERT
-    await admin.from("notifications").insert(
-      toNotify.map((m: { auth_user_id: string }) => ({
-        recipient_auth_id: m.auth_user_id,
-        type: "checkin_reminder",
-        payload: { message: "오늘 아직 체크인하지 않았어요. 지금 날씨를 기록해보세요." },
-      }))
-    );
+    await emitNotificationEvent({
+      recipientAuthIds: toNotify.map((m: { auth_user_id: string }) => m.auth_user_id),
+      type: "checkin_reminder",
+      payload: { message: "오늘 아직 체크인하지 않았어요. 지금 날씨를 기록해보세요." },
+      skipIfExistsToday: true,
+    });
 
     return NextResponse.json({ sent: true, count: toNotify.length });
   } catch (err) {

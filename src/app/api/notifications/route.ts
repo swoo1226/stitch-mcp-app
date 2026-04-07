@@ -1,22 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
 import { createSupabaseAdminClient } from "../../../lib/supabase-admin";
-import { cookies } from "next/headers";
-
-async function getAuthUserId(): Promise<string | null> {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
-  );
-  const { data: { user } } = await supabase.auth.getUser();
-  return user?.id ?? null;
-}
+import { getRequestAuthUserId } from "../../../lib/server-auth";
 
 // GET /api/notifications — 본인 알림 목록 (최근 30개)
 export async function GET() {
-  const authUserId = await getAuthUserId();
+  const authUserId = await getRequestAuthUserId();
   if (!authUserId) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const admin = createSupabaseAdminClient();
@@ -33,7 +21,7 @@ export async function GET() {
 
 // PATCH /api/notifications — 전체 읽음 처리
 export async function PATCH(request: NextRequest) {
-  const authUserId = await getAuthUserId();
+  const authUserId = await getRequestAuthUserId();
   if (!authUserId) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const body = await request.json().catch(() => ({}));

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { emitNotificationEvent, type NotificationType } from "../../../lib/notification-events";
 import { createSupabaseAdminClient } from "../../../lib/supabase-admin";
 
 const ALLOWED_ROLES = new Set(["team_admin", "member"]);
@@ -31,6 +32,29 @@ export async function POST(request: NextRequest) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  const { data: superAdmins } = await supabase
+    .from("user_roles")
+    .select("auth_user_id")
+    .eq("role", "super_admin");
+
+  const recipientAuthIds = (superAdmins ?? []).map((row: { auth_user_id: string }) => row.auth_user_id);
+  const notificationType: NotificationType = role === "team_admin"
+    ? "team_admin_access_request"
+    : "member_access_request";
+
+  if (recipientAuthIds.length) {
+    await emitNotificationEvent({
+      recipientAuthIds,
+      type: notificationType,
+      payload: {
+        requesterName: name,
+        requesterEmail: email,
+        organization,
+        teamName,
+      },
+    });
   }
 
   return NextResponse.json({ ok: true });

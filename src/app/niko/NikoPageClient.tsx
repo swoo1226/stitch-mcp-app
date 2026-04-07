@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import ClimaLogo from "../components/WetherLogo";
 import HeaderNav from "../components/HeaderNav";
+import NotificationBell from "../components/NotificationBell";
 import { getNavItems } from "../../lib/nav-items";
 import { getUserSession, type UserRole } from "../../lib/auth";
 import ThemeToggleButton from "../components/ThemeToggleButton";
@@ -308,9 +309,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
         </div>
         <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
           <ThemeToggleButton />
-          <button className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
-            <TopIcon type="bell" />
-          </button>
+          <NotificationBell />
           <button className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
             <TopIcon type="settings" />
           </button>
@@ -364,6 +363,14 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
               </div>
               <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
                 <HeaderNav items={getNavItems(userRole)} mobile onNavigate={() => setMobileNavOpen(false)} />
+                <Link
+                  href="/settings/notifications"
+                  onClick={() => setMobileNavOpen(false)}
+                  className="rounded-[1.5rem] px-5 py-4 text-base font-semibold tracking-tight transition-all duration-200"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  알림 설정
+                </Link>
               </nav>
             </motion.div>
           </>
