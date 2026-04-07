@@ -1106,23 +1106,14 @@ export function NikoMemberRow({
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base"
           style={{ background: "color-mix(in srgb, var(--on-surface) 8%, transparent)" }}
         >
-          {avatarEmoji
-            ? (
-              <UserAvatar
-                name={name}
-                avatarEmoji={avatarEmoji}
-                size={36}
-              />
-            )
-            : (() => {
+          {(() => {
               const todayStatus = todayIndex >= 0 ? week[todayIndex]?.status : null;
               if (todayStatus) {
                 const Icon = WEATHER_ICON_MAP[todayStatus];
                 return <Icon size={22} />;
               }
               return <span className="text-sm font-black" style={{ color: "var(--text-soft)" }}>{name.slice(0, 1)}</span>;
-            })()
-          }
+            })()}
         </div>
         <div className="min-w-0">
           <span
