@@ -984,6 +984,15 @@ export default function AdminPageClient() {
           <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
             <ThemeToggleButton />
             <NotificationBell />
+            {isSuperAdmin(adminSession) && (
+              <Link
+                href="/admin/access-requests"
+                className="hidden md:flex h-10 items-center justify-center rounded-full px-4 text-sm font-bold transition-colors hover:bg-surface-low"
+                style={{ color: "var(--primary)" }}
+              >
+                도입 요청
+              </Link>
+            )}
             <Link
               href="/"
               className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
@@ -1045,6 +1054,16 @@ export default function AdminPageClient() {
                   </button>
                 </div>
                 <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
+                  {isSuperAdmin(adminSession) && (
+                    <Link
+                      href="/admin/access-requests"
+                      onClick={() => setMobileNavOpen(false)}
+                      className="rounded-[1.5rem] px-5 py-4 text-left text-base font-semibold tracking-tight transition-all duration-200"
+                      style={{ color: "var(--primary)" }}
+                    >
+                      도입 요청
+                    </Link>
+                  )}
                   <Link
                     href="/settings/notifications"
                     onClick={() => setMobileNavOpen(false)}
@@ -1053,34 +1072,6 @@ export default function AdminPageClient() {
                   >
                     알림 설정
                   </Link>
-                  <button
-                    type="button"
-                    onClick={() => { setActiveTab("members"); setMobileNavOpen(false); }}
-                    className="rounded-[1.5rem] px-5 py-4 text-left text-base font-semibold tracking-tight transition-all duration-200"
-                    style={activeTab === "members"
-                      ? {
-                        color: "var(--primary)",
-                        background: "color-mix(in srgb, var(--primary) 14%, transparent)",
-                      }
-                      : { color: "var(--text-muted)" }
-                    }
-                  >
-                    팀원 관리
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setActiveTab("teams"); setMobileNavOpen(false); }}
-                    className="rounded-[1.5rem] px-5 py-4 text-left text-base font-semibold tracking-tight transition-all duration-200"
-                    style={activeTab === "teams"
-                      ? {
-                        color: "var(--primary)",
-                        background: "color-mix(in srgb, var(--primary) 14%, transparent)",
-                      }
-                      : { color: "var(--text-muted)" }
-                    }
-                  >
-                    팀 · 파트 관리
-                  </button>
                   <Link
                     href="/"
                     onClick={() => setMobileNavOpen(false)}
@@ -1113,43 +1104,23 @@ export default function AdminPageClient() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...STANDARD_SPRING, delay: 0.05 }}
-          className="pt-20 px-4 pb-10 md:px-8 md:pb-12 flex flex-col gap-6 md:gap-8 w-full max-w-2xl md:max-w-none mx-auto"
+          className="pt-20 px-4 pb-28 md:pb-12 md:px-8 flex flex-col gap-6 md:gap-8 w-full max-w-2xl md:max-w-none mx-auto"
         >
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3">
             <div className="text-sm font-black tracking-tight md:text-base" style={{ color: "var(--primary)" }}>
               {activeTab === "members" ? "팀원 관리" : "팀 · 파트 관리"}
             </div>
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              {activeTab === "members" && (
-                <ClimaButton
-                  variant="secondary"
-                  onClick={fetchCombinedRiskTargets}
-                  disabled={loadingRiskTargets}
-                  className="px-4 py-2 text-xs font-black"
-                  style={{ minHeight: "2rem" }}
-                >
-                  {loadingRiskTargets ? "불러오는 중..." : "주의 필요 팀원 보기"}
-                </ClimaButton>
-              )}
-              <div
-                className="flex items-center gap-1 rounded-full p-1"
-                style={{ background: "var(--surface-overlay)", boxShadow: "var(--button-subtle-shadow)" }}
+            {activeTab === "members" && (
+              <ClimaButton
+                variant="secondary"
+                onClick={fetchCombinedRiskTargets}
+                disabled={loadingRiskTargets}
+                className="px-4 py-2 text-xs font-black"
+                style={{ minHeight: "2rem" }}
               >
-                <PrimaryTabToggle
-                  tabs={adminSession === null || isSuperAdmin(adminSession)
-                    ? [
-                        { value: "members" as const, label: "팀원" },
-                        { value: "teams" as const, label: "팀 · 파트" },
-                      ]
-                    : [
-                        { value: "members" as const, label: "팀원" },
-                      ]
-                  }
-                  active={activeTab}
-                  onChange={setActiveTab}
-                />
-              </div>
-            </div>
+                {loadingRiskTargets ? "불러오는 중..." : "주의 필요 팀원 보기"}
+              </ClimaButton>
+            )}
           </div>
           {teamsAlertMessage && (
             <div
@@ -2679,6 +2650,54 @@ export default function AdminPageClient() {
           );
         })()}
       </AnimatePresence>
+
+      {/* ── 모바일 Bottom Navigation ── */}
+      <div
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-stretch"
+        style={{
+          background: "var(--header-bg)",
+          backdropFilter: "var(--glass-blur)",
+          boxShadow: "0 -1px 0 color-mix(in srgb, var(--on-surface) 8%, transparent)",
+          paddingBottom: "env(safe-area-inset-bottom)",
+        }}
+      >
+        <button
+          onClick={() => setActiveTab("members")}
+          className="flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-colors"
+          style={{ color: activeTab === "members" ? "var(--primary)" : "var(--text-soft)" }}
+        >
+          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round" />
+          </svg>
+          <span className="text-[10px] font-black">팀원</span>
+        </button>
+        {(adminSession === null || isSuperAdmin(adminSession)) && (
+          <button
+            onClick={() => setActiveTab("teams")}
+            className="flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-colors"
+            style={{ color: activeTab === "teams" ? "var(--primary)" : "var(--text-soft)" }}
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" strokeLinecap="round" />
+            </svg>
+            <span className="text-[10px] font-black">팀·파트</span>
+          </button>
+        )}
+        {isSuperAdmin(adminSession) && (
+          <Link
+            href="/admin/access-requests"
+            className="flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-colors"
+            style={{ color: "var(--text-soft)" }}
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round" />
+              <polyline points="14 2 14 8 20 8" /><line x1="9" y1="13" x2="15" y2="13" /><line x1="9" y1="17" x2="15" y2="17" />
+            </svg>
+            <span className="text-[10px] font-black">도입 요청</span>
+          </Link>
+        )}
+      </div>
     </div>
   );
 }
