@@ -1348,18 +1348,21 @@ export default function AdminPageClient() {
                       carouselDrag.current = { active: true, moved: false, startX: e.pageX - carouselRef.current.offsetLeft, scrollLeft: carouselRef.current.scrollLeft };
                       carouselRef.current.style.cursor = "grabbing";
                       carouselRef.current.style.scrollSnapType = "none";
+                      carouselRef.current.style.userSelect = "none";
                     }}
                     onMouseLeave={() => {
                       if (!carouselRef.current || !carouselDrag.current.active) return;
                       carouselDrag.current.active = false;
                       carouselRef.current.style.cursor = "grab";
                       carouselRef.current.style.scrollSnapType = "x mandatory";
+                      carouselRef.current.style.userSelect = "";
                     }}
                     onMouseUp={() => {
                       if (!carouselRef.current) return;
                       carouselDrag.current.active = false;
                       carouselRef.current.style.cursor = "grab";
                       carouselRef.current.style.scrollSnapType = "x mandatory";
+                      carouselRef.current.style.userSelect = "";
                     }}
                     onMouseMove={(e) => {
                       if (!carouselDrag.current.active || !carouselRef.current) return;
