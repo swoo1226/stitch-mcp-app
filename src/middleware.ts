@@ -68,20 +68,29 @@ function createMiddlewareClient(req: NextRequest, res: NextResponse) {
 
 async function updateSession(req: NextRequest) {
   const res = NextResponse.next({ request: req });
-  const supabase = createMiddlewareClient(req, res);
-  await supabase.auth.getUser();
+  try {
+    const supabase = createMiddlewareClient(req, res);
+    await supabase.auth.getUser();
+  } catch {
+    // Supabase fetch 실패 시 세션 갱신 없이 통과
+  }
   return res;
 }
 
 async function updateSessionWithUser(req: NextRequest) {
   const response = NextResponse.next({ request: req });
-  const supabase = createMiddlewareClient(req, response);
-  const { data: { user } } = await supabase.auth.getUser();
-  return { response, user };
+  try {
+    const supabase = createMiddlewareClient(req, response);
+    const { data: { user } } = await supabase.auth.getUser();
+    return { response, user };
+  } catch {
+    // Supabase fetch 실패 시 비인증 처리
+    return { response, user: null };
+  }
 }
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp)).*)",
+    "/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.json|icons/.*|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp|js|json)).*)",
   ],
 };
