@@ -1908,7 +1908,7 @@ export default function AdminPageClient() {
               <div className="flex gap-3 flex-wrap">
                 <ClimaInput
                   type="text"
-                  placeholder="이름"
+                  placeholder="닉네임 (영어 이름)"
                   value={memberInviteName}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMemberInviteName(e.target.value)}
                   className="font-bold flex-1 min-w-[140px]"
