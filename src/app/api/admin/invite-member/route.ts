@@ -25,16 +25,25 @@ export async function POST(req: NextRequest) {
     .eq("email", email.toLowerCase())
     .maybeSingle();
 
-  // Supabase Auth 초대 이메일 발송
-  const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/input`,
-  });
+  // 이미 auth에 등록된 유저인지 확인
+  const { data: { users: existingAuthUsers } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+  const existingAuthUser = existingAuthUsers.find(u => u.email?.toLowerCase() === email.toLowerCase());
 
-  if (inviteError) {
-    return NextResponse.json({ error: inviteError.message }, { status: 500 });
+  let authUserId: string;
+
+  if (existingAuthUser) {
+    // 이미 auth 계정 있음 → 초대 건너뛰고 auth_user_id만 사용
+    authUserId = existingAuthUser.id;
+  } else {
+    // 신규 → 초대 이메일 발송
+    const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/input`,
+    });
+    if (inviteError) {
+      return NextResponse.json({ error: inviteError.message }, { status: 500 });
+    }
+    authUserId = inviteData.user.id;
   }
-
-  const authUserId = inviteData.user.id;
 
   // users 프로필이 없으면 생성
   let userId = existingUser?.id ?? null;
