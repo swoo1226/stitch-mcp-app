@@ -283,6 +283,15 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
   const selectedPart = teamParts.find((part) => part.id === selectedPartId) ?? null;
 
   const checkedInMembers = visibleMembers.filter(m => m.score !== null);
+
+  // 요주의 순: 오늘 체크인 중 score 낮은 순 → 미체크인은 뒤로
+  const atRiskTop3 = useMemo(() => {
+    const checkedIn = visibleMembers
+      .filter(m => m.score !== null)
+      .sort((a, b) => a.score! - b.score!);
+    const notCheckedIn = visibleMembers.filter(m => m.score === null);
+    return [...checkedIn, ...notCheckedIn].slice(0, 3);
+  }, [visibleMembers]);
   const averageScore = checkedInMembers.length
     ? Math.round(checkedInMembers.reduce((sum, m) => sum + m.score!, 0) / checkedInMembers.length)
     : null;
@@ -502,7 +511,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
               </div>
 
               <div className="flex items-center self-start">
-                {visibleMembers.slice(0, 3).map((member, index) => (
+                {atRiskTop3.map((member, index) => (
                   <div
                     key={member.id}
                     className="-ml-2 flex h-12 w-12 items-center justify-center rounded-full border-[3px] border-white text-xl shadow-sm first:ml-0"
@@ -643,7 +652,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                     이번 주 캘린더
                   </div>
                   <div className="text-xs font-semibold" style={{ color: "var(--text-soft)" }}>
-                    미리보기 · 상위 {Math.min(3, visibleMembers.length)}명
+                    요주의 · 낮은 점수 {Math.min(3, visibleMembers.length)}명
                   </div>
                 </div>
               </div>
@@ -662,7 +671,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
 
             <section>
               <NikoCalendar
-                members={visibleMembers.slice(0, 3).map((m): NikoCalendarMember => ({
+                members={atRiskTop3.map((m): NikoCalendarMember => ({
                   id: m.id,
                   name: m.name,
                   avatarEmoji: m.avatarEmoji,
