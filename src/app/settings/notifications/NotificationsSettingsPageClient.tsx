@@ -166,6 +166,54 @@ export default function NotificationsSettingsPageClient() {
 
   const activeCount = status?.subscriptions.filter((subscription) => subscription.is_active).length ?? 0;
 
+  // ── 소프트웨어 업데이트 ──
+  const appVersion = process.env.NEXT_PUBLIC_APP_VERSION ?? "—";
+  const buildHash = process.env.NEXT_PUBLIC_BUILD_HASH ?? "—";
+  type UpdateState = "idle" | "checking" | "available" | "latest" | "updating";
+  const [updateState, setUpdateState] = useState<UpdateState>("idle");
+  const [waitingSW, setWaitingSW] = useState<ServiceWorker | null>(null);
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.ready.then((reg) => {
+      if (reg.waiting) {
+        setWaitingSW(reg.waiting);
+        setUpdateState("available");
+      }
+      reg.addEventListener("updatefound", () => {
+        const newSW = reg.installing;
+        if (!newSW) return;
+        newSW.addEventListener("statechange", () => {
+          if (newSW.state === "installed" && navigator.serviceWorker.controller) {
+            setWaitingSW(newSW);
+            setUpdateState("available");
+          }
+        });
+      });
+    });
+  }, []);
+
+  async function checkForUpdate() {
+    if (!("serviceWorker" in navigator)) return;
+    setUpdateState("checking");
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.update();
+      // update() 후 updatefound 이벤트가 없으면 최신 버전
+      setTimeout(() => {
+        setUpdateState((prev) => prev === "checking" ? "latest" : prev);
+      }, 2000);
+    } catch {
+      setUpdateState("idle");
+    }
+  }
+
+  function applyUpdate() {
+    if (!waitingSW) return;
+    setUpdateState("updating");
+    waitingSW.postMessage("SKIP_WAITING");
+  }
+
   return (
     <div className="min-h-screen px-5 py-8 md:px-8">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
@@ -275,6 +323,62 @@ export default function NotificationsSettingsPageClient() {
                 서버 VAPID 설정이 아직 없어 실제 푸시 전송은 비활성화된 상태입니다.
               </p>
             ) : null}
+          </div>
+        </section>
+
+        {/* 소프트웨어 업데이트 */}
+        <section
+          className="rounded-[2rem] p-6"
+          style={{ background: "var(--surface-highest)", boxShadow: "var(--glass-shadow)" }}
+        >
+          <h2 className="text-xl font-black tracking-tight" style={{ color: "var(--on-surface)" }}>소프트웨어 업데이트</h2>
+          <p className="mt-2 text-sm leading-6" style={{ color: "var(--text-muted)" }}>
+            앱 버전을 확인하고 새 버전이 있으면 설치합니다.
+          </p>
+
+          <div className="mt-5 rounded-[1.5rem] p-4 flex flex-col gap-3" style={{ background: "var(--surface-overlay)" }}>
+            <div className="flex items-center justify-between text-sm">
+              <span style={{ color: "var(--text-soft)" }}>버전</span>
+              <span className="font-black tabular-nums" style={{ color: "var(--on-surface)" }}>
+                v{appVersion} <span className="font-normal text-xs" style={{ color: "var(--text-muted)" }}>({buildHash})</span>
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span style={{ color: "var(--text-soft)" }}>상태</span>
+              <span className="font-bold" style={{
+                color: updateState === "available" ? "var(--tertiary)"
+                  : updateState === "latest" ? "var(--primary)"
+                  : "var(--text-muted)"
+              }}>
+                {updateState === "idle" && "확인 전"}
+                {updateState === "checking" && "확인 중…"}
+                {updateState === "available" && "새 버전 있음"}
+                {updateState === "latest" && "최신 버전입니다 ✓"}
+                {updateState === "updating" && "업데이트 적용 중…"}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-4 flex gap-3">
+            {updateState === "available" ? (
+              <button
+                onClick={applyUpdate}
+                disabled={false}
+                className="rounded-full px-5 py-3 text-sm font-black transition-opacity disabled:opacity-50"
+                style={{ background: "var(--primary)", color: "#04141a" }}
+              >
+                지금 설치하기
+              </button>
+            ) : (
+              <button
+                onClick={checkForUpdate}
+                disabled={updateState === "checking" || updateState === "updating"}
+                className="rounded-full px-5 py-3 text-sm font-bold transition-opacity disabled:opacity-50"
+                style={{ background: "color-mix(in srgb, var(--primary) 14%, transparent)", color: "var(--primary)" }}
+              >
+                {updateState === "checking" ? "확인 중…" : "업데이트 확인"}
+              </button>
+            )}
           </div>
         </section>
       </div>
