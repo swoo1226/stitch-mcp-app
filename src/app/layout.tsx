@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { getThemeInitScript } from "./components/themeScript";
+import UpdateToast from "./components/UpdateToast";
 
 export const metadata: Metadata = {
   title: "Clima | Check how the team feels today.",
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="relative min-h-screen">
             {children}
           </main>
+          <UpdateToast />
         </ThemeProvider>
       </body>
     </html>

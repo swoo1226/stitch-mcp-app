@@ -7,6 +7,7 @@ import { getAdminSession, isSuperAdmin, type AdminSession } from "../../lib/admi
 import { scoreToStatus, statusToKo } from "../../lib/mood";
 import { STANDARD_SPRING } from "../constants/springs";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import ClimaLogo from "../components/WetherLogo";
 import ThemeToggleButton from "../components/ThemeToggleButton";
@@ -231,6 +232,11 @@ export default function AdminPageClient() {
   const jiraSearchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
   const carouselDrag = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false });
+  const router = useRouter();
+  const [isPWA, setIsPWA] = useState(false);
+  useEffect(() => {
+    setIsPWA(window.matchMedia("(display-mode: standalone)").matches);
+  }, []);
 
   function copyWithFeedback(text: string, key: string, type: "member" | "link") {
     navigator.clipboard.writeText(text);
@@ -2332,15 +2338,27 @@ export default function AdminPageClient() {
                                   )}
                                 </AnimatePresence>
                               </motion.button>
-                              <Link
-                                href={dashUrl}
-                                target="_blank"
-                                title="대시보드 새 탭 열기"
-                                className="w-11 h-11 flex items-center justify-center rounded-full transition-all active:scale-90"
-                                style={{ background: "var(--surface-container-low)", color: "var(--text-soft)" }}
-                              >
-                                <ExternalLinkIcon />
-                              </Link>
+                              {isPWA ? (
+                                <button
+                                  type="button"
+                                  title="대시보드 이동"
+                                  onClick={() => router.push(dashUrl)}
+                                  className="w-11 h-11 flex items-center justify-center rounded-full transition-all active:scale-90"
+                                  style={{ background: "var(--surface-container-low)", color: "var(--text-soft)" }}
+                                >
+                                  <ExternalLinkIcon />
+                                </button>
+                              ) : (
+                                <Link
+                                  href={dashUrl}
+                                  target="_blank"
+                                  title="대시보드 새 탭 열기"
+                                  className="w-11 h-11 flex items-center justify-center rounded-full transition-all active:scale-90"
+                                  style={{ background: "var(--surface-container-low)", color: "var(--text-soft)" }}
+                                >
+                                  <ExternalLinkIcon />
+                                </Link>
+                              )}
                             </div>
                           </div>
 
@@ -2372,15 +2390,27 @@ export default function AdminPageClient() {
                                   )}
                                 </AnimatePresence>
                               </motion.button>
-                              <Link
-                                href={nikoUrl}
-                                target="_blank"
-                                title="니코니코 새 탭 열기"
-                                className="w-11 h-11 flex items-center justify-center rounded-full transition-all active:scale-90"
-                                style={{ background: "var(--surface-container-low)", color: "var(--text-soft)" }}
-                              >
-                                <ExternalLinkIcon />
-                              </Link>
+                              {isPWA ? (
+                                <button
+                                  type="button"
+                                  title="니코 이동"
+                                  onClick={() => router.push(nikoUrl)}
+                                  className="w-11 h-11 flex items-center justify-center rounded-full transition-all active:scale-90"
+                                  style={{ background: "var(--surface-container-low)", color: "var(--text-soft)" }}
+                                >
+                                  <ExternalLinkIcon />
+                                </button>
+                              ) : (
+                                <Link
+                                  href={nikoUrl}
+                                  target="_blank"
+                                  title="니코니코 새 탭 열기"
+                                  className="w-11 h-11 flex items-center justify-center rounded-full transition-all active:scale-90"
+                                  style={{ background: "var(--surface-container-low)", color: "var(--text-soft)" }}
+                                >
+                                  <ExternalLinkIcon />
+                                </Link>
+                              )}
                             </div>
                           </div>
                         </div>
