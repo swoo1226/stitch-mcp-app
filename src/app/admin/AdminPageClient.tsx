@@ -1954,6 +1954,150 @@ export default function AdminPageClient() {
               )}
             </GlassCard>
 
+          {/* ── team_admin 전용: 내 팀 설정 (팀원 탭 하단 통합) ── */}
+          {adminSession && !isSuperAdmin(adminSession) && adminSession.managedTeamId && (() => {
+            const myTeam = teams.find(t => t.id === adminSession.managedTeamId);
+            const myParts = parts.filter(p => p.team_id === adminSession.managedTeamId);
+            if (!myTeam) return null;
+            const origin = typeof window !== "undefined" ? window.location.origin : "";
+            const param = `?team=${myTeam.id}`;
+            const dashUrl = `${origin}/dashboard${param}`;
+            const nikoUrl = `${origin}/niko${param}`;
+            return (
+              <div className="flex flex-col gap-6 pt-2">
+                <p className="text-xs font-black uppercase tracking-[0.28em]" style={{ color: "var(--primary)" }}>내 팀 설정</p>
+
+                {/* Jira + 파트 */}
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                  {/* Jira 프로젝트 키 */}
+                  <GlassCard className="p-4 md:p-5" intensity="low">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-[1.5rem]" style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}>
+                        <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8" strokeLinecap="round"/></svg>
+                      </div>
+                      <div>
+                        <p className="text-sm font-black tracking-tight" style={{ color: "var(--on-surface)" }}>Jira 프로젝트 키</p>
+                        <p className="text-xs font-medium" style={{ color: "var(--on-surface-variant)" }}>{myTeam.name}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {(myTeam.jira_project_keys ?? []).length === 0 && (
+                        <span className="text-xs" style={{ color: "var(--text-soft)" }}>없음</span>
+                      )}
+                      {(myTeam.jira_project_keys ?? []).map((key) => (
+                        <span key={key} className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}>
+                          {key}
+                          <button type="button" onClick={() => removeJiraKey(myTeam.id, key)} className="leading-none hover:opacity-60 transition-opacity" aria-label={`${key} 제거`}>×</button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <ClimaInput
+                        type="text"
+                        placeholder="프로젝트 키 (예: IXI-A)"
+                        value={jiraKeyInputs[myTeam.id] ?? ""}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setJiraKeyInputs((prev) => ({ ...prev, [myTeam.id]: e.target.value }))}
+                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && addJiraKey(myTeam.id)}
+                        className="text-sm flex-1"
+                      />
+                      <ClimaButton variant="secondary" onClick={() => addJiraKey(myTeam.id)} className="py-2 text-xs shrink-0" style={{ paddingInline: "1rem" }}>
+                        {savingJiraKeys[myTeam.id] ? "..." : "추가"}
+                      </ClimaButton>
+                    </div>
+                  </GlassCard>
+
+                  {/* 파트 관리 */}
+                  <GlassCard className="p-4 md:p-5" intensity="low">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-[1.5rem]" style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}>
+                        <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                      </div>
+                      <div>
+                        <p className="text-sm font-black tracking-tight" style={{ color: "var(--on-surface)" }}>파트 관리</p>
+                        <p className="text-xs font-medium" style={{ color: "var(--on-surface-variant)" }}>{myTeam.name}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mb-4">
+                      <ClimaInput
+                        type="text"
+                        placeholder="파트 이름"
+                        value={newPartName}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setNewPartName(e.target.value); setNewPartTeamId(myTeam.id); }}
+                        onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => { setNewPartTeamId(myTeam.id); if (e.key === "Enter") addPart(); }}
+                        className="font-bold flex-1"
+                      />
+                      <ClimaButton variant="secondary" onClick={() => { setNewPartTeamId(myTeam.id); addPart(); }} className="py-2 text-xs shrink-0" style={{ paddingInline: "1rem" }}>
+                        {addingPart ? "..." : "추가"}
+                      </ClimaButton>
+                    </div>
+                    {myParts.length === 0 ? (
+                      <p className="text-sm font-bold py-2" style={{ color: "var(--text-soft)" }}>등록된 파트가 없어요.</p>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        {myParts.map(p => (
+                          <div key={p.id} className="flex items-center gap-3 rounded-[1.25rem] px-4 py-3" style={{ background: "var(--surface-container-low)" }}>
+                            <p className="font-bold text-sm flex-1 tracking-tight">{p.name}</p>
+                            {confirmDeleteId === p.id ? (
+                              <div className="flex items-center gap-2 shrink-0">
+                                <button type="button" onClick={() => { deletePart(p.id); setConfirmDeleteId(null); }} className="text-xs font-black px-3 py-1 rounded-full" style={{ background: "var(--error-container)", color: "var(--error)" }}>확인</button>
+                                <button type="button" onClick={() => setConfirmDeleteId(null)} className="text-xs font-bold" style={{ color: "var(--text-soft)" }}>취소</button>
+                              </div>
+                            ) : (
+                              <button type="button" onClick={() => setConfirmDeleteId(p.id)} className="text-xs font-bold shrink-0 hover:opacity-60" style={{ color: "var(--text-soft)" }}>삭제</button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </GlassCard>
+                </div>
+
+                {/* 대시보드·니코 링크 */}
+                <GlassCard className="p-4 md:p-6" intensity="low">
+                  <SectionHeader icon={<LinkIcon />} title="접속 링크" subtitle="대시보드·니코니코 링크를 복사해서 공유하세요" className="mb-4" />
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--primary)" }}>대시보드</span>
+                      <div className="flex items-center gap-1.5 p-1 rounded-full" style={{ background: "var(--surface-overlay)", boxShadow: "var(--button-subtle-shadow)" }}>
+                        <motion.button type="button" title="대시보드 링크 복사" onClick={() => copyWithFeedback(dashUrl, `${myTeam.id}-dash`, "link")}
+                          animate={copiedLinkKey === `${myTeam.id}-dash` ? { scale: [1, 1.15, 1], backgroundColor: "var(--highlight-soft)" } : { scale: 1, backgroundColor: "var(--surface-container-low)" }}
+                          className="w-11 h-11 flex items-center justify-center rounded-full shrink-0 transition-all"
+                          style={{ color: copiedLinkKey === `${myTeam.id}-dash` ? "var(--primary)" : "var(--text-soft)" }}>
+                          <AnimatePresence mode="wait">
+                            {copiedLinkKey === `${myTeam.id}-dash`
+                              ? <motion.svg key="check" viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}><path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" /></motion.svg>
+                              : <motion.div key="link" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}><LinkIcon /></motion.div>}
+                          </AnimatePresence>
+                        </motion.button>
+                        {isPWA
+                          ? <button type="button" onClick={() => router.push(dashUrl)} className="w-11 h-11 flex items-center justify-center rounded-full transition-all active:scale-90" style={{ background: "var(--surface-container-low)", color: "var(--text-soft)" }}><ExternalLinkIcon /></button>
+                          : <Link href={dashUrl} target="_blank" className="w-11 h-11 flex items-center justify-center rounded-full transition-all active:scale-90" style={{ background: "var(--surface-container-low)", color: "var(--text-soft)" }}><ExternalLinkIcon /></Link>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--primary)" }}>니코</span>
+                      <div className="flex items-center gap-1.5 p-1 rounded-full" style={{ background: "var(--surface-overlay)", boxShadow: "var(--button-subtle-shadow)" }}>
+                        <motion.button type="button" title="니코니코 링크 복사" onClick={() => copyWithFeedback(nikoUrl, `${myTeam.id}-niko`, "link")}
+                          animate={copiedLinkKey === `${myTeam.id}-niko` ? { scale: [1, 1.15, 1], backgroundColor: "var(--highlight-soft)" } : { scale: 1, backgroundColor: "var(--surface-container-low)" }}
+                          className="w-11 h-11 flex items-center justify-center rounded-full shrink-0 transition-all"
+                          style={{ color: copiedLinkKey === `${myTeam.id}-niko` ? "var(--tertiary)" : "var(--text-soft)" }}>
+                          <AnimatePresence mode="wait">
+                            {copiedLinkKey === `${myTeam.id}-niko`
+                              ? <motion.svg key="check" viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}><path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" /></motion.svg>
+                              : <motion.div key="link" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}><LinkIcon /></motion.div>}
+                          </AnimatePresence>
+                        </motion.button>
+                        {isPWA
+                          ? <button type="button" onClick={() => router.push(nikoUrl)} className="w-11 h-11 flex items-center justify-center rounded-full transition-all active:scale-90" style={{ background: "var(--surface-container-low)", color: "var(--text-soft)" }}><ExternalLinkIcon /></button>
+                          : <Link href={nikoUrl} target="_blank" className="w-11 h-11 flex items-center justify-center rounded-full transition-all active:scale-90" style={{ background: "var(--surface-container-low)", color: "var(--text-soft)" }}><ExternalLinkIcon /></Link>}
+                      </div>
+                    </div>
+                  </div>
+                </GlassCard>
+              </div>
+            );
+          })()}
+
           </>)}
 
           {activeTab === "teams" && (<>
