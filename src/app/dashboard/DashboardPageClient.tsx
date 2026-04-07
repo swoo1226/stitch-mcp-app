@@ -180,6 +180,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
   const [weekTab, setWeekTab] = useState<"this" | "last">("this");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [managedTeamId, setManagedTeamId] = useState<string | null>(null);
 
   const weekOffset = weekTab === "this" ? 0 : -1;
   const today = new Date();
@@ -189,7 +190,10 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
 
 
   useEffect(() => {
-    getUserSession().then((s) => setUserRole(s?.role ?? null));
+    getUserSession().then((s) => {
+      setUserRole(s?.role ?? null);
+      setManagedTeamId(s?.managedTeamId ?? null);
+    });
   }, []);
 
   useEffect(() => {
@@ -416,7 +420,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
             <ClimaLogo />
           </Link>
           <nav className="hidden md:flex items-center gap-1">
-            <HeaderNav items={getNavItems(userRole)} />
+            <HeaderNav items={getNavItems(userRole, managedTeamId)} />
           </nav>
         </div>
         <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
@@ -476,7 +480,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                 </button>
               </div>
               <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
-                <HeaderNav items={getNavItems(userRole)} mobile onNavigate={() => setMobileNavOpen(false)} />
+                <HeaderNav items={getNavItems(userRole, managedTeamId)} mobile onNavigate={() => setMobileNavOpen(false)} />
                 <Link
                   href="/settings/notifications"
                   onClick={() => setMobileNavOpen(false)}

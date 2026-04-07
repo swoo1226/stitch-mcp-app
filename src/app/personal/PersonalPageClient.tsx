@@ -126,9 +126,13 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
   const [viewMode, setViewMode] = useState<"icon" | "chart">("icon");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [managedTeamId, setManagedTeamId] = useState<string | null>(null);
 
   useEffect(() => {
-    getUserSession().then((s) => setUserRole(s?.role ?? null));
+    getUserSession().then((s) => {
+      setUserRole(s?.role ?? null);
+      setManagedTeamId(s?.managedTeamId ?? null);
+    });
   }, []);
 
   useEffect(() => {
@@ -220,7 +224,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
     );
   }
 
-  const navItems = getNavItems(userRole);
+  const navItems = getNavItems(userRole, managedTeamId);
 
   return (
     <div className="relative min-h-screen" style={{ background: "var(--hero-gradient)" }}>

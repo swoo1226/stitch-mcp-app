@@ -166,6 +166,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"icon" | "chart">("icon");
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [managedTeamId, setManagedTeamId] = useState<string | null>(null);
 
   const today = new Date();
   const baseMonday = getWeekStart(today);
@@ -176,7 +177,10 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
   const todayIndex = weekDays.findIndex((d) => isoDate(d) === todayIso);
 
   useEffect(() => {
-    getUserSession().then((s) => setUserRole(s?.role ?? null));
+    getUserSession().then((s) => {
+      setUserRole(s?.role ?? null);
+      setManagedTeamId(s?.managedTeamId ?? null);
+    });
   }, []);
 
   useEffect(() => {
@@ -304,7 +308,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
             <ClimaLogo />
           </Link>
           <nav className="hidden md:flex items-center gap-1">
-            <HeaderNav items={getNavItems(userRole)} />
+            <HeaderNav items={getNavItems(userRole, managedTeamId)} />
           </nav>
         </div>
         <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
@@ -362,7 +366,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
                 </button>
               </div>
               <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
-                <HeaderNav items={getNavItems(userRole)} mobile onNavigate={() => setMobileNavOpen(false)} />
+                <HeaderNav items={getNavItems(userRole, managedTeamId)} mobile onNavigate={() => setMobileNavOpen(false)} />
                 <Link
                   href="/settings/notifications"
                   onClick={() => setMobileNavOpen(false)}
