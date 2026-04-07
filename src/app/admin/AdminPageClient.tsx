@@ -1342,7 +1342,8 @@ export default function AdminPageClient() {
                   <div
                     ref={carouselRef}
                     className="flex gap-4 overflow-x-auto pb-3 -mx-1 px-1"
-                    style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", msOverflowStyle: "none", scrollbarWidth: "none", cursor: carouselDrag.current.active ? "grabbing" : "grab" }}
+                    style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch", msOverflowStyle: "none", scrollbarWidth: "none", cursor: carouselDrag.current.active ? "grabbing" : "grab", userSelect: "none", WebkitUserSelect: "none" }}
+                    onDragStart={(e) => e.preventDefault()}
                     onMouseDown={(e) => {
                       if (!carouselRef.current) return;
                       carouselDrag.current = { active: true, moved: false, startX: e.pageX - carouselRef.current.offsetLeft, scrollLeft: carouselRef.current.scrollLeft };
