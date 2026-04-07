@@ -10,7 +10,7 @@ import type { UserRole } from "./auth";
  */
 export function getNavItems(role: UserRole | null): HeaderNavItem[] {
   const items: HeaderNavItem[] = [
-    { label: "홈", href: "/" },
+    ...(role === null ? [{ label: "홈", href: "/" }] : []),
     { label: "개인 현황", href: "/personal" },
     { label: "팀", href: "/dashboard", matchPaths: ["/dashboard", "/team"] },
     { label: "Niko-Niko", href: "/niko", matchPaths: ["/niko"] },
