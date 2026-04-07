@@ -149,13 +149,11 @@ export default function NotificationsSettingsPageClient() {
 
       await subscription?.unsubscribe();
 
-      if (endpoint) {
-        await fetch("/api/push/subscribe", {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ endpoint }),
-        });
-      }
+      await fetch("/api/push/subscribe", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(endpoint ? { endpoint } : {}),
+      });
 
       setMessage("푸시 알림을 해제했어요. 인앱 알림은 계속 받을 수 있어요.");
       await loadStatus();

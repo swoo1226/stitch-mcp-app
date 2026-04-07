@@ -84,20 +84,22 @@ export async function DELETE(request: NextRequest) {
   if (!authUserId) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const body = (await request.json().catch(() => ({}))) as { endpoint?: string };
-  if (!body.endpoint) {
-    return NextResponse.json({ error: "missing_endpoint" }, { status: 400 });
-  }
 
   const admin = createSupabaseAdminClient();
-  const { error } = await admin
+  let query = admin
     .from("push_subscriptions")
     .update({
       is_active: false,
       revoked_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
-    .eq("auth_user_id", authUserId)
-    .eq("endpoint", body.endpoint);
+    .eq("auth_user_id", authUserId);
+
+  if (body.endpoint) {
+    query = query.eq("endpoint", body.endpoint);
+  }
+
+  const { error } = await query;
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
