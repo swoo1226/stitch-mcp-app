@@ -125,45 +125,34 @@ function ClimaInputInner() {
     setTimeout(() => setRipples(prev => prev.filter(r => r !== id)), 600);
   };
 
-  async function doInsert(userId: string) {
-    const loggedAt = new Date().toLocaleString("sv-SE", { timeZone: "Asia/Seoul" }).replace(" ", "T") + "+09:00";
-    const { error } = await supabase.from("mood_logs").insert({ user_id: userId, score, message, logged_at: loggedAt });
-    if (error) {
-      if (error.code === "23505") {
-        // unique violation — 오늘 이미 기록 존재
-        setPendingUserId(userId);
-      } else {
-        setErrorMsg("저장 중 오류가 발생했어요. 다시 시도해주세요.");
-      }
-      return false;
-    }
-    return true;
-  }
-
   async function handleSubmit() {
     if (submitting) return;
     setSubmitting(true);
     setErrorMsg(null);
 
-    if (token) {
-      // token 기반 (기존 방식)
-      const { data: user } = await supabase
-        .from("users")
-        .select("id")
-        .eq("access_token", token)
-        .single();
-      if (user) {
-        const ok = await doInsert(user.id);
-        if (ok) { setResolvedUserId(user.id); setIsSubmitted(true); }
-      } else {
-        setErrorMsg("유효하지 않은 접속 패스예요.");
-      }
-    } else if (loggedInUserId) {
-      // 로그인 사용자 기반 (신규)
-      const ok = await doInsert(loggedInUserId);
-      if (ok) { setResolvedUserId(loggedInUserId); setIsSubmitted(true); }
-    } else {
+    if (!token && !loggedInUserId) {
       // 비인증 — 로컬 피드백만
+      setIsSubmitted(true);
+      setSubmitting(false);
+      return;
+    }
+
+    const res = await fetch("/api/checkin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ score, message, token, userId: loggedInUserId }),
+    });
+    const data = await res.json();
+
+    if (res.status === 409) {
+      // 오늘 이미 기록 존재
+      setPendingUserId(data.userId ?? loggedInUserId ?? token);
+    } else if (res.status === 401) {
+      setErrorMsg("유효하지 않은 접속 패스예요.");
+    } else if (!res.ok) {
+      setErrorMsg("저장 중 오류가 발생했어요. 다시 시도해주세요.");
+    } else {
+      setResolvedUserId(data.userId);
       setIsSubmitted(true);
     }
     setSubmitting(false);
@@ -173,17 +162,18 @@ function ClimaInputInner() {
     if (!pendingUserId) return;
     setSubmitting(true);
     setErrorMsg(null);
-    const nowKst = new Date(Date.now() + 9 * 60 * 60 * 1000);
-    const todayIso = `${nowKst.getUTCFullYear()}-${String(nowKst.getUTCMonth() + 1).padStart(2, "0")}-${String(nowKst.getUTCDate()).padStart(2, "0")}`;
-    await supabase
-      .from("mood_logs")
-      .update({ score, message })
-      .eq("user_id", pendingUserId)
-      .gte("logged_at", `${todayIso}T00:00:00+09:00`)
-      .lte("logged_at", `${todayIso}T23:59:59+09:00`);
-    setResolvedUserId(pendingUserId);
-    setPendingUserId(null);
-    setIsSubmitted(true);
+    const res = await fetch("/api/checkin", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: pendingUserId, score, message }),
+    });
+    if (res.ok) {
+      setResolvedUserId(pendingUserId);
+      setPendingUserId(null);
+      setIsSubmitted(true);
+    } else {
+      setErrorMsg("저장 중 오류가 발생했어요. 다시 시도해주세요.");
+    }
     setSubmitting(false);
   }
 

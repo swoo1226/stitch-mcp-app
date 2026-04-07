@@ -1,15 +1,22 @@
-name: Daily Combined Risk Alert
+name: Daily Cron Jobs
 
 on:
   schedule:
-    # UTC 05:00 = KST 14:00, 평일만
-    - cron: '0 5 * * 1-5'
+    - cron: '0 5 * * 1-5'   # UTC 05:00 = KST 14:00 (위험 알림)
+    - cron: '0 6 * * 1-5'   # UTC 06:00 = KST 15:00 (체크인 리마인더)
   workflow_dispatch:
-    # 수동 실행 (테스트용)
+    inputs:
+      job:
+        description: '실행할 job (combined-risk | checkin-reminder | all)'
+        required: false
+        default: 'all'
 
 jobs:
-  run-alert:
+  combined-risk:
     runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' && (github.event.inputs.job == 'combined-risk' || github.event.inputs.job == 'all') ||
+      github.event_name == 'schedule' && startsWith(github.event.schedule, '0 5')
     steps:
       - name: Call combined-risk cron endpoint
         run: |
@@ -19,10 +26,30 @@ jobs:
             "${{ secrets.APP_URL }}/api/cron/combined-risk")
 
           echo "HTTP status: $response"
-          echo "Response body:"
           cat /tmp/response.json
 
           if [ "$response" -lt 200 ] || [ "$response" -ge 300 ]; then
-            echo "Cron endpoint returned error status: $response"
+            echo "Error: $response"
+            exit 1
+          fi
+
+  checkin-reminder:
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' && (github.event.inputs.job == 'checkin-reminder' || github.event.inputs.job == 'all') ||
+      github.event_name == 'schedule' && startsWith(github.event.schedule, '0 6')
+    steps:
+      - name: Call checkin-reminder cron endpoint
+        run: |
+          response=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.APP_URL }}/api/cron/checkin-reminder")
+
+          echo "HTTP status: $response"
+          cat /tmp/response.json
+
+          if [ "$response" -lt 200 ] || [ "$response" -ge 300 ]; then
+            echo "Error: $response"
             exit 1
           fi

@@ -10,6 +10,7 @@ import { getNavItems } from "../../lib/nav-items";
 import { getUserSession, type UserRole } from "../../lib/auth";
 import { SectionLabel, PrimaryTabToggle, TabToggle, NikoCalendar, type NikoCalendarMember } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
+import NotificationBell from "../components/NotificationBell";
 import { STANDARD_SPRING } from "../constants/springs";
 import { supabase } from "../../lib/supabase";
 import { scoreToStatus, statusToEmoji, statusToKo, checkWarning, WARNING_REASON_KO, type WeatherStatus, type WarningReason } from "../../lib/mood";
@@ -420,9 +421,9 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
         </div>
         <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
           <ThemeToggleButton />
-          <button className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
-            <TopIcon type="bell" />
-          </button>
+          <div className="hidden md:flex">
+            <NotificationBell />
+          </div>
           <button className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
             <TopIcon type="settings" />
           </button>
