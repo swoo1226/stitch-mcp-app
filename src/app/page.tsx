@@ -232,17 +232,31 @@ export default function LandingPage() {
         </div>
         <div className="flex items-center gap-3">
           <ThemeToggleButton />
-          <Link
-            href="/input"
-            className="hidden md:inline-flex items-center h-9 px-5 rounded-full text-sm font-bold transition-all hover:opacity-80"
-            style={{
-              background: "var(--button-primary-gradient)",
-              color: "var(--on-primary)",
-              boxShadow: "var(--button-primary-shadow)",
-            }}
-          >
-            오늘 체크인하기
-          </Link>
+          {userSession ? (
+            <Link
+              href="/input"
+              className="hidden md:inline-flex items-center h-9 px-5 rounded-full text-sm font-bold transition-all hover:opacity-80"
+              style={{
+                background: "var(--button-primary-gradient)",
+                color: "var(--on-primary)",
+                boxShadow: "var(--button-primary-shadow)",
+              }}
+            >
+              오늘 체크인하기
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="hidden md:inline-flex items-center h-9 px-5 rounded-full text-sm font-bold transition-all hover:bg-surface-low"
+              style={{
+                background: "var(--surface-overlay)",
+                color: "var(--primary)",
+                boxShadow: "var(--button-subtle-shadow)",
+              }}
+            >
+              로그인
+            </Link>
+          )}
           <button
             className="md:hidden flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
             onClick={() => setMobileNavOpen(true)}
@@ -307,14 +321,25 @@ export default function LandingPage() {
                   </Link>
                 )}
                 <div className="mt-4 px-2">
-                  <Link
-                    href="/input"
-                    onClick={() => setMobileNavOpen(false)}
-                    className="flex items-center justify-center h-14 rounded-[1.5rem] text-base font-bold"
-                    style={{ background: "var(--button-primary-gradient)", color: "var(--on-primary)" }}
-                  >
-                    오늘 체크인하기
-                  </Link>
+                  {userSession ? (
+                    <Link
+                      href="/input"
+                      onClick={() => setMobileNavOpen(false)}
+                      className="flex items-center justify-center h-14 rounded-[1.5rem] text-base font-bold"
+                      style={{ background: "var(--button-primary-gradient)", color: "var(--on-primary)" }}
+                    >
+                      오늘 체크인하기
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/login"
+                      onClick={() => setMobileNavOpen(false)}
+                      className="flex items-center justify-center h-14 rounded-[1.5rem] text-base font-bold"
+                      style={{ background: "var(--button-primary-gradient)", color: "var(--on-primary)" }}
+                    >
+                      로그인
+                    </Link>
+                  )}
                 </div>
               </nav>
             </motion.div>
