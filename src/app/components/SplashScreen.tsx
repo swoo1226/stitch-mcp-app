@@ -83,7 +83,7 @@ export default function SplashScreen() {
             letterSpacing: "0.01em",
           }}
         >
-          팀의 기후를 읽다
+          팀의 날씨를 읽다
         </div>
       </div>
 
