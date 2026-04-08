@@ -1046,7 +1046,7 @@ function NikoSummaryRow({
         <div className="col-span-5 h-[60px] flex items-center pr-4">
           <MoodTrendChart
             scores={week.map((w) => w.score)}
-            height={44}
+            height={60}
             className="w-full"
           />
         </div>
@@ -1143,7 +1143,7 @@ export function NikoMemberRow({
         <div className="col-span-5 h-[60px] flex items-center pr-4">
           <MoodTrendChart
             scores={week.map(w => w.score)}
-            height={44}
+            height={60}
             className="w-full"
           />
         </div>

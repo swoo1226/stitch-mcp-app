@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
+import AdminBottomNav from "../../components/AdminBottomNav";
 
 type CombinedRiskTarget = {
   userId: string;
@@ -173,6 +174,7 @@ export default function CombinedRiskPageClient({
           )}
         </div>
       </div>
+      <AdminBottomNav isSuperAdmin={role === "super_admin"} />
     </div>
   );
 }

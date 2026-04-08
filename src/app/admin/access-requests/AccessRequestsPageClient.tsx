@@ -4,55 +4,9 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { STANDARD_SPRING } from "../../constants/springs";
+import AdminBottomNav from "../../components/AdminBottomNav";
 
-function BottomNav() {
-  return (
-    <div
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-stretch"
-      style={{
-        background: "var(--header-bg)",
-        backdropFilter: "var(--glass-blur)",
-        boxShadow: "0 -1px 0 color-mix(in srgb, var(--on-surface) 8%, transparent)",
-        paddingBottom: "env(safe-area-inset-bottom)",
-      }}
-    >
-      {/* 팀원 */}
-      <Link
-        href="/admin"
-        className="flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-colors"
-        style={{ color: "var(--text-soft)" }}
-      >
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round" />
-        </svg>
-        <span className="text-[10px] font-black">팀원</span>
-      </Link>
-      {/* 팀·파트 */}
-      <Link
-        href="/admin"
-        className="flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-colors"
-        style={{ color: "var(--text-soft)" }}
-      >
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" strokeLinecap="round" />
-        </svg>
-        <span className="text-[10px] font-black">팀·파트</span>
-      </Link>
-      {/* 도입 요청 — active */}
-      <div
-        className="flex flex-1 flex-col items-center justify-center gap-1 py-3"
-        style={{ color: "var(--primary)" }}
-      >
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round" />
-          <polyline points="14 2 14 8 20 8" /><line x1="9" y1="13" x2="15" y2="13" /><line x1="9" y1="17" x2="12" y2="17" />
-        </svg>
-        <span className="text-[10px] font-black">도입 요청</span>
-      </div>
-    </div>
-  );
-}
+
 
 type AccessRequest = {
   id: string;
@@ -134,7 +88,8 @@ export default function AccessRequestsPageClient() {
   const filtered = requests.filter((r) => filter === "all" || r.status === filter);
 
   return (
-    <div className="min-h-screen px-5 py-8 pb-28 md:px-8 md:pb-8">
+    <>
+      <div className="min-h-screen px-5 py-8 pb-28 md:px-8 md:pb-8">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         {/* 헤더 */}
         <div className="flex items-center justify-between gap-4">
@@ -223,11 +178,10 @@ export default function AccessRequestsPageClient() {
             </div>
           )}
         </div>
+        </div>
       </div>
 
-      <BottomNav />
-
-      {/* 상세 패널 */}
+      <AdminBottomNav isSuperAdmin={true} />
       <AnimatePresence>
         {selected && (
           <>
@@ -330,6 +284,7 @@ export default function AccessRequestsPageClient() {
           </>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }
+

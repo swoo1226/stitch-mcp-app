@@ -21,9 +21,9 @@ function getWeatherColor(status: WeatherStatus): { fill: string; glow: string } 
   }
 }
 
-// score 0~100을 height의 10%~90% 범위에 매핑해 시각적 차이를 명확히 함
+// score 0~100을 height의 6%~94% 범위에 매핑해 시각적 해상도를 높임
 function pillCenterY(score: number, height: number, pillH: number): number {
-  const pad = height * 0.1;
+  const pad = height * 0.06;
   const usable = height - pad * 2;
   const bottomPx = pad + (score / 100) * usable - pillH / 2;
   const clamped = Math.max(0, Math.min(height - pillH, bottomPx));
@@ -35,47 +35,72 @@ function pillCenterX(index: number, total: number): number {
 }
 
 // 제어점을 수직 방향으로 당겨 곡률 확보
-// 간격이 넓어도 눈에 보이는 곡률을 위해 cpY를 중간값에서 벗어나게 함
 function cubicPath(x1: number, y1: number, x2: number, y2: number): string {
   const cpX = (x1 + x2) / 2;
   const midY = (y1 + y2) / 2;
-  // 수직 차이에 비례해 제어점을 중간 y 쪽으로 당김 → S자 대신 완만한 아치
   const tension = 0.4;
   const cp1Y = y1 + (midY - y1) * tension;
   const cp2Y = y2 + (midY - y2) * tension;
   return `M ${x1} ${y1} C ${cpX} ${cp1Y}, ${cpX} ${cp2Y}, ${x2} ${y2}`;
 }
 
+const LEVEL_CONFIG = [
+  { level: 80, label: "맑음", color: "#1e9de0" },
+  { level: 60, label: "구름조금", color: "#4ab0e8" },
+  { level: 40, label: "흐림", color: "#7fa3c0" },
+  { level: 20, label: "비", color: "#4a72b0" },
+  { level: 0,  label: "뇌우", color: "#2d3a52" },
+];
+
 export function MoodTrendChart({ scores, height = 44, className = "" }: MoodTrendChartProps) {
-  const PILL_H = 16;
-  const PILL_W = 12;
+  const PILL_H = 14; // 높이를 살짝 줄여 공간 확보
+  const PILL_W = 10;
   const n = scores.length;
   const W = 100;
 
   const segments = [];
-  for (let i = 1; i < n; i++) {
-    const prev = scores[i - 1];
+  let lastValidIdx = -1;
+  for (let i = 0; i < n; i++) {
     const curr = scores[i];
-    if (prev === null || curr === null) continue;
-    const x1 = pillCenterX(i - 1, n) * W;
-    const y1 = pillCenterY(prev, height, PILL_H);
-    const x2 = pillCenterX(i, n) * W;
-    const y2 = pillCenterY(curr, height, PILL_H);
-    segments.push({ path: cubicPath(x1, y1, x2, y2), idx: i });
+    if (curr !== null) {
+      if (lastValidIdx !== -1) {
+        const x1 = pillCenterX(lastValidIdx, n) * W;
+        const y1 = pillCenterY(scores[lastValidIdx]!, height, PILL_H);
+        const x2 = pillCenterX(i, n) * W;
+        const y2 = pillCenterY(curr, height, PILL_H);
+        segments.push({ path: cubicPath(x1, y1, x2, y2), idx: i });
+      }
+      lastValidIdx = i;
+    }
   }
 
   return (
     <div className={`relative w-full ${className}`} style={{ height: `${height}px` }}>
-      {/* 가이드라인 */}
-      {[75, 50, 25].map((level) => (
-        <div
-          key={level}
-          className="absolute w-full pointer-events-none"
-          style={{
-            bottom: `${level}%`,
-            borderTop: "1px dashed color-mix(in srgb, var(--on-surface) 7%, transparent)",
-          }}
-        />
+      {/* 배경 섹션 가이드 */}
+      <div className="absolute inset-x-0 top-0 bottom-0 pointer-events-none rounded-[1rem] overflow-hidden opacity-[0.03]">
+        <div className="h-1/5 w-full bg-[#1e9de0]" />
+        <div className="h-1/5 w-full bg-[#4ab0e8]" />
+        <div className="h-1/5 w-full bg-[#7fa3c0]" />
+        <div className="h-1/5 w-full bg-[#4a72b0]" />
+        <div className="h-1/5 w-full bg-[#2d3a52]" />
+      </div>
+
+      {/* 가이드라인 & 라벨 */}
+      {LEVEL_CONFIG.map(({ level, label, color }) => (
+        <div key={level} className="absolute w-full pointer-events-none" style={{ bottom: `${level}%` }}>
+          <div
+            className="w-full border-t border-dashed"
+            style={{ borderColor: `color-mix(in srgb, ${color} 15%, transparent)` }}
+          />
+          {height >= 60 && (
+            <span
+              className="absolute left-0 bottom-1 text-[8px] font-black tracking-tighter opacity-25"
+              style={{ color }}
+            >
+              {label}
+            </span>
+          )}
+        </div>
       ))}
 
       {/* 곡선 SVG */}
@@ -109,7 +134,7 @@ export function MoodTrendChart({ scores, height = 44, className = "" }: MoodTren
         const xPct = pillCenterX(i, n) * 100;
         const bottomPx = hasScore
           ? (() => {
-              const pad = height * 0.1;
+              const pad = height * 0.06;
               const usable = height - pad * 2;
               return Math.max(0, Math.min(height - PILL_H, pad + (score! / 100) * usable - PILL_H / 2));
             })()
@@ -153,7 +178,6 @@ export function MoodTrendChart({ scores, height = 44, className = "" }: MoodTren
               }}
             >
               <div className="absolute top-0 left-0 w-full h-1/2 rounded-t-full bg-gradient-to-b from-white/25 to-transparent" />
-              {/* breathing glow 레이어 — opacity만 애니메이팅해서 GPU 보간 */}
               {isDropping && (
                 <motion.div
                   className="absolute inset-0 rounded-full pointer-events-none"

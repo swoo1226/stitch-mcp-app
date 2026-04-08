@@ -83,16 +83,23 @@ function getTodayWeekIndex(): number {
   return getWeekDays().findIndex((d) => isoDate(d) === today);
 }
 
-// 최근 N일 추이 (개인 이력 차트용)
-function getRecentLogs(logs: MoodLog[], days: number): (MoodLog | null)[] {
-  return Array.from({ length: days }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (days - 1 - i));
-    const iso = d.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
-    return logs.find((l) =>
-      new Date(l.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === iso
-    ) ?? null;
-  });
+// 최근 N개의 평일(월~금) 로그 수집
+function getRecentLogs(logs: MoodLog[], count: number): { score: number | null, date: Date }[] {
+  const result: { score: number | null, date: Date }[] = [];
+  let d = new Date();
+  
+  while (result.length < count) {
+    const day = d.getDay();
+    if (day !== 0 && day !== 6) { // 0=일요일, 6=토요일 제외
+      const iso = d.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+      const found = logs.find((l) =>
+        new Date(l.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === iso
+      );
+      result.unshift({ score: found?.score ?? null, date: new Date(d) });
+    }
+    d.setDate(d.getDate() - 1);
+  }
+  return result;
 }
 
 function BellIcon() {
@@ -166,8 +173,8 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
     () => (user ? getWeeklyLogs(user.mood_logs) : Array.from({ length: 5 }, () => null)),
     [user]
   );
-  const recentLogs = useMemo(
-    () => (user ? getRecentLogs(user.mood_logs, 14) : Array.from({ length: 14 }, () => null)),
+  const recentTrendData = useMemo(
+    () => (user ? getRecentLogs(user.mood_logs, 14) : Array.from({ length: 14 }, (_, i) => ({ score: null, date: new Date() }))),
     [user]
   );
   const todayLog = useMemo(
@@ -486,7 +493,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                 >
                   <MoodTrendChart
                     scores={weeklyLogs.map((l) => l?.score ?? null)}
-                    height={44}
+                    height={64}
                     className="w-full"
                   />
                 </motion.div>
@@ -514,25 +521,28 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
             </div>
 
             <MoodTrendChart
-              scores={recentLogs.map((l) => l?.score ?? null)}
-              height={80}
+              scores={recentTrendData.map((d) => d.score)}
+              height={100}
               className="w-full"
             />
 
             {/* 날짜 레이블 */}
             <div className="mt-3 flex justify-between px-1">
-              {recentLogs.map((_, i) => {
-                const d = new Date();
-                d.setDate(d.getDate() - (13 - i));
-                const isToday = i === 13;
+              {recentTrendData.map((item, i) => {
+                const isToday = i === recentTrendData.length - 1;
                 return (
-                  <span
+                  <div
                     key={i}
-                    className="text-[9px] font-bold"
+                    className="flex flex-col items-center text-[9px] font-bold"
                     style={{ color: isToday ? "var(--primary)" : "var(--text-soft)", opacity: isToday ? 1 : 0.5 }}
                   >
-                    {i % 3 === 0 || isToday ? d.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" }) : ""}
-                  </span>
+                    {i % 3 === 0 || isToday ? (
+                      <>
+                        <span>{item.date.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}</span>
+                        <span className="opacity-60">{item.date.toLocaleDateString("ko-KR", { weekday: "short" })}</span>
+                      </>
+                    ) : ""}
+                  </div>
                 );
               })}
             </div>
