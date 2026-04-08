@@ -8,7 +8,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const shouldSend = request.nextUrl.searchParams.get("send") === "1";
-    const result = await runCombinedRiskAlert({ shouldSend });
+    const managedTeamId = auth.role === "team_admin" ? auth.managedTeamId : null;
+    const result = await runCombinedRiskAlert({ shouldSend, managedTeamId });
     return Response.json(result);
   } catch (error) {
     return Response.json(

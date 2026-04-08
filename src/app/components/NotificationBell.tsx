@@ -7,7 +7,7 @@ import { STANDARD_SPRING } from "../constants/springs";
 
 interface Notification {
   id: string;
-  type: "low_mood_alert" | "mood_drop_alert" | "checkin_reminder" | "team_admin_access_request" | "member_access_request";
+  type: "low_mood_alert" | "mood_drop_alert" | "checkin_reminder" | "team_admin_access_request" | "member_access_request" | "combined_risk_alert";
   target_user_id: string | null;
   payload: {
     score?: number;
@@ -18,6 +18,10 @@ interface Notification {
     requesterEmail?: string;
     organization?: string;
     teamName?: string;
+    partName?: string;
+    level?: "critical" | "warning";
+    openTicketCount?: number;
+    blockerCount?: number;
   };
   read_at: string | null;
   created_at: string;
@@ -29,6 +33,7 @@ const TYPE_LABEL: Record<Notification["type"], string> = {
   checkin_reminder: "체크인 리마인더",
   team_admin_access_request: "팀장 도입 요청",
   member_access_request: "팀원 도입 요청",
+  combined_risk_alert: "주의 팀원 알림",
 };
 
 const REASON_LABEL: Record<string, string> = {
@@ -233,6 +238,13 @@ export default function NotificationBell() {
                       <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
                         {(n.type === "team_admin_access_request" || n.type === "member_access_request")
                           ? [n.payload.organization, n.payload.teamName].filter(Boolean).join(" · ")
+                          : n.type === "combined_risk_alert"
+                            ? [
+                              n.payload.teamName,
+                              n.payload.partName,
+                              n.payload.blockerCount !== undefined ? `Blocker ${n.payload.blockerCount}건` : null,
+                              n.payload.openTicketCount !== undefined ? `미완료 ${n.payload.openTicketCount}건` : null,
+                            ].filter(Boolean).join(" · ")
                           : (
                             <>
                               {n.payload.score !== undefined && `${n.payload.score}pt`}

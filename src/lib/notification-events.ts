@@ -6,7 +6,8 @@ export type NotificationType =
   | "mood_drop_alert"
   | "checkin_reminder"
   | "team_admin_access_request"
-  | "member_access_request";
+  | "member_access_request"
+  | "combined_risk_alert";
 
 export type NotificationPayload = {
   score?: number;
@@ -19,6 +20,10 @@ export type NotificationPayload = {
   requesterEmail?: string;
   organization?: string;
   teamName?: string;
+  partName?: string;
+  level?: "critical" | "warning";
+  openTicketCount?: number;
+  blockerCount?: number;
 };
 
 type NotificationRow = {
@@ -68,6 +73,14 @@ function buildTargetUrl(notification: NotificationRow) {
     return "/admin";
   }
 
+  if (notification.type === "combined_risk_alert") {
+    const params = new URLSearchParams();
+    if (notification.target_user_id) {
+      params.set("user", notification.target_user_id);
+    }
+    return `/admin/combined-risk${params.size ? `?${params.toString()}` : ""}`;
+  }
+
   if (notification.target_user_id) {
     return `/personal?user=${encodeURIComponent(notification.target_user_id)}`;
   }
@@ -90,6 +103,13 @@ function buildPushMessage(notification: NotificationRow) {
     return {
       title: "새 접근 요청",
       summary: "도입 요청이 도착했어요. 관리자 화면에서 확인해 주세요.",
+    };
+  }
+
+  if (notification.type === "combined_risk_alert") {
+    return {
+      title: "주의 팀원 알림",
+      summary: "오늘 확인이 필요한 팀 상태 변화가 감지됐어요.",
     };
   }
 

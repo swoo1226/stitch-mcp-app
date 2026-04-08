@@ -1,5 +1,6 @@
 import { fetchOpenIssuesForAssignees } from "./jira";
 import { toKoreanIsoDate } from "./korean-holidays";
+import { emitNotificationEvent } from "./notification-events";
 import { createSupabaseAdminClient } from "./supabase-admin";
 import { sendTeamsAdaptiveCard } from "./teams";
 import { displayName } from "./user";
@@ -34,6 +35,7 @@ type RiskLevel = "critical" | "warning";
 type CombinedRiskTarget = {
   userId: string;
   name: string;
+  teamId: string | null;
   teamName: string;
   partName: string | null;
   todayScore: number;
@@ -163,7 +165,7 @@ function buildTeamsCard(targets: CombinedRiskTarget[]) {
   };
 }
 
-export async function runCombinedRiskAlert(options: { shouldSend: boolean }) {
+export async function runCombinedRiskAlert(options: { shouldSend: boolean; managedTeamId?: string | null }) {
   const supabase = createSupabaseAdminClient();
   const today = new Date();
   const todayIso = toKoreanIsoDate(today);
@@ -185,7 +187,9 @@ export async function runCombinedRiskAlert(options: { shouldSend: boolean }) {
   if (teamsError) throw new Error(teamsError.message);
   if (partsError) throw new Error(partsError.message);
 
-  const eligibleUsers = (users ?? []) as UserRow[];
+  const eligibleUsers = ((users ?? []) as UserRow[]).filter((user) =>
+    options.managedTeamId ? user.team_id === options.managedTeamId : true,
+  );
   if (eligibleUsers.length === 0) {
     return { sent: false, reason: "no_eligible_users" };
   }
@@ -265,6 +269,7 @@ export async function runCombinedRiskAlert(options: { shouldSend: boolean }) {
     return [{
       userId: user.id,
       name: displayName(user),
+      teamId: user.team_id ?? null,
       teamName: teamNameById.get(user.team_id ?? "") ?? "미지정 팀",
       partName: partNameById.get(user.part_id ?? "") ?? null,
       todayScore,
@@ -282,13 +287,57 @@ export async function runCombinedRiskAlert(options: { shouldSend: boolean }) {
 
   const criticalCount = targets.filter((target) => target.level === "critical").length;
   let webhookResponse: string | null = null;
+  let notificationCount = 0;
   if (options.shouldSend) {
+    const teamIds = Array.from(new Set(targets.map((target) => target.teamId).filter((teamId): teamId is string => Boolean(teamId))));
+    const { data: admins, error: adminsError } = await supabase
+      .from("user_roles")
+      .select("auth_user_id, managed_team_id")
+      .eq("role", "team_admin")
+      .in("managed_team_id", teamIds);
+
+    if (adminsError) {
+      throw new Error(adminsError.message);
+    }
+
+    const adminIdsByTeam = new Map<string, string[]>();
+    for (const admin of admins ?? []) {
+      const managedTeamId = admin.managed_team_id as string | null;
+      if (!managedTeamId) continue;
+      const existing = adminIdsByTeam.get(managedTeamId) ?? [];
+      existing.push(admin.auth_user_id as string);
+      adminIdsByTeam.set(managedTeamId, existing);
+    }
+
+    for (const target of targets) {
+      const recipientAuthIds = target.teamId ? (adminIdsByTeam.get(target.teamId) ?? []) : [];
+      if (!recipientAuthIds.length) continue;
+
+      const result = await emitNotificationEvent({
+        recipientAuthIds,
+        type: "combined_risk_alert",
+        targetUserId: target.userId,
+        payload: {
+          userName: target.name,
+          teamName: target.teamName,
+          partName: target.partName ?? undefined,
+          score: target.todayScore,
+          level: target.level,
+          openTicketCount: target.openTicketCount,
+          blockerCount: target.blockerCount,
+        },
+        skipIfExistsToday: true,
+      });
+      notificationCount += result.inserted;
+    }
+
     webhookResponse = await sendTeamsAdaptiveCard(buildTeamsCard(targets));
   }
 
   return {
     sent: options.shouldSend,
     response: webhookResponse,
+    notificationCount,
     targetCount: targets.length,
     criticalCount,
     targets,

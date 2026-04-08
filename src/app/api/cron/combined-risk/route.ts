@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       return Response.json({ sent: false, skipped: true, reason: skipReason });
     }
 
-    const result = await runCombinedRiskAlert({ shouldSend: true });
+    const result = await runCombinedRiskAlert({ shouldSend: true, managedTeamId: null });
     return Response.json(result);
   } catch (error) {
     return Response.json(
