@@ -75,7 +75,7 @@ export function MoodTrendChart({ scores, height = 44, className = "" }: MoodTren
   }
 
   return (
-    <div className={`relative w-full ${className}`} style={{ height: `${height}px` }}>
+    <div className={`relative w-full ${className} pr-8`} style={{ height: `${height}px` }}>
       {/* 배경 섹션 가이드 */}
       <div className="absolute inset-x-0 top-0 bottom-0 pointer-events-none rounded-[1rem] overflow-hidden opacity-[0.03]">
         <div className="h-1/5 w-full bg-[#1e9de0]" />
@@ -85,27 +85,36 @@ export function MoodTrendChart({ scores, height = 44, className = "" }: MoodTren
         <div className="h-1/5 w-full bg-[#2d3a52]" />
       </div>
 
-      {/* 가이드라인 & 라벨 */}
-      {LEVEL_CONFIG.map(({ level, label, color }) => (
-        <div key={level} className="absolute w-full pointer-events-none" style={{ bottom: `${level}%` }}>
-          <div
-            className="w-full border-t border-dashed"
-            style={{ borderColor: `color-mix(in srgb, ${color} 15%, transparent)` }}
-          />
-          {height >= 60 && (
+      {/* 가이드라인 - 라벨 공간(pr-8)을 제외하고 그려짐 */}
+      {LEVEL_CONFIG.map(({ level, color }) => (
+        <div 
+          key={level} 
+          className="absolute left-0 right-8 pointer-events-none border-t border-dashed" 
+          style={{ 
+            bottom: `${level}%`,
+            borderColor: `color-mix(in srgb, ${color} 15%, transparent)`
+          }}
+        />
+      ))}
+
+      {/* 우측 라벨 Gutter */}
+      {height >= 40 && (
+        <div className="absolute right-0 top-0 bottom-0 w-8 flex flex-col justify-between items-end pointer-events-none py-1">
+          {LEVEL_CONFIG.map(({ level, label, color }) => (
             <span
-              className="absolute left-1 bottom-1 text-[9px] font-black tracking-tighter"
+              key={level}
+              className="text-[9px] font-black tracking-tighter"
               style={{ 
                 color, 
-                opacity: 0.7,
-                textShadow: "0 1px 2px rgba(0,0,0,0.1)"
+                opacity: 0.8,
+                transform: "translateY(50%)" /* 라벨 중앙이 선에 맞도록 조정 */
               }}
             >
               {label}
             </span>
-          )}
+          ))}
         </div>
-      ))}
+      )}
 
       {/* 곡선 SVG */}
       <svg
