@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import AdminBottomNav from "../../components/AdminBottomNav";
+import AdminSectionHeader from "../../components/AdminSectionHeader";
 
 type CombinedRiskTarget = {
   userId: string;
@@ -30,7 +31,7 @@ function levelLabel(level: "critical" | "warning") {
 function levelStyle(level: "critical" | "warning") {
   return level === "critical"
     ? { background: "color-mix(in srgb, var(--error) 14%, transparent)", color: "var(--error)" }
-    : { background: "color-mix(in srgb, #f59e0b 16%, transparent)", color: "#b7791f" };
+    : { background: "color-mix(in srgb, var(--tertiary) 14%, transparent)", color: "var(--tertiary)" };
 }
 
 export default function CombinedRiskPageClient({
@@ -52,9 +53,10 @@ export default function CombinedRiskPageClient({
   }, [targets, highlightedUserId]);
 
   return (
-    <div className="min-h-screen px-5 py-8 md:px-8">
+    <div className="min-h-screen px-5 pt-20 pb-8 md:px-8">
+      <AdminSectionHeader current="combined-risk" role={role} />
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-        <div className="flex items-center justify-between gap-4">
+        <div>
           <div>
             <p className="text-xs font-black uppercase tracking-[0.28em]" style={{ color: "var(--primary)" }}>
               {role === "super_admin" ? "Super Admin" : "Team Admin"}
@@ -66,13 +68,6 @@ export default function CombinedRiskPageClient({
               컨디션과 Jira 미완료 티켓을 함께 본 배치 결과입니다.
             </p>
           </div>
-          <Link
-            href="/admin"
-            className="rounded-full px-4 py-2 text-sm font-bold"
-            style={{ background: "color-mix(in srgb, var(--primary) 14%, transparent)", color: "var(--primary)" }}
-          >
-            어드민으로
-          </Link>
         </div>
 
         <div className="rounded-[2rem] p-5" style={{ background: "var(--surface-highest)", boxShadow: "var(--glass-shadow)" }}>

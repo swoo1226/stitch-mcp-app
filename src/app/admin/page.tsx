@@ -1,11 +1,14 @@
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
 import { getRequestAuthUserId } from "../../lib/server-auth";
 import { createSupabaseAdminClient } from "../../lib/supabase-admin";
-import AdminPageClient from "./AdminPageClient";
-import AuthGuard from "../components/AuthGuard";
 
-export default async function AdminPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const authUserId = await getRequestAuthUserId();
   if (!authUserId) redirect("/login");
 
@@ -17,14 +20,14 @@ export default async function AdminPage() {
     .single();
 
   if (roleRow?.role !== "super_admin" && roleRow?.role !== "team_admin") {
-     redirect("/dashboard");
+    redirect("/dashboard");
   }
 
-  return (
-    <Suspense fallback={null}>
-      <AuthGuard requiredRole={["super_admin", "team_admin"]}>
-        <AdminPageClient role={roleRow?.role} />
-      </AuthGuard>
-    </Suspense>
-  );
+  const params = await searchParams;
+  const tab = typeof params.tab === "string" ? params.tab : null;
+  if (tab === "teams" && roleRow?.role === "super_admin") {
+    redirect("/admin/teams");
+  }
+
+  redirect("/admin/members");
 }

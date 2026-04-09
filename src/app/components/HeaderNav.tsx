@@ -15,6 +15,7 @@ interface HeaderNavProps {
   items: HeaderNavItem[];
   mobile?: boolean;
   onNavigate?: () => void;
+  teamId?: string | null;
 }
 
 function isActivePath(pathname: string, item: HeaderNavItem) {
@@ -31,17 +32,16 @@ function isActivePath(pathname: string, item: HeaderNavItem) {
 
 function withTeamParam(href: string, teamId: string | null): string {
   if (!teamId) return href;
-  if (href === "/personal" || href.startsWith("/personal?")) return href;
   const [path, existing] = href.split("?");
   const params = new URLSearchParams(existing ?? "");
   params.set("team", teamId);
   return `${path}?${params.toString()}`;
 }
 
-export default function HeaderNav({ items, mobile = false, onNavigate }: HeaderNavProps) {
+export default function HeaderNav({ items, mobile = false, onNavigate, teamId }: HeaderNavProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const teamId = searchParams.get("team");
+  const resolvedTeamId = teamId ?? searchParams.get("team");
 
   return (
     <>
@@ -73,7 +73,7 @@ export default function HeaderNav({ items, mobile = false, onNavigate }: HeaderN
         }
 
         const active = isActivePath(pathname, item);
-        const resolvedHref = withTeamParam(item.href, teamId);
+        const resolvedHref = withTeamParam(item.href, resolvedTeamId);
 
         return (
           <Link

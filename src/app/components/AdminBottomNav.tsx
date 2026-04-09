@@ -4,19 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 interface AdminBottomNavProps {
-  activeTab?: "members" | "teams";
-  onTabChange?: (tab: "members" | "teams") => void;
   isSuperAdmin: boolean;
 }
 
-export default function AdminBottomNav({
-  activeTab,
-  onTabChange,
-  isSuperAdmin,
-}: AdminBottomNavProps) {
+export default function AdminBottomNav({ isSuperAdmin }: AdminBottomNavProps) {
   const pathname = usePathname();
 
-  const isMainAdmin = pathname === "/admin";
+  const isMembersPage = pathname === "/admin" || pathname === "/admin/members";
+  const isTeamsPage = pathname === "/admin/teams";
   const isCombinedRisk = pathname === "/admin/combined-risk";
   const isAccessRequests = pathname === "/admin/access-requests";
 
@@ -36,42 +31,30 @@ export default function AdminBottomNav({
       }}
     >
       {/* 팀원 */}
-      <button
-        onClick={() => {
-          if (isMainAdmin && onTabChange) {
-            onTabChange("members");
-          } else {
-            window.location.href = "/admin?tab=members";
-          }
-        }}
+      <Link
+        href="/admin/members"
         className="flex flex-col items-center justify-center gap-1 py-3 transition-colors"
-        style={getStyle(isMainAdmin && activeTab === "members")}
+        style={getStyle(isMembersPage)}
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
           <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round" />
         </svg>
         <span className="text-[10px] font-black">팀원</span>
-      </button>
+      </Link>
 
       {/* 팀·파트 */}
       {isSuperAdmin && (
-        <button
-          onClick={() => {
-            if (isMainAdmin && onTabChange) {
-              onTabChange("teams");
-            } else {
-              window.location.href = "/admin?tab=teams";
-            }
-          }}
+        <Link
+          href="/admin/teams"
           className="flex flex-col items-center justify-center gap-1 py-3 transition-colors"
-          style={getStyle(isMainAdmin && activeTab === "teams")}
+          style={getStyle(isTeamsPage)}
         >
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
             <rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" strokeLinecap="round" />
           </svg>
           <span className="text-[10px] font-black">팀·파트</span>
-        </button>
+        </Link>
       )}
 
       {/* 주의 팀원 */}

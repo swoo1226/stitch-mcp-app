@@ -4,7 +4,15 @@ import { scoreToStatus, type WeatherStatus } from "./mood";
 export const DEMO_TEAM_ID = "demo";
 export const DEMO_USER_ID = "demo";
 
-// ─── 날짜 유틸 (demo 기준 오늘 = 현재 날짜) ──────────────────────────────────
+// ─── 데모 스냅샷 날짜 ───────────────────────────────────────────────────────
+// 데모 화면은 현재 시점이 아니라 고정 스냅샷을 기준으로 보이도록 유지한다.
+const DEMO_SNAPSHOT_BASE = new Date(2026, 3, 8, 12, 0, 0);
+
+export function getDemoSnapshotDate(): Date {
+  return new Date(DEMO_SNAPSHOT_BASE);
+}
+
+// ─── 날짜 유틸 ──────────────────────────────────────────────────────────────
 function isoDate(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -124,11 +132,11 @@ export const DEMO_PARTS = [
 ];
 
 // ─── Dashboard / Niko 용 멤버 데이터 생성 ────────────────────────────────────
-// 데모는 날짜에 독립적으로 항상 이번 주 월~금 + 전주 데이터가 채워져야 함.
-// weekDays(실제 날짜)에 RAW_MEMBERS 점수를 1:1 매핑하고, logs도 함께 생성해
+// 데모는 고정 스냅샷 날짜를 기준으로 이번 주 월~금 + 전주 데이터가 채워져야 함.
+// weekDays(스냅샷 기준 실제 날짜)에 RAW_MEMBERS 점수를 1:1 매핑하고, logs도 함께 생성해
 // 월 평균·전주 대비 등 모든 통계가 항상 표시되도록 한다.
 export function getDemoMembers(weekOffset = 0) {
-  const today = new Date();
+  const today = getDemoSnapshotDate();
   const baseMonday = getWeekStart(today);
   baseMonday.setDate(baseMonday.getDate() + weekOffset * 7);
   const weekDays = getWeekDays(baseMonday);
@@ -189,11 +197,11 @@ export function getDemoMembers(weekOffset = 0) {
 }
 
 // ─── 데모용 고정 월간 logs 생성 ───────────────────────────────────────────────
-// 날짜에 독립적으로 항상 의미 있는 월 평균이 나오도록 이번 달 1~28일에 고정 점수를 심음
+// 스냅샷 월 기준으로 항상 의미 있는 월 평균이 나오도록 이번 달 1~28일에 고정 점수를 심음
 type MoodLogRow = { user_id: string; score: number; message: string | null; logged_at: string };
 
 function fixedMonthLogs(memberId: string, scores: number[]): MoodLogRow[] {
-  const now = new Date();
+  const now = getDemoSnapshotDate();
   const year = now.getFullYear();
   const month = now.getMonth(); // 0-based
   return scores.map((score, i) => {
@@ -221,20 +229,20 @@ export function getDemoMonthLogs(): MoodLogRow[] {
 }
 
 // ─── Personal 용 유저 데이터 ─────────────────────────────────────────────────
-function daysAgo(n: number): string {
-  const d = new Date();
+function daysBeforeSnapshot(n: number): string {
+  const d = getDemoSnapshotDate();
   d.setDate(d.getDate() - n);
   return d.toISOString();
 }
 
 const DEMO_MOOD_LOGS = [
-  { score: 82, message: "오늘은 집중도 잘 되고 에너지가 넘쳐요!", logged_at: daysAgo(0) },
-  { score: 68, message: "무난한 하루였어요.", logged_at: daysAgo(1) },
-  { score: 55, message: "약간 피곤한 날이었어요.", logged_at: daysAgo(2) },
-  { score: 90, message: "최고의 하루! 드디어 기능 배포 성공!", logged_at: daysAgo(3) },
-  { score: 40, message: "회의가 너무 많아서 지쳤어요.", logged_at: daysAgo(4) },
-  { score: 73, message: null, logged_at: daysAgo(5) },
-  { score: 60, message: "평범한 하루.", logged_at: daysAgo(6) },
+  { score: 82, message: "오늘은 집중도 잘 되고 에너지가 넘쳐요!", logged_at: daysBeforeSnapshot(0) },
+  { score: 68, message: "무난한 하루였어요.", logged_at: daysBeforeSnapshot(1) },
+  { score: 55, message: "약간 피곤한 날이었어요.", logged_at: daysBeforeSnapshot(2) },
+  { score: 90, message: "최고의 하루! 드디어 기능 배포 성공!", logged_at: daysBeforeSnapshot(3) },
+  { score: 40, message: "회의가 너무 많아서 지쳤어요.", logged_at: daysBeforeSnapshot(4) },
+  { score: 73, message: null, logged_at: daysBeforeSnapshot(5) },
+  { score: 60, message: "평범한 하루.", logged_at: daysBeforeSnapshot(6) },
 ];
 
 export const DEMO_USER = {

@@ -1,0 +1,229 @@
+[    2012ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login?redirect=%2Fadmin:0
+[    6158ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   11630ms] [LOG] [HMR] connected @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   14817ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   15288ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   16642ms] [WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   17121ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login?redirect=%2Fadmin:0
+[   18800ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   20821ms] [LOG] [HMR] connected @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   21922ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   21902ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   22797ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   22806ms] [LOG] [Fast Refresh] done in 904ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   23248ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   23258ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   23250ms] [LOG] [Fast Refresh] done in 3ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   23276ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   23385ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   23429ms] [LOG] [Fast Refresh] done in 153ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   23444ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   23762ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   23848ms] [LOG] [Fast Refresh] done in 402ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   23854ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   24071ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   24104ms] [LOG] [Fast Refresh] done in 250ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   24104ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   24235ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   24232ms] [LOG] [Fast Refresh] done in 121ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   24232ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   26374ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   26405ms] [LOG] [Fast Refresh] done in 2172ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   26406ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   27136ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   26876ms] [LOG] [Fast Refresh] done in 470ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   26876ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   27155ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   26990ms] [LOG] [Fast Refresh] done in 115ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   26991ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   34846ms] [LOG] [Fast Refresh] done in 7842ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   34894ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   35428ms] [LOG] [Fast Refresh] done in 544ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   38574ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login?redirect=%2Fadmin:0
+[   40338ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   41903ms] [LOG] [HMR] connected @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   42703ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   42702ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   42915ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   42999ms] [LOG] [Fast Refresh] done in 296ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   43490ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   43532ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   43532ms] [LOG] [Fast Refresh] done in 46ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   43532ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   43649ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   43648ms] [LOG] [Fast Refresh] done in 116ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   43648ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   43652ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   43649ms] [LOG] [Fast Refresh] done in 0ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   43649ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   43806ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   43829ms] [LOG] [Fast Refresh] done in 175ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   43832ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   44068ms] Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/use-action-queue.js:50:37)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:329:61)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/app-router-instance.js:328:40)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:64)
+    at startTransition (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)
+    at processMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:299:44)
+    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)
+[   44114ms] [LOG] [Fast Refresh] done in 278ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   44115ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   44426ms] [ERROR] Can't perform a React state update on a component that hasn't mounted yet. This indicates that you have a side-effect in your render function that asynchronously tries to update the component. Move this work to useEffect instead. @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js:57
+[   44677ms] [LOG] [Fast Refresh] done in 562ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   44677ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   44949ms] [LOG] [Fast Refresh] done in 271ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   44950ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   45345ms] [LOG] [Fast Refresh] done in 391ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   45363ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   46069ms] [LOG] [Fast Refresh] done in 701ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   47890ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   48181ms] [LOG] [Fast Refresh] done in 290ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   48210ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   48847ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login?redirect=%2Fadmin:0
+[   50476ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[   52108ms] [LOG] [HMR] connected @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27

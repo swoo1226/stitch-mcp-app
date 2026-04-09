@@ -15,7 +15,7 @@ import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { MoodTrendChart } from "../components/MoodTrendChart";
 import { supabase } from "../../lib/supabase";
 import { scoreToStatus, statusToKo, type WeatherStatus } from "../../lib/mood";
-import { DEMO_USER_ID, DEMO_USER } from "../../lib/demo-data";
+import { DEMO_USER_ID, DEMO_USER, getDemoSnapshotDate } from "../../lib/demo-data";
 import { STANDARD_SPRING, RESPONSIVE_SPRING } from "../constants/springs";
 import { displayName as getDisplayName } from "../../lib/user";
 
@@ -36,20 +36,20 @@ interface UserData {
 const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI"];
 
 
-function getTodayKst(): string {
-  return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+function getTodayKst(referenceDate: Date): string {
+  return referenceDate.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
 }
 
-function getWeekMonday(): Date {
-  const today = new Date(getTodayKst());
+function getWeekMonday(referenceDate: Date): Date {
+  const today = new Date(getTodayKst(referenceDate));
   const dow = today.getDay();
   const diff = dow === 0 ? -6 : 1 - dow;
   today.setDate(today.getDate() + diff);
   return today;
 }
 
-function getWeekDays(): Date[] {
-  const monday = getWeekMonday();
+function getWeekDays(referenceDate: Date): Date[] {
+  const monday = getWeekMonday(referenceDate);
   return Array.from({ length: 5 }, (_, i) => {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
@@ -61,8 +61,8 @@ function isoDate(d: Date): string {
   return d.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
 }
 
-function getWeeklyLogs(logs: MoodLog[]): (MoodLog | null)[] {
-  const days = getWeekDays();
+function getWeeklyLogs(logs: MoodLog[], referenceDate: Date): (MoodLog | null)[] {
+  const days = getWeekDays(referenceDate);
   return days.map((day) => {
     const iso = isoDate(day);
     return logs.find((l) =>
@@ -71,22 +71,22 @@ function getWeeklyLogs(logs: MoodLog[]): (MoodLog | null)[] {
   });
 }
 
-function getWeekRangeLabel(): string {
-  const days = getWeekDays();
+function getWeekRangeLabel(referenceDate: Date): string {
+  const days = getWeekDays(referenceDate);
   const start = days[0].toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
   const end = days[4].toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
   return `${start} — ${end}`;
 }
 
-function getTodayWeekIndex(): number {
-  const today = getTodayKst();
-  return getWeekDays().findIndex((d) => isoDate(d) === today);
+function getTodayWeekIndex(referenceDate: Date): number {
+  const today = getTodayKst(referenceDate);
+  return getWeekDays(referenceDate).findIndex((d) => isoDate(d) === today);
 }
 
 // 최근 N개의 평일(월~금) 로그 수집
-function getRecentLogs(logs: MoodLog[], count: number): { score: number | null, date: Date }[] {
+function getRecentLogs(logs: MoodLog[], count: number, referenceDate: Date): { score: number | null, date: Date }[] {
   const result: { score: number | null, date: Date }[] = [];
-  let d = new Date();
+  let d = new Date(referenceDate);
   
   while (result.length < count) {
     const day = d.getDay();
@@ -129,6 +129,14 @@ function TrendIcon() {
   );
 }
 
+function withDemoTeamParam(href: string, isDemo: boolean): string {
+  if (!isDemo) return href;
+  const [path, existing] = href.split("?");
+  const params = new URLSearchParams(existing ?? "");
+  params.set("team", "demo");
+  return `${path}?${params.toString()}`;
+}
+
 export default function PersonalPageClient({ userId }: { userId: string }) {
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -164,18 +172,19 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
     load();
   }, [userId]);
 
-  const todayKst = getTodayKst();
-  const todayLabel = new Date().toLocaleDateString("ko-KR", {
+  const currentDate = userId === DEMO_USER_ID ? getDemoSnapshotDate() : new Date();
+  const todayKst = getTodayKst(currentDate);
+  const todayLabel = currentDate.toLocaleDateString("ko-KR", {
     year: "numeric", month: "long", day: "numeric", weekday: "short",
   });
 
   const weeklyLogs = useMemo(
-    () => (user ? getWeeklyLogs(user.mood_logs) : Array.from({ length: 5 }, () => null)),
-    [user]
+    () => (user ? getWeeklyLogs(user.mood_logs, currentDate) : Array.from({ length: 5 }, () => null)),
+    [currentDate, user]
   );
   const recentTrendData = useMemo(
-    () => (user ? getRecentLogs(user.mood_logs, 14) : Array.from({ length: 14 }, (_, i) => ({ score: null, date: new Date() }))),
-    [user]
+    () => (user ? getRecentLogs(user.mood_logs, 14, currentDate) : Array.from({ length: 14 }, (_, i) => ({ score: null, date: new Date(currentDate) }))),
+    [currentDate, user]
   );
   const todayLog = useMemo(
     () => user?.mood_logs.find((l) =>
@@ -186,7 +195,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
 
   const todayScore = todayLog?.score ?? null;
   const todayStatus: WeatherStatus | null = todayScore !== null ? scoreToStatus(todayScore) : null;
-  const todayIndex = getTodayWeekIndex();
+  const todayIndex = getTodayWeekIndex(currentDate);
 
   const weeklyScores = weeklyLogs.flatMap((l) => (l ? [l.score] : []));
   const weekAverage = weeklyScores.length
@@ -196,13 +205,13 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
   // 전주 같은 요일 점수 (비교용) — 7일 전 기록
   const prevWeekSameDay = useMemo(() => {
     if (!user || todayIndex < 0) return null;
-    const d = new Date();
+    const d = new Date(currentDate);
     d.setDate(d.getDate() - 7);
     const iso = d.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
     return user.mood_logs.find((l) =>
       new Date(l.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === iso
     )?.score ?? null;
-  }, [user, todayIndex]);
+  }, [currentDate, todayIndex, user]);
 
   const deltaVsLastWeek = todayScore !== null && prevWeekSameDay !== null
     ? todayScore - prevWeekSameDay
@@ -250,7 +259,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
         <div className="flex items-center gap-4 md:gap-8">
           <Link href="/" className="flex shrink-0 items-center"><ClimaLogo /></Link>
           <nav className="hidden md:flex items-center gap-1">
-            <HeaderNav items={navItems} />
+            <HeaderNav items={navItems} teamId={userId === DEMO_USER_ID ? "demo" : null} />
           </nav>
         </div>
         <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
@@ -297,7 +306,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                 </button>
               </div>
               <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
-                <HeaderNav items={navItems} mobile onNavigate={() => setMobileNavOpen(false)} />
+                <HeaderNav items={navItems} teamId={userId === DEMO_USER_ID ? "demo" : null} mobile onNavigate={() => setMobileNavOpen(false)} />
                 <Link
                   href="/settings/notifications"
                   onClick={() => setMobileNavOpen(false)}
@@ -415,7 +424,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                     이번 주 흐름
                   </p>
                   <p className="text-xs font-semibold" style={{ color: "var(--text-soft)" }}>
-                    {getWeekRangeLabel()}
+                    {getWeekRangeLabel(currentDate)}
                   </p>
                 </div>
               </div>

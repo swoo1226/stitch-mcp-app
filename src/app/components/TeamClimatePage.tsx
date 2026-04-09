@@ -84,11 +84,11 @@ function iconForStatus(status: WeatherStatus) {
 
 function colorForStatus(status: WeatherStatus) {
   switch (status) {
-    case "Sunny":        return "#006668";
-    case "PartlyCloudy": return "#22C55E";
-    case "Cloudy":       return "#95a5c8";
-    case "Rainy":        return "#F97316";
-    case "Stormy":       return "#EF4444";
+    case "Sunny":        return "var(--primary)";
+    case "PartlyCloudy": return "var(--secondary)";
+    case "Cloudy":       return "var(--on-surface-variant)";
+    case "Rainy":        return "var(--tertiary)";
+    case "Stormy":       return "var(--error)";
   }
 }
 
@@ -238,9 +238,8 @@ export default function TeamClimatePage() {
     <div
       className="min-h-screen px-4 py-4 md:px-5"
       style={{
-        background:
-          "radial-gradient(circle at top left, rgba(214, 241, 226, 0.88) 0%, rgba(241, 248, 239, 1) 50%, rgba(246, 249, 244, 1) 100%)",
-        color: "#17312e",
+        background: "var(--hero-gradient)",
+        color: "var(--on-surface)",
       }}
     >
       <div className="mx-auto max-w-[1400px]">
@@ -250,15 +249,16 @@ export default function TeamClimatePage() {
           transition={STANDARD_SPRING}
           className="rounded-[2rem] p-3 md:p-4"
           style={{
-            background: "rgba(255, 255, 255, 0.6)",
-            boxShadow: "0 18px 40px rgba(19, 49, 46, 0.05)",
+            background: "var(--glass-bg-medium)",
+            backdropFilter: "var(--glass-blur)",
+            boxShadow: "var(--shadow-level-1)",
           }}
         >
           <div className="grid gap-4 xl:grid-cols-[220px_minmax(0,1fr)]">
-            <aside className="flex flex-col gap-4 rounded-[1.5rem] bg-white/72 p-4 md:p-5">
+            <aside className="flex flex-col gap-4 rounded-[1.5rem] p-4 md:p-5" style={{ background: "var(--surface-container-low)" }}>
               <div>
-                <div className="text-lg font-black tracking-tight text-[#11847c]">Clima</div>
-                <p className="mt-1 text-xs" style={{ color: "rgba(23, 49, 46, 0.48)" }}>
+                <div className="text-lg font-black tracking-tight" style={{ color: "var(--primary)" }}>Clima</div>
+                <p className="mt-1 text-xs" style={{ color: "var(--text-soft)" }}>
                   Mental Wellness
                 </p>
               </div>
@@ -276,10 +276,10 @@ export default function TeamClimatePage() {
                     className="flex items-center justify-between rounded-full px-4 py-3 text-sm font-bold transition-transform active:scale-[0.98]"
                     style={{
                       background: item.active
-                        ? "linear-gradient(90deg, #18b8af 0%, #2cd2c8 100%)"
+                        ? "var(--button-primary-gradient)"
                         : "transparent",
-                      color: item.active ? "#ffffff" : "#32504c",
-                      boxShadow: item.active ? "0 12px 24px rgba(24, 184, 175, 0.24)" : "none",
+                      color: item.active ? "var(--on-primary)" : "var(--on-surface-variant)",
+                      boxShadow: item.active ? "var(--button-primary-shadow)" : "none",
                     }}
                   >
                     <span>{item.label}</span>
@@ -288,16 +288,16 @@ export default function TeamClimatePage() {
                 ))}
               </nav>
 
-              <div className="mt-auto rounded-[1.5rem] bg-[#effbf8] p-4">
-                <p className="text-xs font-bold" style={{ color: "rgba(23, 49, 46, 0.55)" }}>
+              <div className="mt-auto rounded-[1.5rem] p-4" style={{ background: "var(--surface-container)" }}>
+                <p className="text-xs font-bold" style={{ color: "var(--text-soft)" }}>
                   Quick Action
                 </p>
                 <Link
                   href="/input"
                   className="mt-3 flex items-center justify-center rounded-full px-4 py-3 text-sm font-bold text-white transition-transform active:scale-[0.98]"
                   style={{
-                    background: "linear-gradient(90deg, #1ca79f 0%, #28d5c4 100%)",
-                    boxShadow: "0 14px 26px rgba(28, 167, 159, 0.22)",
+                    background: "var(--button-primary-gradient)",
+                    boxShadow: "var(--button-primary-shadow)",
                   }}
                 >
                   Daily Check-In
@@ -306,7 +306,7 @@ export default function TeamClimatePage() {
             </aside>
 
             <section className="flex min-w-0 flex-col gap-4">
-              <header className="rounded-[1.5rem] bg-white/72 px-4 py-4 md:px-6">
+              <header className="rounded-[1.5rem] px-4 py-4 md:px-6" style={{ background: "var(--surface-container-low)" }}>
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                   <div>
                     <div className="mb-2 flex flex-wrap items-center gap-5 text-[11px] font-semibold">
@@ -314,15 +314,15 @@ export default function TeamClimatePage() {
                         <span
                           key={item}
                           style={{
-                            color: item === "Team" ? "#11847c" : "rgba(23, 49, 46, 0.5)",
+                            color: item === "Team" ? "var(--primary)" : "var(--text-soft)",
                           }}
                         >
                           {item}
                         </span>
                       ))}
                     </div>
-                    <h1 className="text-[2rem] font-black tracking-tight text-[#0f5d59]">Team Climate</h1>
-                    <p className="mt-1 text-sm" style={{ color: "rgba(23, 49, 46, 0.56)" }}>
+                    <h1 className="text-[2rem] font-black tracking-tight" style={{ color: "var(--primary)" }}>Team Climate</h1>
+                    <p className="mt-1 text-sm" style={{ color: "var(--text-soft)" }}>
                       Visualizing the emotional atmosphere of your collective journey this week.
                     </p>
                   </div>
@@ -330,13 +330,13 @@ export default function TeamClimatePage() {
                   <div className="flex items-center gap-4">
                     <div
                       className="hidden items-center gap-2 rounded-full px-4 py-2 md:flex"
-                      style={{ background: "#eff7f2" }}
+                      style={{ background: "var(--surface-container)" }}
                     >
-                      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="#6f8b83" strokeWidth="1.8">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="var(--text-soft)" strokeWidth="1.8">
                         <circle cx="11" cy="11" r="6.5" />
                         <path d="m16 16 4 4" />
                       </svg>
-                      <span className="text-xs" style={{ color: "#7b928b" }}>
+                      <span className="text-xs" style={{ color: "var(--text-soft)" }}>
                         Search team stats...
                       </span>
                     </div>
@@ -345,8 +345,8 @@ export default function TeamClimatePage() {
                       {visibleMembers.slice(0, 4).map((member) => (
                         <div
                           key={member.id}
-                          className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-sm"
-                          style={{ background: "#fffcf7" }}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white/20 text-sm"
+                          style={{ background: "var(--surface-container-high)" }}
                           title={member.name}
                         >
                           <UserAvatar
@@ -359,7 +359,7 @@ export default function TeamClimatePage() {
                       ))}
                       <div
                         className="ml-1 flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-[10px] font-bold"
-                        style={{ background: "#f6efe2", color: "#806747" }}
+                        style={{ background: "var(--surface-container-high)", color: "var(--on-surface-variant)" }}
                       >
                         +{visibleMembers.length + 7}
                       </div>
@@ -368,24 +368,24 @@ export default function TeamClimatePage() {
                 </div>
               </header>
 
-              <article className="rounded-[2rem] bg-white/84 p-4 md:p-6">
+              <article className="rounded-[2rem] p-4 md:p-6" style={{ background: "var(--glass-bg-high)", backdropFilter: "var(--glass-blur)" }}>
                 <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div>
                     <h2 className="text-base font-black tracking-tight">Niko-Niko 캘린더</h2>
-                    <p className="mt-1 text-xs" style={{ color: "rgba(23, 49, 46, 0.48)" }}>
+                    <p className="mt-1 text-xs" style={{ color: "var(--text-soft)" }}>
                       Weekly affect trace by teammate.
                     </p>
                   </div>
 
-                  <div className="inline-flex w-fit rounded-full bg-[#eef5ef] p-1">
+                  <div className="inline-flex w-fit rounded-full bg-white/50 p-1">
                     {["This Week", "Last Week"].map((label, index) => (
                       <span
                         key={label}
                         className="rounded-full px-4 py-2 text-xs font-bold"
                         style={{
-                          background: index === 0 ? "#ffffff" : "transparent",
-                          color: index === 0 ? "#11847c" : "rgba(23, 49, 46, 0.48)",
-                          boxShadow: index === 0 ? "0 8px 18px rgba(18, 132, 124, 0.08)" : "none",
+                          background: index === 0 ? "var(--surface)" : "transparent",
+                          color: index === 0 ? "var(--primary)" : "var(--text-soft)",
+                          boxShadow: index === 0 ? "var(--shadow-level-1)" : "none",
                         }}
                       >
                         {label}
@@ -400,7 +400,7 @@ export default function TeamClimatePage() {
                       className="grid items-center gap-y-4 pb-3 text-[10px] font-bold tracking-[0.14em]"
                       style={{
                         gridTemplateColumns: "1.6fr repeat(5, minmax(0, 1fr))",
-                        color: "rgba(23, 49, 46, 0.4)",
+                        color: "var(--text-soft)",
                       }}
                     >
                       <div>팀원</div>
@@ -411,9 +411,9 @@ export default function TeamClimatePage() {
                       ))}
                     </div>
 
-                    <div className="space-y-2 rounded-[1.6rem] bg-[#fcfffc] p-2">
+                    <div className="space-y-2 rounded-[1.6rem] bg-white/50 p-2">
                       {loading ? (
-                        <div className="px-3 py-12 text-sm" style={{ color: "rgba(23, 49, 46, 0.55)" }}>
+                        <div className="px-3 py-12 text-sm" style={{ color: "var(--text-soft)" }}>
                           Loading niko traces...
                         </div>
                       ) : (
@@ -423,11 +423,11 @@ export default function TeamClimatePage() {
                             className="grid items-center rounded-[1.25rem] px-3 py-3"
                             style={{
                               gridTemplateColumns: "1.6fr repeat(5, minmax(0, 1fr))",
-                              background: "linear-gradient(180deg, rgba(250, 252, 250, 1) 0%, rgba(246, 250, 247, 1) 100%)",
+                              background: "var(--surface)",
                             }}
                           >
                             <div className="flex items-center gap-3">
-                              <div className="rounded-full bg-white shadow-[0_8px_18px_rgba(19,49,46,0.08)]">
+                              <div className="rounded-full bg-white shadow-sm">
                                 <UserAvatar
                                   name={member.name}
                                   avatarEmoji={member.avatarEmoji}
@@ -446,16 +446,7 @@ export default function TeamClimatePage() {
                                   className="flex h-9 w-9 items-center justify-center rounded-full"
                                   style={{
                                     color: colorForStatus(status),
-                                    background:
-                                      status === "Sunny"
-                                        ? "rgba(0,102,104,0.08)"
-                                        : status === "PartlyCloudy"
-                                          ? "rgba(34,197,94,0.1)"
-                                          : status === "Cloudy"
-                                            ? "rgba(148,163,184,0.15)"
-                                            : status === "Rainy"
-                                              ? "rgba(249,115,22,0.12)"
-                                              : "rgba(239,68,68,0.12)",
+                                    background: "color-mix(in srgb, var(--primary) 8%, transparent)",
                                   }}
                                 >
                                   {iconForStatus(status)}
@@ -474,34 +465,34 @@ export default function TeamClimatePage() {
                 <div className="hidden xl:block" />
 
                 <article className="rounded-[1.8rem] bg-white/84 p-5">
-                  <p className="text-[10px] font-black tracking-[0.18em]" style={{ color: "rgba(23, 49, 46, 0.34)" }}>
+                  <p className="text-[10px] font-black tracking-[0.18em]" style={{ color: "var(--text-soft)" }}>
                     TEAM AVERAGE
                   </p>
                   <div className="mt-4 flex items-center gap-3">
                     <div
                       className="flex h-14 w-14 items-center justify-center rounded-full"
-                      style={{ background: "#eef2fb", color: colorForStatus(averageStatus) }}
+                      style={{ background: "var(--surface-container)", color: colorForStatus(averageStatus) }}
                     >
                       {iconForStatus(averageStatus)}
                     </div>
                     <div>
                       <div className="text-xl font-black tracking-tight">{statusLabel(averageStatus)}</div>
-                      <p className="text-xs" style={{ color: "rgba(23, 49, 46, 0.5)" }}>
+                      <p className="text-xs" style={{ color: "var(--text-soft)" }}>
                         Overall tone at {averageScore}% stability
                       </p>
                     </div>
                   </div>
                 </article>
 
-                <article className="rounded-[1.8rem] bg-white/84 p-5">
-                  <p className="text-[10px] font-black tracking-[0.18em]" style={{ color: "rgba(23, 49, 46, 0.34)" }}>
+                <article className="rounded-[1.8rem] p-5" style={{ background: "var(--glass-bg-high)" }}>
+                  <p className="text-[10px] font-black tracking-[0.18em]" style={{ color: "var(--text-soft)" }}>
                     MOST FREQUENT WEATHER
                   </p>
                   <div className="mt-4 flex items-center gap-3">
                     <div
                       className="flex h-14 w-14 items-center justify-center rounded-full"
                       style={{
-                        background: frequentStatus === "Sunny" ? "rgba(0,102,104,0.08)" : frequentStatus === "PartlyCloudy" ? "rgba(34,197,94,0.1)" : "#eef2fb",
+                        background: "var(--surface-container)",
                         color: colorForStatus(frequentStatus),
                       }}
                     >
@@ -509,28 +500,28 @@ export default function TeamClimatePage() {
                     </div>
                     <div>
                       <div className="text-xl font-black tracking-tight">{statusLabel(frequentStatus)}</div>
-                      <p className="text-xs" style={{ color: "rgba(23, 49, 46, 0.5)" }}>
+                      <p className="text-xs" style={{ color: "var(--text-soft)" }}>
                         Occurred {(statusCounts as Record<string, number>)[frequentStatus]} times this week
                       </p>
                     </div>
                   </div>
                 </article>
 
-                <article className="rounded-[1.8rem] bg-[#f8fcf9] p-5">
+                <article className="rounded-[1.8rem] p-5" style={{ background: "var(--surface-container-low)" }}>
                   <div className="mb-3 flex items-center gap-2">
                     <span
                       className="flex h-6 w-6 items-center justify-center rounded-full"
-                      style={{ background: "#eaf7f2", color: "#11847c" }}
+                      style={{ background: "var(--primary-container)", color: "var(--primary)" }}
                     >
                       ✦
                     </span>
-                    <p className="text-sm font-black tracking-tight text-[#0f5d59]">Clima Insights</p>
+                    <p className="text-sm font-black tracking-tight" style={{ color: "var(--primary)" }}>Clima Insights</p>
                   </div>
-                  <p className="text-sm italic leading-relaxed" style={{ color: "rgba(23, 49, 46, 0.66)" }}>
+                  <p className="text-sm italic leading-relaxed" style={{ color: "var(--text-soft)" }}>
                     &ldquo;{supportNote}&rdquo;
                   </p>
-                  <div className="mt-5 flex items-center gap-2 text-[10px] font-bold tracking-[0.16em] text-[#11847c]">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#1bb1a5]" />
+                  <div className="mt-5 flex items-center gap-2 text-[10px] font-bold tracking-[0.16em]" style={{ color: "var(--primary)" }}>
+                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--primary)" }} />
                     AI POWERED ANALYSIS
                   </div>
                 </article>
@@ -538,13 +529,13 @@ export default function TeamClimatePage() {
 
               <footer className="grid gap-4 xl:grid-cols-[220px_minmax(0,1fr)]">
                 <div className="hidden xl:block" />
-                <div className="rounded-[1.8rem] bg-white/84 px-5 py-5 md:px-6">
+                <div className="rounded-[1.8rem] px-5 py-5 md:px-6" style={{ background: "var(--glass-bg-high)" }}>
                   <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                     <div>
-                      <h3 className="text-lg font-black tracking-tight text-[#0f5d59]">
+                      <h3 className="text-lg font-black tracking-tight" style={{ color: "var(--primary)" }}>
                         Feeling like a storm today?
                       </h3>
-                      <p className="mt-1 text-sm" style={{ color: "rgba(23, 49, 46, 0.55)" }}>
+                      <p className="mt-1 text-sm" style={{ color: "var(--text-soft)" }}>
                         It&apos;s okay not to be okay. Reach out for a quick 1:1 or take a softness break.
                       </p>
                     </div>
@@ -554,16 +545,16 @@ export default function TeamClimatePage() {
                         href="/alerts"
                         className="rounded-full px-5 py-3 text-sm font-bold text-white transition-transform active:scale-[0.98]"
                         style={{
-                          background: "#0b6f6c",
-                          boxShadow: "0 16px 28px rgba(11, 111, 108, 0.2)",
+                          background: "var(--primary)",
+                          boxShadow: "var(--button-primary-shadow)",
                         }}
                       >
                         Book a Talk
                       </Link>
                       <Link
                         href="/input"
-                        className="rounded-full bg-white px-5 py-3 text-sm font-bold transition-transform active:scale-[0.98]"
-                        style={{ color: "#55716d", boxShadow: "0 10px 22px rgba(19, 49, 46, 0.07)" }}
+                        className="rounded-full px-5 py-3 text-sm font-bold transition-transform active:scale-[0.98]"
+                        style={{ background: "var(--surface-container-high)", color: "var(--primary)", boxShadow: "var(--shadow-level-1)" }}
                       >
                         Take a Break
                       </Link>

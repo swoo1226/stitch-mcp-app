@@ -15,7 +15,7 @@ import NotificationBell from "../components/NotificationBell";
 import { STANDARD_SPRING } from "../constants/springs";
 import { supabase } from "../../lib/supabase";
 import { scoreToStatus, statusToEmoji, statusToKo, checkWarning, WARNING_REASON_KO, type WeatherStatus, type WarningReason } from "../../lib/mood";
-import { DEMO_TEAM_ID, DEMO_PARTS, getDemoMembers, getDemoMonthLogs } from "../../lib/demo-data";
+import { DEMO_TEAM_ID, DEMO_PARTS, getDemoMembers, getDemoMonthLogs, getDemoSnapshotDate } from "../../lib/demo-data";
 
 type DisplayWeather = WeatherStatus | null;
 
@@ -102,6 +102,14 @@ function utcToKstDate(utcStr: string): string {
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI"];
 
+function withDemoTeamParam(href: string, teamId: string): string {
+  if (teamId !== DEMO_TEAM_ID) return href;
+  const [path, existing] = href.split("?");
+  const params = new URLSearchParams(existing ?? "");
+  params.set("team", teamId);
+  return `${path}?${params.toString()}`;
+}
+
 
 
 function TopIcon({ type }: { type: "bell" | "settings" | "profile" }) {
@@ -185,7 +193,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
   const [managedTeamId, setManagedTeamId] = useState<string | null>(null);
 
   const weekOffset = weekTab === "this" ? 0 : -1;
-  const today = new Date();
+  const today = teamId === DEMO_TEAM_ID ? getDemoSnapshotDate() : new Date();
   const baseMonday = getWeekStart(today);
   baseMonday.setDate(baseMonday.getDate() + weekOffset * 7);
   const weekDays = getWeekDays(baseMonday);
@@ -293,12 +301,12 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
 
   // 요주의 순: 오늘 체크인 중 score 낮은 순 → 미체크인은 뒤로
   const atRiskTop3 = useMemo(() => {
-    const checkedIn = visibleMembers
+    const checkedIn = members
       .filter(m => m.score !== null)
       .sort((a, b) => a.score! - b.score!);
-    const notCheckedIn = visibleMembers.filter(m => m.score === null);
+    const notCheckedIn = members.filter(m => m.score === null);
     return [...checkedIn, ...notCheckedIn].slice(0, 3);
-  }, [visibleMembers]);
+  }, [members]);
   const averageScore = checkedInMembers.length
     ? Math.round(checkedInMembers.reduce((sum, m) => sum + m.score!, 0) / checkedInMembers.length)
     : null;
@@ -422,7 +430,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
             <ClimaLogo />
           </Link>
           <nav className="hidden md:flex items-center gap-1">
-            <HeaderNav items={getNavItems(userRole, managedTeamId)} />
+            <HeaderNav items={getNavItems(userRole, managedTeamId)} teamId={teamId} />
           </nav>
         </div>
         <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
@@ -433,7 +441,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
           <button className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
             <TopIcon type="settings" />
           </button>
-          <Link href="/personal" className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
+          <Link href={withDemoTeamParam("/personal", teamId)} className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
             <TopIcon type="profile" />
           </Link>
           {/* 햄버거 버튼 (모바일) */}
@@ -482,7 +490,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                 </button>
               </div>
               <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
-                <HeaderNav items={getNavItems(userRole, managedTeamId)} mobile onNavigate={() => setMobileNavOpen(false)} />
+                <HeaderNav items={getNavItems(userRole, managedTeamId)} teamId={teamId} mobile onNavigate={() => setMobileNavOpen(false)} />
                 <Link
                   href="/settings/notifications"
                   onClick={() => setMobileNavOpen(false)}
@@ -514,8 +522,13 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
           >
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-2xl">
-                <h1 className="mb-2 text-[2rem] font-black tracking-tight text-primary md:text-[3.1rem]">
+                <h1 className="mb-2 flex items-center gap-3 text-[2rem] font-black tracking-tight text-primary md:text-[3.1rem]">
                   팀 날씨
+                  {teamId === DEMO_TEAM_ID && (
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-black uppercase tracking-wider text-primary">
+                      Demo
+                    </span>
+                  )}
                 </h1>
                 <p className="mb-3 text-sm font-bold" style={{ color: "var(--text-soft)" }}>
                   {today.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "short" })}
@@ -523,6 +536,24 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                 <p className="text-base leading-relaxed md:text-lg" style={{ color: "var(--text-muted)" }}>
                   오늘 팀의 날씨는 어떤가요? 서로의 날씨를 살피며 함께 나아가요.
                 </p>
+                
+                {/* 인사이트 텍스트 */}
+                {averageScore !== null && (
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ ...STANDARD_SPRING, delay: 0.2 }}
+                    className="mt-6 flex items-start gap-3 rounded-[1.5rem] p-4"
+                    style={{ background: "var(--highlight-soft)", border: "1.5px solid color-mix(in srgb, var(--primary) 12%, transparent)" }}
+                  >
+                    <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary text-xs">
+                       ✨
+                    </div>
+                    <p className="text-sm font-bold leading-relaxed text-primary">
+                      {insightText}
+                    </p>
+                  </motion.div>
+                )}
               </div>
 
               <div className="flex items-center self-start">
@@ -539,7 +570,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                   </div>
                 ))}
                 <div className="-ml-2 flex h-12 w-12 items-center justify-center rounded-full border-[3px] border-white bg-surface-high text-sm font-black text-on-surface">
-                  +{Math.max(0, visibleMembers.length - 3)}
+                  +{Math.max(0, members.length - 3)}
                 </div>
               </div>
             </div>
@@ -667,13 +698,13 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                     이번 주 캘린더
                   </div>
                   <div className="text-xs font-semibold" style={{ color: "var(--text-soft)" }}>
-                    요주의 · 낮은 점수 {Math.min(3, visibleMembers.length)}명
+                    팀 전체 기준 · 낮은 점수 {Math.min(3, members.length)}명
                   </div>
                 </div>
               </div>
 
               <Link
-                href="/niko"
+                href={withDemoTeamParam("/niko", teamId)}
                 className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition-colors hover:opacity-80"
                 style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
               >

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { STANDARD_SPRING } from "../../constants/springs";
 import AdminBottomNav from "../../components/AdminBottomNav";
+import AdminSectionHeader from "../../components/AdminSectionHeader";
 
 
 
@@ -89,7 +90,8 @@ export default function AccessRequestsPageClient() {
 
   return (
     <>
-      <div className="min-h-screen px-5 py-8 pb-28 md:px-8 md:pb-8">
+      <div className="min-h-screen px-5 pt-20 pb-28 md:px-8 md:pb-8">
+      <AdminSectionHeader current="access-requests" role="super_admin" />
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         {/* 헤더 */}
         <div className="flex items-center justify-between gap-4">
@@ -97,13 +99,6 @@ export default function AccessRequestsPageClient() {
             <p className="text-xs font-black uppercase tracking-[0.28em]" style={{ color: "var(--primary)" }}>Super Admin</p>
             <h1 className="mt-2 text-3xl font-black tracking-tight" style={{ color: "var(--on-surface)" }}>도입 요청</h1>
           </div>
-          <Link
-            href="/admin"
-            className="rounded-full px-4 py-2 text-sm font-bold"
-            style={{ background: "color-mix(in srgb, var(--primary) 14%, transparent)", color: "var(--primary)" }}
-          >
-            어드민으로
-          </Link>
         </div>
 
         {/* 필터 탭 */}
@@ -112,16 +107,16 @@ export default function AccessRequestsPageClient() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className="rounded-full px-4 py-1.5 text-sm font-bold transition-all"
+              className="rounded-full px-4 py-2 text-xs font-black tracking-tight transition-all"
               style={
                 filter === f
-                  ? { background: "var(--primary)", color: "#04141a" }
-                  : { background: "color-mix(in srgb, var(--on-surface) 8%, transparent)", color: "var(--text-soft)" }
+                  ? { background: "var(--primary)", color: "var(--on-primary)" }
+                  : { background: "var(--surface-overlay)", color: "var(--text-soft)" }
               }
             >
               {f === "all" ? "전체" : STATUS_LABEL[f]}
               {f !== "all" && (
-                <span className="ml-1.5 text-xs opacity-70">
+                <span className="ml-1.5 text-[11px] opacity-70">
                   {requests.filter((r) => r.status === f).length}
                 </span>
               )}
@@ -139,8 +134,13 @@ export default function AccessRequestsPageClient() {
               <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="py-16 text-center">
-              <p className="text-sm font-semibold" style={{ color: "var(--text-soft)" }}>요청이 없어요</p>
+            <div className="flex min-h-[280px] flex-col items-center justify-center px-6 py-16 text-center">
+              <p className="text-sm font-black tracking-tight" style={{ color: "var(--on-surface-variant)" }}>
+                요청이 없어요
+              </p>
+              <p className="mt-1 text-xs font-medium" style={{ color: "var(--text-soft)" }}>
+                필터를 바꿔 보거나, 새 요청이 들어올 때까지 기다려 주세요.
+              </p>
             </div>
           ) : (
             <div className="divide-y" style={{ borderColor: "var(--surface-overlay)" }}>
@@ -287,4 +287,3 @@ export default function AccessRequestsPageClient() {
     </>
   );
 }
-

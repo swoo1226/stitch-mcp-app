@@ -36,75 +36,75 @@
 
 
 :root {
-  /* Atmospheric Sanctuary Palette */
-  --surface: #ebfaec;
-  --surface-container-low: #e4f5e5;
-  --surface-container: #dcefe0;
-  --surface-container-high: #d5e8d8;
-  --surface-container-highest: #cde2cf;
+  /* High-Visibility Cerulean Sky & Silver Palette */
+  --surface: #f8fafc;
+  --surface-container-low: #f1f5f9;
+  --surface-container: #e2e8f0;
+  --surface-container-high: #cbd5e1;
+  --surface-container-highest: #94a3b8;
   --surface-lowest: #ffffff;
-  --surface-elevated: rgba(255, 255, 255, 0.82);
-  --surface-overlay: rgba(255, 255, 255, 0.72);
+  --surface-elevated: rgba(255, 255, 255, 0.9);
+  --surface-overlay: rgba(255, 255, 255, 0.82);
   
-  --on-surface: #253228;
-  --on-surface-variant: #516b67;
-  --text-muted: rgba(37, 50, 40, 0.62);
-  --text-soft: rgba(37, 50, 40, 0.45);
-  --border-subtle: rgba(37, 50, 40, 0.08);
+  --on-surface: #0f172a;
+  --on-surface-variant: #334155;
+  --text-muted: rgba(15, 23, 42, 0.65);
+  --text-soft: rgba(15, 23, 42, 0.5);
+  --border-subtle: rgba(15, 23, 42, 0.08);
   
-  --primary: #006668;
+  --primary: #0369a1; /* Sky 800 - High Contrast Cerulean */
   --on-primary: #ffffff;
-  --primary-container: #52f2f5;
+  --primary-container: #e0f2fe;
   
-  --secondary: #52f2f5;
-  --secondary-container: #c1eaea;
+  --secondary: #0ea5e9; /* Sky 500 - Supportive Sky */
+  --secondary-container: #f0f9ff;
   
-  --tertiary: #9b3d37;
-  --tertiary-container: #ffc3bd;
+  --tertiary: #d97706; /* Amber 600 - Muted Solar Accent */
+  --tertiary-container: #fff7ed;
   
-  --error: #ba1a1a;
-  --error-container: #ffdad6;
+  --error: #e11d48; /* Rose 600 - Crisp Alert */
+  --error-container: #fff1f2;
   
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-bg-low: rgba(255, 255, 255, 0.5);
-  --glass-bg-medium: rgba(255, 255, 255, 0.65);
-  --glass-bg-high: rgba(255, 255, 255, 0.8);
-  --glass-blur: blur(20px);
-  --glass-blur-low: blur(16px);
-  --glass-blur-medium: blur(24px);
-  --glass-blur-high: blur(40px);
+  --glass-bg: rgba(255, 255, 255, 0.76);
+  --glass-bg-low: rgba(255, 255, 255, 0.55);
+  --glass-bg-medium: rgba(255, 255, 255, 0.7);
+  --glass-bg-high: rgba(255, 255, 255, 0.85);
+  --glass-blur: blur(24px);
+  --glass-blur-low: blur(18px);
+  --glass-blur-medium: blur(28px);
+  --glass-blur-high: blur(44px);
 
   --shadow-ambient: var(--shadow-level-3);
   --glass-shadow: var(--shadow-level-2);
-  --shadow-level-1: 0 4px 12px -4px rgba(37, 50, 40, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-  --shadow-level-2: 0 8px 24px -4px rgba(37, 50, 40, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-  --shadow-level-3: 0 16px 32px -8px rgba(37, 50, 40, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.5), inset 0 -2px 0 0 rgba(0, 0, 0, 0.05);
-  --shadow-level-4: 0 32px 64px -12px rgba(37, 50, 40, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
-  --header-bg: rgba(255, 255, 255, 0.72);
+  --shadow-level-1: 0 4px 12px -4px rgba(3, 105, 161, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  --shadow-level-2: 0 8px 24px -4px rgba(3, 105, 161, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  --shadow-level-3: 0 16px 32px -8px rgba(3, 105, 161, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.65), inset 0 -4px 0 0 rgba(0, 0, 0, 0.02);
+  --shadow-level-4: 0 32px 64px -12px rgba(3, 105, 161, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+  --header-bg: rgba(255, 255, 255, 0.78);
   --header-shadow: var(--shadow-level-2);
-  --header-action-color: rgba(37, 50, 40, 0.7);
-  --drawer-bg: rgba(255, 255, 255, 0.96);
-  --drawer-scrim: rgba(37, 50, 40, 0.15);
-  --panel-soft: rgba(228, 245, 229, 0.6);
-  --panel-strong: rgba(255, 255, 255, 0.86);
-  --panel-tint: rgba(235, 250, 236, 0.88);
-  --tile-soft: rgba(255, 255, 255, 0.62);
-  --hero-gradient: radial-gradient(circle at top right, rgba(197,242,237,0.42) 0%, rgba(235,250,236,0.96) 38%, rgba(228,245,229,1) 100%);
-  --landing-hero-gradient: radial-gradient(ellipse 80% 60% at 70% 40%, rgba(82,242,245,0.18) 0%, transparent 60%), radial-gradient(ellipse 60% 80% at 10% 60%, rgba(0,102,104,0.06) 0%, transparent 60%), var(--surface);
-  --highlight-soft: rgba(0, 102, 104, 0.08);
-  --button-primary-gradient: linear-gradient(135deg, #006668, #1a9d9f);
-  --button-primary-shadow: var(--shadow-level-3);
+  --header-action-color: rgba(15, 23, 42, 0.72);
+  --drawer-bg: rgba(255, 255, 255, 0.98);
+  --drawer-scrim: rgba(15, 23, 42, 0.16);
+  --panel-soft: rgba(241, 245, 249, 0.6);
+  --panel-strong: rgba(255, 255, 255, 0.9);
+  --panel-tint: rgba(248, 250, 252, 0.92);
+  --tile-soft: rgba(255, 255, 255, 0.68);
+  --hero-gradient: radial-gradient(circle at top right, rgba(186,230,253,0.4) 0%, rgba(248,250,252,0.96) 38%, rgba(241,245,249,1) 100%);
+  --landing-hero-gradient: radial-gradient(ellipse 80% 60% at 70% 40%, rgba(3,105,161,0.06) 0%, transparent 60%), radial-gradient(ellipse 60% 80% at 10% 60%, rgba(15,23,42,0.02) 0%, transparent 60%), var(--surface);
+  --highlight-soft: rgba(3, 105, 161, 0.06);
+  --button-primary-gradient: linear-gradient(135deg, #075985, #0ea5e9);
+  --button-primary-shadow: var(--shadow-level-2);
   --button-subtle-bg: var(--surface-container);
   --button-subtle-shadow: none;
-  --button-subtle-text: rgba(37, 50, 40, 0.7);
-  --track-bg: rgba(37, 50, 40, 0.08);
+  --button-subtle-text: rgba(15, 23, 42, 0.75);
+  --track-bg: rgba(3, 105, 161, 0.08);
   /* 날씨 단계: 맑음 > 구름조금 > 흐림 > 비 > 뇌우 */
-  --weather-sunny-bg: #f0fdf8;
-  --weather-sunny-blob-1: #006668;
-  --weather-sunny-blob-2: #52f2f5;
-  --weather-partlycloudy-bg: #f0fdf4;
-  --weather-partlycloudy-blob-1: #22C55E;
-  --weather-partlycloudy-blob-2: #86efac;
+  --weather-sunny-bg: #f8fafc;
+  --weather-sunny-blob-1: #0ea5e9;
+  --weather-sunny-blob-2: #38bdf8;
+  --weather-partlycloudy-bg: #f8fafc;
+  --weather-partlycloudy-blob-1: #0369a1;
+  --weather-partlycloudy-blob-2: #7dd3fc;
   --weather-cloudy-bg: #f1f5f9;
   --weather-cloudy-blob-1: #94a3b8;
   --weather-cloudy-blob-2: #cbd5e1;
@@ -133,61 +133,61 @@ html[data-theme="dark"] {
   --surface-elevated: rgba(19, 28, 31, 0.88);
   --surface-overlay: rgba(17, 26, 28, 0.78);
 
-  --on-surface: #e5f1ee;
-  --on-surface-variant: #b8ccc8;
-  --text-muted: rgba(229, 241, 238, 0.82);
-  --text-soft: rgba(229, 241, 238, 0.68);
-  --border-subtle: rgba(229, 241, 238, 0.14);
+  --on-surface: #f1f5f9;
+  --on-surface-variant: #94a3b8;
+  --text-muted: rgba(241, 245, 249, 0.82);
+  --text-soft: rgba(241, 245, 249, 0.65);
+  --border-subtle: rgba(241, 245, 249, 0.12);
 
-  --primary: #52f2f5;
-  --on-primary: #062b2c;
-  --primary-container: #0f4f51;
+  --primary: #38bdf8; /* Sky 400 - Vibrant Sky for Dark Mode */
+  --on-primary: #082f49;
+  --primary-container: #0c4a6e;
 
-  --secondary: #87d9dc;
-  --secondary-container: #183a3c;
+  --secondary: #7dd3fc;
+  --secondary-container: #075985;
 
-  --tertiary: #ff9f95;
-  --tertiary-container: #48211e;
+  --tertiary: #fbbf24; /* Amber 400 - Softer Solar Accent */
+  --tertiary-container: #422006;
 
-  --error: #ff8f8f;
-  --error-container: #4b1f20;
+  --error: #fda4af; /* Rose 300 - Clear Alert */
+  --error-container: #4c0519;
 
-  --glass-bg: rgba(18, 28, 31, 0.72);
-  --glass-bg-low: rgba(18, 28, 31, 0.5);
-  --glass-bg-medium: rgba(18, 28, 31, 0.68);
-  --glass-bg-high: rgba(18, 28, 31, 0.82);
+  --glass-bg: rgba(15, 23, 42, 0.76);
+  --glass-bg-low: rgba(15, 23, 42, 0.55);
+  --glass-bg-medium: rgba(15, 23, 42, 0.7);
+  --glass-bg-high: rgba(15, 23, 42, 0.85);
 
   --shadow-ambient: var(--shadow-level-4);
   --glass-shadow: var(--shadow-level-2);
-  --shadow-level-1: 0 4px 12px -4px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-  --shadow-level-2: 0 8px 24px -4px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-  --shadow-level-3: 0 16px 32px -8px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.12), inset 0 -2px 0 0 rgba(0, 0, 0, 0.2);
-  --shadow-level-4: 0 32px 64px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-  --header-bg: rgba(16, 23, 25, 0.78);
+  --shadow-level-1: 0 4px 12px -4px rgba(0, 0, 0, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --shadow-level-2: 0 8px 24px -4px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  --shadow-level-3: 0 16px 32px -8px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  --shadow-level-4: 0 32px 64px -12px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  --header-bg: rgba(15, 23, 42, 0.82);
   --header-shadow: var(--shadow-level-2);
-  --header-action-color: rgba(229, 241, 238, 0.86);
-  --drawer-bg: rgba(14, 21, 23, 0.96);
-  --drawer-scrim: rgba(5, 8, 10, 0.46);
-  --panel-soft: rgba(20, 30, 33, 0.92);
-  --panel-strong: rgba(15, 23, 25, 0.92);
-  --panel-tint: rgba(17, 27, 29, 0.92);
-  --tile-soft: rgba(27, 40, 43, 0.92);
-  --hero-gradient: radial-gradient(circle at top right, rgba(19,71,74,0.42) 0%, rgba(12,21,23,0.96) 38%, rgba(9,15,17,1) 100%);
-  --landing-hero-gradient: radial-gradient(ellipse 80% 60% at 70% 40%, rgba(82,242,245,0.12) 0%, transparent 60%), radial-gradient(ellipse 60% 80% at 10% 60%, rgba(0,102,104,0.18) 0%, transparent 60%), var(--surface);
-  --highlight-soft: rgba(82, 242, 245, 0.16);
-  --button-primary-gradient: linear-gradient(135deg, #0d7375, #34b9bc);
+  --header-action-color: rgba(241, 245, 249, 0.88);
+  --drawer-bg: rgba(15, 23, 42, 0.98);
+  --drawer-scrim: rgba(0, 0, 0, 0.45);
+  --panel-soft: rgba(30, 41, 59, 0.9);
+  --panel-strong: rgba(15, 23, 42, 0.92);
+  --panel-tint: rgba(15, 23, 42, 0.94);
+  --tile-soft: rgba(30, 41, 59, 0.88);
+  --hero-gradient: radial-gradient(circle at top right, rgba(12,74,110,0.45) 0%, rgba(15,23,42,0.96) 38%, rgba(2,6,23,1) 100%);
+  --landing-hero-gradient: radial-gradient(ellipse 80% 60% at 70% 40%, rgba(56,189,248,0.1) 0%, transparent 60%), radial-gradient(ellipse 60% 80% at 10% 60%, rgba(15,23,42,0.05) 0%, transparent 60%), var(--surface);
+  --highlight-soft: rgba(56, 189, 248, 0.12);
+  --button-primary-gradient: linear-gradient(135deg, #075985, #0ea5e9);
   --button-primary-shadow: var(--shadow-level-3);
-  --button-subtle-bg: rgba(255, 255, 255, 0.04);
-  --button-subtle-shadow: inset 0 0 0 1px rgba(229, 241, 238, 0.06);
-  --button-subtle-text: rgba(229, 241, 238, 0.84);
-  --track-bg: rgba(229, 241, 238, 0.12);
+  --button-subtle-bg: rgba(255, 255, 255, 0.05);
+  --button-subtle-shadow: inset 0 0 0 1px rgba(241, 245, 249, 0.08);
+  --button-subtle-text: rgba(241, 245, 249, 0.85);
+  --track-bg: rgba(241, 245, 249, 0.15);
   /* 날씨 단계 다크 모드 */
-  --weather-sunny-bg: #061414;
-  --weather-sunny-blob-1: #006668;
-  --weather-sunny-blob-2: #0d7375;
-  --weather-partlycloudy-bg: #061208;
-  --weather-partlycloudy-blob-1: #16A34A;
-  --weather-partlycloudy-blob-2: #15803d;
+  --weather-sunny-bg: #0c4a6e;
+  --weather-sunny-blob-1: #0ea5e9;
+  --weather-sunny-blob-2: #38bdf8;
+  --weather-partlycloudy-bg: #1e293b;
+  --weather-partlycloudy-blob-1: #0ea5e9;
+  --weather-partlycloudy-blob-2: #0284c7;
   --weather-cloudy-bg: #161d24;
   --weather-cloudy-blob-1: #607287;
   --weather-cloudy-blob-2: #4b5968;
@@ -204,6 +204,11 @@ html[data-theme="dark"] {
   --weather-foggy-bg: var(--weather-cloudy-bg);
   --weather-foggy-blob-1: var(--weather-cloudy-blob-1);
   --weather-foggy-blob-2: var(--weather-cloudy-blob-2);
+}
+
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
 }
 
 @layer base {

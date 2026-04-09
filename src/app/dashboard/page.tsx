@@ -10,10 +10,11 @@ export default async function DashboardPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await searchParams;
+  const isExplicitDemo = getRequiredSearchParam(params.team) === DEMO_TEAM_ID;
   let teamId = getRequiredSearchParam(params.team) ?? DEMO_TEAM_ID;
 
-  // 쿼리 파라미터 없이 접근한 경우 로그인 세션에서 팀 자동 resolve
-  if (teamId === DEMO_TEAM_ID) {
+  // 쿼리 파라미터 없이 접근한 경우(또는 명시적 데모가 아닌 경우) 로그인 세션에서 팀 자동 resolve
+  if (!isExplicitDemo && teamId === DEMO_TEAM_ID) {
     const resolved = await resolveTeamId();
     if (resolved) teamId = resolved;
   }

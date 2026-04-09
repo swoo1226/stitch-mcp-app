@@ -9,12 +9,9 @@ import { STANDARD_SPRING } from "../constants/springs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
-import ClimaLogo from "../components/WetherLogo";
-import ThemeToggleButton from "../components/ThemeToggleButton";
-import NotificationBell from "../components/NotificationBell";
 import AdminBottomNav from "../components/AdminBottomNav";
+import AdminSectionHeader from "../components/AdminSectionHeader";
 import { BottomSheet, BottomSheetOverlay } from "../components/BottomSheet";
-import { useSearchParams } from "next/navigation";
 import {
   ClimaButton,
   ClimaInput,
@@ -207,7 +204,13 @@ interface Team {
   jira_project_keys: string[] | null;
 }
 
-export default function AdminPageClient({ role }: { role?: string }) {
+export default function AdminPageClient({
+  role,
+  initialTab = "members",
+}: {
+  role?: string;
+  initialTab?: "members" | "teams";
+}) {
   const [authed, setAuthed] = useState(false);
   const [adminSession, setAdminSession] = useState<AdminSession | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -215,11 +218,10 @@ export default function AdminPageClient({ role }: { role?: string }) {
   const [pwInput, setPwInput] = useState("");
   const [pwError, setPwError] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
 
   // 탭: "members" | "teams"
-  const [activeTab, setActiveTab] = useState<"members" | "teams">("members");
+  const activeTab = initialTab;
 
   // ── 삭제 재확인
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -236,15 +238,6 @@ export default function AdminPageClient({ role }: { role?: string }) {
   // ── 모바일 바텀시트 상태
   const [detailMember, setDetailMember] = useState<Member | null>(null);
   const [managementSheet, setManagementSheet] = useState<"none" | "add" | "invite" | "jira">("none");
-
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const tab = searchParams.get("tab");
-    if (tab === "members" || tab === "teams") {
-      setActiveTab(tab as "members" | "teams");
-    }
-  }, [searchParams]);
 
   const thoughtPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const thoughtLongPressTriggeredRef = useRef(false);
@@ -976,224 +969,16 @@ export default function AdminPageClient({ role }: { role?: string }) {
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: "var(--surface)" }}>
+      <AdminSectionHeader
+        current="admin"
+        role={role === "super_admin" ? "super_admin" : "team_admin"}
+        activeAdminTab={activeTab}
+        showLogout
+        onLogout={signOut}
+      />
 
-      {/* ── 메인 영역 ── */}
+      {/* 캔버스 */}
       <div className="flex flex-col min-h-screen overflow-y-auto overflow-x-hidden">
-
-        {/* 탑바 */}
-        <motion.header
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={STANDARD_SPRING}
-          className="fixed z-40 top-0 left-0 right-0 flex items-center justify-between h-16 px-6 md:px-10"
-          style={{ background: "var(--header-bg)", backdropFilter: "var(--glass-blur)", boxShadow: "var(--header-shadow)" }}
-        >
-          {/* 좌측: 페이지 타이틀 */}
-          <div className="flex items-center gap-6">
-            <span
-              className="font-black text-xl tracking-tight shrink-0"
-              style={{ fontFamily: "'Space Grotesk', 'Public Sans', sans-serif", color: "var(--primary)" }}
-            >
-              Clima 관리자
-            </span>
-
-            {/* 데스크톱 네비게이션 */}
-            <nav className="hidden md:flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setActiveTab("members")}
-                className="px-4 py-2 text-sm font-bold tracking-tight rounded-full transition-colors"
-                style={activeTab === "members"
-                  ? { color: "var(--primary)", background: "color-mix(in srgb, var(--primary) 12%, transparent)" }
-                  : { color: "var(--text-soft)" }}
-              >
-                팀원 관리
-              </button>
-              {(adminSession === null || isSuperAdmin(adminSession)) && (
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("teams")}
-                  className="px-4 py-2 text-sm font-bold tracking-tight rounded-full transition-colors"
-                  style={activeTab === "teams"
-                    ? { color: "var(--primary)", background: "color-mix(in srgb, var(--primary) 12%, transparent)" }
-                    : { color: "var(--text-soft)" }}
-                >
-                  팀 · 파트
-                </button>
-              )}
-              <Link
-                href="/admin/combined-risk"
-                className="px-4 py-2 text-sm font-bold tracking-tight rounded-full transition-colors"
-                style={{ color: "var(--text-soft)" }}
-              >
-                주의 팀원
-              </Link>
-              <Link
-                href="/settings/notifications"
-                className="px-4 py-2 text-sm font-bold tracking-tight rounded-full transition-colors"
-                style={{ color: "var(--text-soft)" }}
-              >
-                알림 설정
-              </Link>
-            </nav>
-          </div>
-
-          {/* 우측 액션 */}
-          <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
-            <ThemeToggleButton />
-            <NotificationBell />
-            {isSuperAdmin(adminSession) && (
-              <Link
-                href="/admin/access-requests"
-                className="hidden md:flex h-10 items-center justify-center rounded-full px-4 text-sm font-bold transition-colors hover:bg-surface-low"
-                style={{ color: "var(--primary)" }}
-              >
-                도입 요청
-              </Link>
-            )}
-            <Link
-              href="/"
-              className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
-              title="메인으로"
-            >
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" />
-                <polyline points="9 22 9 12 15 12 15 22" />
-              </svg>
-            </Link>
-            <button
-              onClick={signOut}
-              className="hidden md:flex h-10 items-center justify-center rounded-full px-4 text-sm font-bold transition-colors hover:bg-surface-low"
-              style={{ color: "var(--error)" }}
-            >
-              로그아웃
-            </button>
-            <button
-              className="md:hidden flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
-              onClick={() => setMobileNavOpen(true)}
-              aria-label="메뉴 열기"
-            >
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
-              </svg>
-            </button>
-          </div>
-        </motion.header>
-
-        <AnimatePresence>
-          {mobileNavOpen && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setMobileNavOpen(false)}
-                className="fixed inset-0 z-[60]"
-                style={{ background: "var(--drawer-scrim)", backdropFilter: "blur(4px)" }}
-              />
-              <motion.div
-                initial={{ x: "100%" }}
-                animate={{ x: 0 }}
-                exit={{ x: "100%" }}
-                transition={STANDARD_SPRING}
-                className="fixed right-0 top-0 h-full w-72 z-[70] flex flex-col"
-                style={{ background: "var(--drawer-bg)", backdropFilter: "var(--glass-blur)" }}
-              >
-                <div className="flex items-center justify-between px-6 h-16 shrink-0">
-                  <ClimaLogo />
-                  <button
-                    onClick={() => setMobileNavOpen(false)}
-                    className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-low transition-colors"
-                    style={{ color: "var(--text-soft)" }}
-                  >
-                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                      <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
-                    </svg>
-                  </button>
-                </div>
-                <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
-                  <button
-                    type="button"
-                    onClick={() => { setActiveTab("members"); setMobileNavOpen(false); }}
-                    className="rounded-[1.5rem] px-5 py-4 text-left text-base font-semibold tracking-tight transition-all duration-200"
-                    style={activeTab === "members"
-                      ? {
-                        color: "var(--primary)",
-                        background: "color-mix(in srgb, var(--primary) 14%, transparent)",
-                      }
-                      : { color: "var(--text-muted)" }}
-                  >
-                    팀원 관리
-                  </button>
-                  {(adminSession === null || isSuperAdmin(adminSession)) && (
-                    <button
-                      type="button"
-                      onClick={() => { setActiveTab("teams"); setMobileNavOpen(false); }}
-                      className="rounded-[1.5rem] px-5 py-4 text-left text-base font-semibold tracking-tight transition-all duration-200"
-                      style={activeTab === "teams"
-                        ? {
-                          color: "var(--primary)",
-                          background: "color-mix(in srgb, var(--primary) 14%, transparent)",
-                        }
-                        : { color: "var(--text-muted)" }}
-                    >
-                      팀 · 파트 관리
-                    </button>
-                  )}
-                  <Link
-                    href="/admin/combined-risk"
-                    onClick={() => setMobileNavOpen(false)}
-                    className="rounded-[1.5rem] px-5 py-4 text-left text-base font-semibold tracking-tight transition-all duration-200"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    주의 팀원
-                  </Link>
-                  {isSuperAdmin(adminSession) && (
-                    <Link
-                      href="/admin/access-requests"
-                      onClick={() => setMobileNavOpen(false)}
-                      className="rounded-[1.5rem] px-5 py-4 text-left text-base font-semibold tracking-tight transition-all duration-200"
-                      style={{ color: "var(--primary)" }}
-                    >
-                      도입 요청
-                    </Link>
-                  )}
-                  <Link
-                    href="/settings/notifications"
-                    onClick={() => setMobileNavOpen(false)}
-                    className="rounded-[1.5rem] px-5 py-4 text-left text-base font-semibold tracking-tight transition-all duration-200"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    알림 설정
-                  </Link>
-                  <Link
-                    href="/"
-                    onClick={() => setMobileNavOpen(false)}
-                    className="rounded-[1.5rem] px-5 py-4 text-base font-semibold tracking-tight transition-all duration-200"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    홈으로
-                  </Link>
-                </nav>
-                <div className="px-4 pb-4">
-                  <button
-                    type="button"
-                    onClick={() => { setMobileNavOpen(false); signOut(); }}
-                    className="w-full rounded-[1.5rem] px-5 py-4 text-left text-base font-semibold tracking-tight transition-all duration-200"
-                    style={{
-                      color: "var(--error)",
-                      background: "color-mix(in srgb, var(--error) 10%, transparent)",
-                    }}
-                  >
-                    로그아웃
-                  </button>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-
-        {/* 캔버스 */}
         <motion.main
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1201,27 +986,25 @@ export default function AdminPageClient({ role }: { role?: string }) {
           className="pt-20 px-4 pb-28 md:pb-12 md:px-8 flex flex-col gap-6 md:gap-8 w-full max-w-2xl md:max-w-none mx-auto"
         >
           <div className="md:hidden flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setActiveTab("members")}
-              className="rounded-full px-4 py-2 text-xs font-black tracking-tight"
-              style={activeTab === "members"
-                ? { background: "var(--primary)", color: "#04141a" }
-                : { background: "var(--surface-overlay)", color: "var(--text-soft)" }}
-            >
-              팀원 관리
-            </button>
+              <Link
+                href="/admin/members"
+                className="rounded-full px-4 py-2 text-xs font-black tracking-tight"
+                style={activeTab === "members"
+                  ? { background: "var(--primary)", color: "var(--on-primary)" }
+                  : { background: "var(--surface-overlay)", color: "var(--text-soft)" }}
+              >
+                팀원 관리
+              </Link>
             {(adminSession === null || isSuperAdmin(adminSession)) && (
-              <button
-                type="button"
-                onClick={() => setActiveTab("teams")}
+              <Link
+                href="/admin/teams"
                 className="rounded-full px-4 py-2 text-xs font-black tracking-tight"
                 style={activeTab === "teams"
-                  ? { background: "var(--primary)", color: "#04141a" }
+                  ? { background: "var(--primary)", color: "var(--on-primary)" }
                   : { background: "var(--surface-overlay)", color: "var(--text-soft)" }}
               >
                 팀 · 파트
-              </button>
+              </Link>
             )}
             <Link
               href="/admin/combined-risk"
@@ -1397,7 +1180,7 @@ export default function AdminPageClient({ role }: { role?: string }) {
                 className="min-w-0 flex-1 px-1 text-xs font-bold tracking-tight"
                 style={{
                   color: !loading && members.length > 0 && checkedInToday < members.length
-                    ? "var(--tertiary)"
+                    ? "var(--error)"
                     : "var(--on-surface-variant)",
                 }}
               >
@@ -1832,8 +1615,8 @@ export default function AdminPageClient({ role }: { role?: string }) {
                                 onClick={() => { if (latest && isToday) setConfirmResetId(confirmResetId === m.id ? null : m.id); }}
                                 className="flex w-12 h-12 items-center justify-center rounded-full transition-colors"
                                 style={{
-                                  background: confirmResetId === m.id ? "color-mix(in srgb, #ed8936 22%, transparent)" : latest && isToday ? "color-mix(in srgb, #ed8936 14%, transparent)" : "var(--button-subtle-bg)",
-                                  color: latest && isToday ? "color-mix(in srgb, #ed8936 78%, var(--on-surface))" : "var(--text-soft)",
+                                  background: confirmResetId === m.id ? "color-mix(in srgb, var(--tertiary) 22%, transparent)" : latest && isToday ? "color-mix(in srgb, var(--tertiary) 14%, transparent)" : "var(--button-subtle-bg)",
+                                  color: latest && isToday ? "color-mix(in srgb, var(--tertiary) 78%, var(--on-surface))" : "var(--text-soft)",
                                   cursor: latest && isToday ? "pointer" : "default",
                                 }}
                                 title="오늘 기록 초기화"
@@ -1855,7 +1638,7 @@ export default function AdminPageClient({ role }: { role?: string }) {
                                   >
                                     <button type="button" onClick={() => { resetTodayMood(m.id); setConfirmResetId(null); }}
                                       className="flex w-10 h-10 items-center justify-center rounded-[1.25rem] text-xs font-black"
-                                      style={{ background: "color-mix(in srgb, #ed8936 16%, transparent)", color: "color-mix(in srgb, #ed8936 78%, var(--on-surface))" }}>✓</button>
+                                      style={{ background: "color-mix(in srgb, var(--tertiary) 16%, transparent)", color: "color-mix(in srgb, var(--tertiary) 78%, var(--on-surface))" }}>✓</button>
                                     <button type="button" onClick={() => setConfirmResetId(null)}
                                       className="flex w-10 h-10 items-center justify-center rounded-[1.25rem] text-sm"
                                       style={{ color: "var(--text-soft)", background: "var(--button-subtle-bg)" }}>✕</button>
@@ -3148,7 +2931,7 @@ export default function AdminPageClient({ role }: { role?: string }) {
                     type="button"
                     onClick={() => { resetTodayMood(detailMember.id); setDetailMember(null); }}
                     className="flex w-14 h-14 items-center justify-center rounded-full shrink-0 transition-all active:scale-90"
-                    style={{ background: "color-mix(in srgb, #ed8936 12%, transparent)", color: "#ed8936" }}
+                    style={{ background: "color-mix(in srgb, var(--tertiary) 12%, transparent)", color: "var(--tertiary)" }}
                   >
                     <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" strokeLinecap="round" strokeLinejoin="round" />
@@ -3298,11 +3081,7 @@ export default function AdminPageClient({ role }: { role?: string }) {
         )}
       </AnimatePresence>
 
-      <AdminBottomNav
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        isSuperAdmin={role === "super_admin" || (adminSession !== null && isSuperAdmin(adminSession))}
-      />
+      <AdminBottomNav isSuperAdmin={role === "super_admin" || (adminSession !== null && isSuperAdmin(adminSession))} />
     </div>
   );
 }

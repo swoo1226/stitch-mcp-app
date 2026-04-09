@@ -48,7 +48,7 @@ export default function SplashScreen() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(180deg, #f0fcfb 0%, #b1eeeb 100%)",
+        background: "var(--hero-gradient)",
         opacity: fading ? 0 : 1,
         transition: "opacity 0.4s ease",
         paddingTop: "env(safe-area-inset-top)",
@@ -67,7 +67,7 @@ export default function SplashScreen() {
             fontSize: "3rem",
             fontWeight: 800,
             fontFamily: "'Plus Jakarta Sans', sans-serif",
-            color: "#2b6867",
+            color: "var(--primary)",
             letterSpacing: "-0.02em",
             lineHeight: 1,
           }}
@@ -79,7 +79,7 @@ export default function SplashScreen() {
             marginTop: "0.5rem",
             fontSize: "1rem",
             fontFamily: "'Manrope', sans-serif",
-            color: "#4d6364",
+            color: "var(--on-surface-variant)",
             letterSpacing: "0.01em",
           }}
         >
@@ -103,7 +103,7 @@ export default function SplashScreen() {
               width: "0.4rem",
               height: "0.4rem",
               borderRadius: "9999px",
-              background: "#2b6867",
+              background: "var(--primary)",
               opacity: 0.6,
               animation: `splashBounce 1s ease-in-out ${i * 0.15}s infinite`,
             }}

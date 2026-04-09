@@ -22,7 +22,15 @@ import {
 import { STANDARD_SPRING } from "../constants/springs";
 import { supabase } from "../../lib/supabase";
 import { scoreToStatus, type WeatherStatus } from "../../lib/mood";
-import { DEMO_TEAM_ID, DEMO_PARTS, getDemoMembers, getDemoMonthLogs } from "../../lib/demo-data";
+import { DEMO_TEAM_ID, DEMO_PARTS, getDemoMembers, getDemoMonthLogs, getDemoSnapshotDate } from "../../lib/demo-data";
+
+function withDemoTeamParam(href: string, teamId: string): string {
+  if (teamId !== DEMO_TEAM_ID) return href;
+  const [path, existing] = href.split("?");
+  const params = new URLSearchParams(existing ?? "");
+  params.set("team", teamId);
+  return `${path}?${params.toString()}`;
+}
 
 // ─── 날짜 유틸 ──────────────────────────────────────────────────────────────
 function getWeekStart(date: Date): Date {
@@ -170,7 +178,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [managedTeamId, setManagedTeamId] = useState<string | null>(null);
 
-  const today = new Date();
+  const today = teamId === DEMO_TEAM_ID ? getDemoSnapshotDate() : new Date();
   const baseMonday = getWeekStart(today);
   baseMonday.setDate(baseMonday.getDate() + weekOffset * 7);
   const weekDays = getWeekDays(baseMonday);
@@ -310,7 +318,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
             <ClimaLogo />
           </Link>
           <nav className="hidden md:flex items-center gap-1">
-            <HeaderNav items={getNavItems(userRole, managedTeamId)} />
+            <HeaderNav items={getNavItems(userRole, managedTeamId)} teamId={teamId} />
           </nav>
         </div>
         <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
@@ -319,7 +327,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
           <button className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
             <TopIcon type="settings" />
           </button>
-          <Link href="/personal" className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
+          <Link href={withDemoTeamParam("/personal", teamId)} className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
             <TopIcon type="profile" />
           </Link>
           {/* 햄버거 버튼 (모바일) */}
@@ -368,7 +376,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
                 </button>
               </div>
               <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
-                <HeaderNav items={getNavItems(userRole, managedTeamId)} mobile onNavigate={() => setMobileNavOpen(false)} />
+                <HeaderNav items={getNavItems(userRole, managedTeamId)} teamId={teamId} mobile onNavigate={() => setMobileNavOpen(false)} />
                 <Link
                   href="/settings/notifications"
                   onClick={() => setMobileNavOpen(false)}

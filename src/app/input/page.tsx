@@ -81,10 +81,10 @@ const CELEBRATION_CONFIG: Record<string, {
   },
   Sunny: {
     overlayClass: "backdrop-blur-md",
-    cardShadow: "0 30px 100px -20px rgba(0,102,104,0.2)",
-    btnGradient: "linear-gradient(135deg, #006668 0%, #52f2f5 100%)",
-    btnShadow: "0 0 20px rgba(0,102,104,0.4)",
-    glowColor: "rgba(0,102,104,0.15)",
+    cardShadow: "0 30px 100px -20px rgba(3,105,161,0.2)",
+    btnGradient: "var(--button-primary-gradient)",
+    btnShadow: "var(--button-primary-shadow)",
+    glowColor: "rgba(3,105,161,0.15)",
     title: "오늘의 마음은 맑음!",
     subtitle: "따스한 햇살이 기록되었어요 ☀️",
   },
@@ -322,8 +322,8 @@ function ClimaInputInner() {
                       animate={{
                         left: `${score}%`,
                         scale: isDragging ? 1.3 : 1,
-                        backgroundColor: isDragging ? "var(--primary)" : "var(--surface-lowest)",
-                        boxShadow: isDragging ? "0 4px 20px -4px rgba(43,104,103,0.5)" : "0 2px 12px rgba(0,0,0,0.15)"
+                        backgroundColor: isDragging ? "var(--primary)" : "var(--surface)",
+                        boxShadow: isDragging ? "0 4px 20px -4px var(--primary)" : "var(--shadow-level-1)"
                       }}
                       transition={RESPONSIVE_SPRING}
                       className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 rounded-full shadow-lg z-0 will-change-transform flex items-center justify-center"
@@ -541,10 +541,10 @@ function CelebrationModal({
         transition={{ delay: 0.25, ...STANDARD_SPRING }}
         className="space-y-3 mb-8 px-2"
       >
-        <h2 className="font-extrabold tracking-tight leading-tight" style={{ fontSize: "28px", color: "#2e1f1a" }}>
+        <h2 className="font-extrabold tracking-tight leading-tight" style={{ fontSize: "28px", color: "var(--on-surface)" }}>
           {config.title}
         </h2>
-        <p className="text-base font-medium leading-relaxed" style={{ color: "#6b5551", maxWidth: "22ch", marginInline: "auto" }}>
+        <p className="text-base font-medium leading-relaxed" style={{ color: "var(--on-surface-variant)", maxWidth: "22ch", marginInline: "auto" }}>
           {config.subtitle}
         </p>
       </motion.div>
@@ -573,7 +573,7 @@ function CelebrationModal({
         <button
           onClick={onClose}
           className="w-full py-4 text-sm font-medium transition-colors hover:opacity-70"
-          style={{ color: "#92817a" }}
+          style={{ color: "var(--text-soft)" }}
         >
           닫기
         </button>

@@ -13,24 +13,24 @@ export default function ClimaLogo() {
         animate={shouldLimitMotion ? undefined : { y: [0, -1.5, 0], rotate: [0, -2, 0] }}
         transition={shouldLimitMotion ? undefined : { duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
       >
-        <svg viewBox="0 0 40 40" aria-hidden="true" className="h-9 w-9" style={{ filter: "drop-shadow(0 4px 8px rgba(0,102,104,0.35)) drop-shadow(0 1px 2px rgba(0,0,0,0.15))" }}>
+        <svg viewBox="0 0 40 40" aria-hidden="true" className="h-9 w-9" style={{ filter: "drop-shadow(0 4px 8px rgba(3,105,161,0.25)) drop-shadow(0 1px 2px rgba(0,0,0,0.15))" }}>
           <defs>
-            {/* 배경 그라데이션: 딥 틸 → 민트 (claymorphism 베이스) */}
+            {/* 배경 그라데이션: 사파이어 → 네이비 (claymorphism 베이스) */}
             <radialGradient id="clBg" cx="38%" cy="32%" r="70%">
-              <stop offset="0%" stopColor="#1a8a8c" />
-              <stop offset="55%" stopColor="#006668" />
-              <stop offset="100%" stopColor="#004d4f" />
+              <stop offset="0%" stopColor="#0ea5e9" />
+              <stop offset="55%" stopColor="#0369a1" />
+              <stop offset="100%" stopColor="#075985" />
             </radialGradient>
-            {/* 태양 그라데이션: 밝은 민트 → 틸 */}
+            {/* 태양 그라데이션: 밝은 세룰리안 → 스카이 */}
             <radialGradient id="clSun" cx="35%" cy="30%" r="65%">
-              <stop offset="0%" stopColor="#a8fafa" />
-              <stop offset="50%" stopColor="#52f2f5" />
-              <stop offset="100%" stopColor="#2ddde0" />
+              <stop offset="0%" stopColor="#bae6fd" />
+              <stop offset="50%" stopColor="#38bdf8" />
+              <stop offset="100%" stopColor="#0284c7" />
             </radialGradient>
-            {/* 구름 그라데이션: 흰색 → 연한 민트 */}
+            {/* 구름 그라데이션: 흰색 → 클라우드 블루 */}
             <linearGradient id="clCloud" x1="0%" y1="0%" x2="30%" y2="100%">
               <stop offset="0%" stopColor="#ffffff" />
-              <stop offset="100%" stopColor="#d6fafa" />
+              <stop offset="100%" stopColor="#f0f9ff" />
             </linearGradient>
             {/* 글로시 하이라이트 */}
             <radialGradient id="clGloss" cx="40%" cy="20%" r="55%">
@@ -39,7 +39,7 @@ export default function ClimaLogo() {
             </radialGradient>
             {/* 구름 섀도우 필터 */}
             <filter id="clShadow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" floodColor="#004d4f" floodOpacity="0.28" />
+              <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" floodColor="#075985" floodOpacity="0.2" />
             </filter>
           </defs>
 
@@ -58,7 +58,7 @@ export default function ClimaLogo() {
                 y1={cy + Math.sin(rad) * r1}
                 x2={cx + Math.cos(rad) * r2}
                 y2={cy + Math.sin(rad) * r2}
-                stroke="#a8fafa"
+                stroke="#bae6fd"
                 strokeWidth="1.3"
                 strokeLinecap="round"
                 strokeOpacity="0.75"

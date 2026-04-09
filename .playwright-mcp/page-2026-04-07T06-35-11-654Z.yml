@@ -1,0 +1,203 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - link "Cl i ma 클라이마" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e7]:
+            - img [ref=e9]
+            - generic [ref=e21]:
+              - generic [ref=e22]: Cl
+              - generic [ref=e23]: i
+              - generic [ref=e24]: ma
+              - generic [ref=e25]: 클라이마
+        - navigation [ref=e26]:
+          - link "개인 현황" [ref=e27] [cursor=pointer]:
+            - /url: /personal
+          - link "팀" [ref=e28] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Niko-Niko" [ref=e29] [cursor=pointer]:
+            - /url: /niko
+          - link "우리 팀도 써보기" [ref=e30] [cursor=pointer]:
+            - /url: /request-access
+          - link "알림" [ref=e31] [cursor=pointer]:
+            - /url: /alerts
+      - generic [ref=e32]:
+        - button "시스템 설정 사용 중 (라이트)" [ref=e33]:
+          - img [ref=e35]
+          - generic [ref=e38]: 시스템 설정 사용 중 (라이트)
+        - link "오늘 체크인하기" [ref=e39] [cursor=pointer]:
+          - /url: /input
+    - generic [ref=e40]:
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - generic [ref=e44]: 팀 컨디션 관리 도구, 클라이마(Clima)
+          - heading "우리 팀의 오늘 날씨, 맑음일까요?" [level=1] [ref=e46]:
+            - text: 우리 팀의 오늘 날씨,
+            - text: 맑음일까요?
+          - paragraph [ref=e47]: 팀원은 하루 10초로 컨디션을 공유하고, 팀장은 뇌우가 몰아치기 전에 먼저 알아챌 수 있어요.
+          - generic [ref=e48]:
+            - link "우리 팀도 써보기" [ref=e49] [cursor=pointer]:
+              - /url: /request-access
+            - link "대시보드 미리보기" [ref=e50] [cursor=pointer]:
+              - /url: /dashboard
+        - generic [ref=e51]:
+          - img [ref=e54]
+          - generic [ref=e60]:
+            - paragraph [ref=e61]: 팀 컨디션
+            - paragraph [ref=e62]: "82"
+          - generic [ref=e63]:
+            - img [ref=e65]
+            - generic [ref=e71]:
+              - paragraph [ref=e72]: 오늘 맑음 3명
+              - paragraph [ref=e73]: 전원 체크인 완료 ✓
+      - generic [ref=e74]:
+        - paragraph [ref=e75]: 스크롤
+        - img [ref=e77]
+    - generic [ref=e81]:
+      - generic [ref=e83]:
+        - paragraph [ref=e84]: 이런 식으로 작동해요
+        - heading "팀원은 기록하고, 팀장은 먼저 알아채요" [level=2] [ref=e85]:
+          - text: 팀원은 기록하고,
+          - text: 팀장은 먼저 알아채요
+        - paragraph [ref=e86]: 맑음·구름조금·흐림·비·뇌우 — 5단계 날씨가 숫자보다 빠르게 팀 분위기를 전달해요.
+      - generic [ref=e87]:
+        - generic [ref=e89]:
+          - generic [ref=e90]: "01"
+          - generic [ref=e91]:
+            - paragraph [ref=e92]: "팀원: 하루 10초, 오늘 컨디션 남기기"
+            - paragraph [ref=e93]: 1~100 사이 점수 하나면 끝이에요. 코멘트를 남기면 더 솔직하게 전달돼요.
+        - generic [ref=e95]:
+          - generic [ref=e96]: "02"
+          - generic [ref=e97]:
+            - paragraph [ref=e98]: 점수 → 날씨로 자동 변환
+            - paragraph [ref=e99]: 맑음·구름조금·흐림·비·뇌우. 숫자보다 날씨가 팀 분위기를 훨씬 빠르게 전달해요.
+        - generic [ref=e101]:
+          - generic [ref=e102]: "03"
+          - generic [ref=e103]:
+            - paragraph [ref=e104]: "팀장: 패턴을 먼저 발견하기"
+            - paragraph [ref=e105]: Niko-Niko 캘린더와 주간 추이로 문제가 커지기 전에 선제적으로 다가갈 수 있어요.
+    - generic [ref=e107]:
+      - generic [ref=e108]:
+        - paragraph [ref=e109]: 5단계 날씨
+        - heading "뇌우부터 맑음까지" [level=2] [ref=e110]
+        - paragraph [ref=e111]: 점수가 자동으로 날씨로 변환돼요. 나쁜 상태일수록 색이 선명하게 달라서 한눈에 알아볼 수 있어요.
+      - generic [ref=e112]:
+        - generic [ref=e114]:
+          - generic [ref=e115]:
+            - img [ref=e116]
+            - generic [ref=e122]: 0–20
+          - generic [ref=e123]:
+            - paragraph [ref=e124]: 뇌우
+            - paragraph [ref=e125]: 뇌우 — 많이 지쳐 있어요. 즉각적인 관심과 체크인이 필요한 상태예요.
+        - generic [ref=e127]:
+          - generic [ref=e128]:
+            - img [ref=e129]
+            - generic [ref=e137]: 21–40
+          - generic [ref=e138]:
+            - paragraph [ref=e139]: 비
+            - paragraph [ref=e140]: 비 — 오늘은 힘든 하루예요. 지지와 격려가 필요한 상태예요.
+        - generic [ref=e142]:
+          - generic [ref=e143]:
+            - img [ref=e144]
+            - generic [ref=e152]: 41–60
+          - generic [ref=e153]:
+            - paragraph [ref=e154]: 흐림
+            - paragraph [ref=e155]: 흐림 — 에너지가 낮고 무거운 느낌이에요. 천천히 살펴봐 주세요.
+        - generic [ref=e157]:
+          - generic [ref=e158]:
+            - img [ref=e159]
+            - generic [ref=e169]: 61–80
+          - generic [ref=e170]:
+            - paragraph [ref=e171]: 구름조금
+            - paragraph [ref=e172]: 구름조금 — 안정적이고 괜찮은 하루예요. 집중력도 잘 유지되고 있어요.
+        - generic [ref=e174]:
+          - generic [ref=e175]:
+            - img [ref=e176]
+            - generic [ref=e182]: 81–100
+          - generic [ref=e183]:
+            - paragraph [ref=e184]: 맑음
+            - paragraph [ref=e185]: 맑음 — 에너지가 넘치는 하루예요. 팀 전체가 생산적이고 긍정적이에요.
+    - generic [ref=e188]:
+      - generic [ref=e190]:
+        - generic [ref=e195]: 팀 대시보드 — 이번 주
+        - generic [ref=e196]:
+          - generic [ref=e197]:
+            - paragraph [ref=e198]: "78"
+            - paragraph [ref=e199]: 팀 컨디션
+          - generic [ref=e200]:
+            - paragraph [ref=e201]: 8/10
+            - paragraph [ref=e202]: 체크인
+          - generic [ref=e203]:
+            - paragraph [ref=e204]: +12%
+            - paragraph [ref=e205]: 추이
+        - generic [ref=e206]:
+          - paragraph [ref=e207]: 주간 추이
+          - generic [ref=e216]:
+            - paragraph [ref=e217]: 월
+            - paragraph [ref=e218]: 화
+            - paragraph [ref=e219]: 수
+            - paragraph [ref=e220]: 목
+            - paragraph [ref=e221]: 금
+            - paragraph [ref=e222]: 토
+            - paragraph [ref=e223]: 일
+        - generic [ref=e224]:
+          - generic [ref=e225]:
+            - img [ref=e227]
+            - paragraph [ref=e233]: 팀원 A
+            - generic [ref=e234]: 82pt
+          - generic [ref=e235]:
+            - img [ref=e237]
+            - paragraph [ref=e245]: 팀원 B
+            - generic [ref=e246]: 52pt
+          - generic [ref=e247]:
+            - img [ref=e249]
+            - paragraph [ref=e257]: 팀원 C
+            - generic [ref=e258]: 18pt
+      - generic [ref=e259]:
+        - generic [ref=e260]:
+          - paragraph [ref=e261]: 팀장을 위한 기능
+          - heading "뇌우가 오기 전에 먼저 다가가요" [level=2] [ref=e262]
+          - paragraph [ref=e263]: 일별 체크인 히스토리와 주간 추이로 팀 컨디션의 패턴을 한눈에 파악할 수 있어요.
+        - generic [ref=e264]:
+          - generic [ref=e266]:
+            - generic [ref=e267]: 📅
+            - generic [ref=e268]:
+              - paragraph [ref=e269]: 주간 체크인 기록
+              - paragraph [ref=e270]: 팀 전체의 일별 체크인 패턴을 한눈에 파악해요.
+          - generic [ref=e272]:
+            - generic [ref=e273]: ⚡
+            - generic [ref=e274]:
+              - paragraph [ref=e275]: 즉각 알림
+              - paragraph [ref=e276]: 팀원의 날씨가 '비' 또는 '뇌우'로 떨어지면 팀장에게 바로 알려줘요.
+        - link "우리 팀도 써보기 →" [ref=e278] [cursor=pointer]:
+          - /url: /request-access
+    - generic [ref=e285]:
+      - paragraph [ref=e286]: 지금 시작해요
+      - heading "우리 팀, 오늘 어때요?" [level=2] [ref=e287]
+      - paragraph [ref=e288]: 팀원은 10초로 오늘 날씨를 남기고, 팀장은 뇌우가 오기 전에 먼저 다가가세요.
+      - generic [ref=e289]:
+        - link "우리 팀도 써보기" [ref=e290] [cursor=pointer]:
+          - /url: /request-access
+        - link "팀 화면 먼저 보기" [ref=e291] [cursor=pointer]:
+          - /url: /dashboard
+    - generic [ref=e293]:
+      - generic [ref=e294]:
+        - img [ref=e296]
+        - generic [ref=e308]:
+          - generic [ref=e309]: Cl
+          - generic [ref=e310]: i
+          - generic [ref=e311]: ma
+          - generic [ref=e312]: 클라이마
+      - navigation [ref=e313]:
+        - link "개인 현황" [ref=e314] [cursor=pointer]:
+          - /url: /personal
+        - link "팀" [ref=e315] [cursor=pointer]:
+          - /url: /dashboard
+        - link "Niko-Niko" [ref=e316] [cursor=pointer]:
+          - /url: /niko
+        - link "우리 팀도 써보기" [ref=e317] [cursor=pointer]:
+          - /url: /request-access
+        - link "알림" [ref=e318] [cursor=pointer]:
+          - /url: /alerts
+      - paragraph [ref=e319]: © 2026 Clima

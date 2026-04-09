@@ -1,0 +1,11 @@
+- main [ref=e2]:
+  - generic [ref=e5]:
+    - generic [ref=e6]: ☀️
+    - heading "Clima" [level=1] [ref=e7]
+    - paragraph [ref=e8]: 로그인 후 이용할 수 있어요
+    - generic [ref=e9]:
+      - textbox "Email" [active] [ref=e11]
+      - textbox "Password" [ref=e13]
+      - button "로그인 →" [ref=e14]:
+        - generic [ref=e15]: 로그인 →
+    - paragraph [ref=e16]: "Region: Horizon-01 · v4.2.0"

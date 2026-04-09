@@ -81,7 +81,7 @@ const SANCTUARY_PRIMARY_BUTTON_CLASS =
   "relative inline-flex min-h-[3.75rem] items-center justify-center gap-2 rounded-[1.6rem] px-9 py-[0.95rem] font-extrabold tracking-[-0.01em] whitespace-nowrap transition-all active:scale-95";
 
 const SANCTUARY_SECONDARY_BUTTON_CLASS =
-  "relative inline-flex min-h-14 items-center justify-center gap-2 rounded-[1.6rem] px-8 py-[0.9rem] font-extrabold tracking-[-0.01em] whitespace-nowrap transition-all active:scale-95 bg-surface-highest text-primary";
+  "relative inline-flex min-h-14 items-center justify-center gap-2 rounded-[1.6rem] px-8 py-[0.9rem] font-extrabold tracking-[-0.01em] whitespace-nowrap transition-all active:scale-95 bg-primary-container text-primary";
 
 const SANCTUARY_TERTIARY_BUTTON_CLASS =
   "relative inline-flex min-h-14 items-center justify-center gap-2 rounded-[1.6rem] px-8 py-[0.9rem] font-extrabold tracking-[-0.01em] whitespace-nowrap transition-all active:scale-95 bg-tertiary-container text-tertiary";
@@ -222,7 +222,7 @@ interface ProgressBarProps {
 }
 
 const BAR_BG = {
-  gradient: "linear-gradient(90deg, #2b6867, #52f2f5)",
+  gradient: "var(--button-primary-gradient)",
   primary: "var(--primary)",
   secondary: "var(--secondary)",
   error: "var(--error)",
@@ -383,7 +383,7 @@ export function TabToggle<T extends string>({
                 layoutId={id}
                 className="absolute inset-0 rounded-[1.5rem]"
                 style={isPrimary
-                  ? { background: "linear-gradient(135deg, #2b6867 0%, #52f2f5 100%)" }
+                  ? { background: "var(--button-primary-gradient)" }
                   : { background: "var(--surface-elevated)", boxShadow: "var(--button-subtle-shadow)" }
                 }
                 transition={RESPONSIVE_SPRING}
@@ -546,9 +546,9 @@ export function WeatherTile({ Icon, label, isSelected, onClick }: WeatherTilePro
       className="flex flex-col items-center rounded-[1.5rem] transition-colors relative w-full"
       style={{
         background: isSelected
-          ? "linear-gradient(135deg, #2b6867 0%, #52f2f5 100%)"
+          ? "var(--button-primary-gradient)"
           : "var(--surface-container)",
-        boxShadow: isSelected ? "0 8px 24px -8px rgba(43,104,103,0.4)" : "none",
+        boxShadow: isSelected ? "var(--button-primary-shadow)" : "none",
         paddingTop: "1.5rem",
         paddingBottom: "1rem",
         paddingLeft: "0.5rem",
@@ -595,9 +595,9 @@ export function FAB({ children, onClick, href, className = "" }: FABProps) {
         paddingBottom: "0.875rem",
         paddingLeft: "2.5rem",
         paddingRight: "2.5rem",
-        background: "linear-gradient(135deg, #2b6867 0%, #52f2f5 100%)",
+        background: "var(--button-primary-gradient)",
         color: "var(--on-primary)",
-        boxShadow: "0 16px 44px -14px rgba(43, 104, 103, 0.42)",
+        boxShadow: "var(--button-primary-shadow)",
       }}
       whileHover={{ scale: 1.04, y: -3 }}
       whileTap={{ scale: 0.97 }}
@@ -647,13 +647,13 @@ export function ClimaButton({
 
   const variantStyle =
     variant === "secondary"
-      ? { boxShadow: "0 12px 32px -18px rgba(0, 102, 104, 0.22)" }
+      ? { boxShadow: "var(--shadow-level-1)" }
       : variant === "tertiary"
-        ? { boxShadow: "0 12px 32px -18px rgba(155, 61, 55, 0.28)" }
+        ? { boxShadow: "var(--shadow-level-1)" }
         : {
-          background: "linear-gradient(135deg, #2b6867 0%, #52f2f5 100%)",
+          background: "var(--button-primary-gradient)",
           color: "var(--on-primary)",
-          boxShadow: "0 16px 44px -14px rgba(43, 104, 103, 0.42)",
+          boxShadow: "var(--button-primary-shadow)",
         };
 
   const inner = (
@@ -688,7 +688,7 @@ export function SectionHeader({ icon, title, subtitle, className = "" }: Section
     <div className={`flex items-center gap-3 ${className}`}>
       <div
         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.5rem]"
-        style={{ background: "rgba(0,102,104,0.09)", color: "var(--primary)" }}
+        style={{ background: "var(--primary-container)", color: "var(--primary)" }}
       >
         {icon}
       </div>
@@ -836,7 +836,7 @@ export function WeatherCell({ status, score, message, isToday = false }: Weather
       <div
         ref={cellRef}
         className="relative flex flex-col items-center justify-center gap-0.5 rounded-[1.5rem] cursor-pointer select-none px-1 py-1.5"
-        style={{ background: isToday ? "rgba(0,102,104,0.08)" : "transparent" }}
+        style={{ background: isToday ? "color-mix(in srgb, var(--primary) 8%, transparent)" : "transparent" }}
         onMouseEnter={openTooltip}
         onMouseLeave={() => setShowTooltip(false)}
         onClick={(e) => { e.stopPropagation(); if (showTooltip) { setShowTooltip(false); } else { openTooltip(); } }}
