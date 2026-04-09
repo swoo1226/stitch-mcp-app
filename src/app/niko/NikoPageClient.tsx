@@ -408,8 +408,13 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
           >
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-2xl">
-                <h1 className="mb-2 text-[2rem] font-black tracking-tight text-primary md:text-[3.1rem]">
+                <h1 className="mb-2 flex items-center gap-3 text-[2rem] font-black tracking-tight text-primary md:text-[3.1rem]">
                   Niko-Niko 캘린더
+                  {teamId === DEMO_TEAM_ID && (
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-black uppercase tracking-wider text-primary">
+                      Demo
+                    </span>
+                  )}
                 </h1>
                 <p className="text-sm font-bold" style={{ color: "var(--text-soft)" }}>
                   {dateRangeLabel}

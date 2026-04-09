@@ -10,9 +10,10 @@ export default async function NikoPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await searchParams;
+  const isExplicitDemo = getRequiredSearchParam(params.team) === DEMO_TEAM_ID;
   let teamId = getRequiredSearchParam(params.team) ?? DEMO_TEAM_ID;
 
-  if (teamId === DEMO_TEAM_ID) {
+  if (!isExplicitDemo && teamId === DEMO_TEAM_ID) {
     const resolved = await resolveTeamId();
     if (resolved) teamId = resolved;
   }

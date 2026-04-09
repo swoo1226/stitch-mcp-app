@@ -10,9 +10,10 @@ export default async function PersonalPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await searchParams;
+  const isExplicitDemo = getRequiredSearchParam(params.user) === DEMO_USER_ID;
   let userId = getRequiredSearchParam(params.user) ?? DEMO_USER_ID;
 
-  if (userId === DEMO_USER_ID) {
+  if (!isExplicitDemo && userId === DEMO_USER_ID) {
     const resolved = await resolveUserId();
     if (resolved) userId = resolved;
   }
