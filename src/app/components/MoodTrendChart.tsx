@@ -97,17 +97,19 @@ export function MoodTrendChart({ scores, height = 44, className = "" }: MoodTren
         />
       ))}
 
-      {/* 우측 라벨 Gutter */}
+      {/* 우측 라벨 Gutter - 각 밴드의 중앙에 위치시켜 경계 이탈 방지 */}
       {height >= 40 && (
-        <div className="absolute right-0 top-0 bottom-0 w-8 flex flex-col justify-between items-end pointer-events-none py-1">
+        <div className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none">
           {LEVEL_CONFIG.map(({ level, label, color }) => (
             <span
               key={level}
-              className="text-[9px] font-black tracking-tighter"
+              className="absolute right-0 text-[10px] font-black tracking-tighter"
               style={{ 
                 color, 
-                opacity: 0.8,
-                transform: "translateY(50%)" /* 라벨 중앙이 선에 맞도록 조정 */
+                opacity: 0.9,
+                /* level이 밴드 하단이므로, 밴드 중앙인 level + 10% 위치로 지정 */
+                bottom: `${level + 10}%`,
+                transform: "translateY(50%)" 
               }}
             >
               {label}
