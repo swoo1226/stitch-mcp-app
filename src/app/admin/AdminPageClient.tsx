@@ -985,58 +985,12 @@ export default function AdminPageClient({
           transition={{ ...STANDARD_SPRING, delay: 0.05 }}
           className="pt-20 px-4 pb-28 md:pb-12 md:px-8 flex flex-col gap-6 md:gap-8 w-full max-w-2xl md:max-w-none mx-auto"
         >
-          <div className="md:hidden flex flex-wrap gap-2">
-              <Link
-                href="/admin/members"
-                className="rounded-full px-4 py-2 text-xs font-black tracking-tight"
-                style={activeTab === "members"
-                  ? { background: "var(--primary)", color: "var(--on-primary)" }
-                  : { background: "var(--surface-overlay)", color: "var(--text-soft)" }}
-              >
-                팀원 관리
-              </Link>
-            {(adminSession === null || isSuperAdmin(adminSession)) && (
-              <Link
-                href="/admin/teams"
-                className="rounded-full px-4 py-2 text-xs font-black tracking-tight"
-                style={activeTab === "teams"
-                  ? { background: "var(--primary)", color: "var(--on-primary)" }
-                  : { background: "var(--surface-overlay)", color: "var(--text-soft)" }}
-              >
-                팀 · 파트
-              </Link>
-            )}
-            <Link
-              href="/admin/combined-risk"
-              className="rounded-full px-4 py-2 text-xs font-black tracking-tight"
-              style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)", color: "var(--primary)" }}
-            >
-              주의 팀원
-            </Link>
-          </div>
           <div className="flex items-center justify-between gap-3">
             <div className="text-sm font-black tracking-tight md:text-base" style={{ color: "var(--primary)" }}>
               {activeTab === "members" ? "팀원 관리" : "팀 · 파트 관리"}
             </div>
             {activeTab === "members" && (
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/admin/combined-risk"
-                  className="md:hidden rounded-full px-4 py-2 text-xs font-black"
-                  style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)", color: "var(--primary)" }}
-                >
-                  전체 보기
-                </Link>
-                <ClimaButton
-                  variant="secondary"
-                  onClick={fetchCombinedRiskTargets}
-                  disabled={loadingRiskTargets}
-                  className="px-4 py-2 text-xs font-black"
-                  style={{ minHeight: "2rem" }}
-                >
-                  {loadingRiskTargets ? "불러오는 중..." : "주의 필요 팀원 보기"}
-                </ClimaButton>
-              </div>
+              <div className="flex items-center gap-2" />
             )}
           </div>
           {teamsAlertMessage && (

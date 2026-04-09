@@ -82,84 +82,80 @@ export default function CombinedRiskPageClient({
                 return (
                   <div
                     key={target.userId}
-                    className="rounded-[1.5rem] p-5"
+                    className="rounded-[1.5rem] p-4 md:p-5"
                     style={{
                       background: highlighted ? "color-mix(in srgb, var(--primary) 10%, var(--surface-lowest))" : "var(--surface-lowest)",
                       boxShadow: highlighted ? "0 0 0 2px color-mix(in srgb, var(--primary) 22%, transparent)" : "none",
                     }}
                   >
-                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
                           <span
-                            className="rounded-full px-2.5 py-1 text-[11px] font-black tracking-wide"
+                            className="rounded-full px-2 py-0.5 text-[9px] font-black tracking-wider"
                             style={levelStyle(target.level)}
                           >
                             {levelLabel(target.level)}
                           </span>
-                          {highlighted ? (
-                            <span className="rounded-full px-2.5 py-1 text-[11px] font-black tracking-wide" style={{ background: "color-mix(in srgb, var(--primary) 14%, transparent)", color: "var(--primary)" }}>
-                              알림에서 열림
-                            </span>
-                          ) : null}
+                          <span className="text-[11px] font-black tracking-tight" style={{ color: "var(--primary)" }}>
+                            {[target.teamName, target.partName].filter(Boolean).join(" · ")}
+                          </span>
                         </div>
-                        <h2 className="mt-3 text-xl font-black tracking-tight" style={{ color: "var(--on-surface)" }}>
+                        <h2 className="mt-1 text-lg font-black tracking-tight" style={{ color: "var(--on-surface)" }}>
                           {target.name}
                         </h2>
-                        <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-                          {[target.teamName, target.partName].filter(Boolean).join(" · ")}
-                        </p>
                       </div>
 
                       <Link
                         href={`/personal?user=${encodeURIComponent(target.userId)}`}
-                        className="rounded-full px-4 py-2 text-sm font-bold"
-                        style={{ background: "color-mix(in srgb, var(--primary) 14%, transparent)", color: "var(--primary)" }}
+                        className="rounded-full px-3 py-1.5 text-xs font-black shrink-0"
+                        style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)", color: "var(--primary)" }}
                       >
-                        개인 현황 보기
+                        상세 →
                       </Link>
                     </div>
 
-                    <div className="mt-4 grid gap-3 md:grid-cols-4">
-                      <div className="rounded-[1.25rem] px-4 py-3" style={{ background: "var(--surface-overlay)" }}>
-                        <p className="text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-soft)" }}>오늘 점수</p>
-                        <p className="mt-2 text-lg font-black" style={{ color: "var(--on-surface)" }}>{target.todayScore}pt</p>
-                      </div>
-                      <div className="rounded-[1.25rem] px-4 py-3" style={{ background: "var(--surface-overlay)" }}>
-                        <p className="text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-soft)" }}>최근 변화</p>
-                        <p className="mt-2 text-lg font-black" style={{ color: "var(--on-surface)" }}>
-                          {target.recentDelta == null ? "데이터 없음" : `${target.recentDelta > 0 ? "+" : ""}${target.recentDelta}pt`}
-                        </p>
-                      </div>
-                      <div className="rounded-[1.25rem] px-4 py-3" style={{ background: "var(--surface-overlay)" }}>
-                        <p className="text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-soft)" }}>미완료</p>
-                        <p className="mt-2 text-lg font-black" style={{ color: "var(--on-surface)" }}>{target.openTicketCount}건</p>
-                      </div>
-                      <div className="rounded-[1.25rem] px-4 py-3" style={{ background: "var(--surface-overlay)" }}>
-                        <p className="text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-soft)" }}>Blocker</p>
-                        <p className="mt-2 text-lg font-black" style={{ color: "var(--on-surface)" }}>{target.blockerCount}건</p>
-                      </div>
+                    {/* 압축된 메트릭 로우 */}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                       <div className="flex items-center gap-2 rounded-full px-3 py-1" style={{ background: "var(--surface-overlay)" }}>
+                         <span className="text-[10px] font-black opacity-50 uppercase tracking-wider">Mood</span>
+                         <span className="text-xs font-black" style={{ color: target.todayScore <= 30 ? "var(--error)" : "var(--on-surface)" }}>{target.todayScore}pt</span>
+                       </div>
+                       <div className="flex items-center gap-2 rounded-full px-3 py-1" style={{ background: "var(--surface-overlay)" }}>
+                         <span className="text-[10px] font-black opacity-50 uppercase tracking-wider">Delta</span>
+                         <span className="text-xs font-black">{target.recentDelta == null ? "-" : `${target.recentDelta > 0 ? "+" : ""}${target.recentDelta}`}</span>
+                       </div>
+                       <div className="flex items-center gap-2 rounded-full px-3 py-1" style={{ background: "var(--surface-overlay)" }}>
+                         <span className="text-[10px] font-black opacity-50 uppercase tracking-wider">Open</span>
+                         <span className="text-xs font-black">{target.openTicketCount}</span>
+                       </div>
+                       {target.blockerCount > 0 && (
+                         <div className="flex items-center gap-2 rounded-full px-3 py-1" style={{ background: "color-mix(in srgb, var(--error) 12%, var(--surface-overlay))" }}>
+                           <span className="text-[10px] font-black text-error uppercase tracking-wider">Blocker</span>
+                           <span className="text-xs font-black text-error">{target.blockerCount}</span>
+                         </div>
+                       )}
                     </div>
 
                     {target.tickets.length > 0 ? (
-                      <div className="mt-4 rounded-[1.25rem] p-4" style={{ background: "color-mix(in srgb, var(--surface-highest) 45%, var(--surface-lowest))" }}>
-                        <p className="text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: "var(--text-soft)" }}>주요 티켓</p>
-                        <div className="mt-3 space-y-2">
-                          {target.tickets.map((ticket) => (
-                            <a
-                              key={ticket.key}
-                              href={ticket.browseUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="block rounded-[1rem] px-3 py-3 transition-colors"
-                              style={{ background: "var(--surface-overlay)" }}
-                            >
-                              <p className="text-sm font-black" style={{ color: "var(--on-surface)" }}>{ticket.key}</p>
-                              <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>{ticket.summary}</p>
-                              <p className="mt-1 text-[11px] font-semibold" style={{ color: "var(--text-soft)" }}>{ticket.status}</p>
-                            </a>
-                          ))}
-                        </div>
+                      <div className="mt-3 space-y-2 border-t border-[color:var(--border-subtle)] pt-3">
+                        {target.tickets.map((ticket) => (
+                          <a
+                            key={ticket.key}
+                            href={ticket.browseUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center justify-between gap-3 rounded-[1rem] p-2 transition-colors hover:bg-surface-low"
+                          >
+                            <div className="min-w-0">
+                               <p className="text-[11px] font-black opacity-70" style={{ color: "var(--on-surface)" }}>{ticket.key}</p>
+                               <p className="truncate text-xs font-medium" style={{ color: "var(--text-muted)" }}>{ticket.summary}</p>
+                            </div>
+                            <span className="shrink-0 rounded-full bg-surface-container px-2 py-0.5 text-[9px] font-black" style={{ color: "var(--text-soft)" }}>
+                              {ticket.status}
+                            </span>
+                          </a>
+                        ))}
                       </div>
                     ) : null}
                   </div>
