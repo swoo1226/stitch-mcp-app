@@ -9,7 +9,7 @@ import HeaderNav from "../components/HeaderNav";
 import { getNavItems } from "../../lib/nav-items";
 import { getUserSession, type UserRole } from "../../lib/auth";
 import { displayName as getDisplayName } from "../../lib/user";
-import { SectionLabel, PrimaryTabToggle, TabToggle, NikoCalendar, type NikoCalendarMember } from "../components/ui";
+import { SectionLabel, PrimaryTabToggle, TabToggle, NikoCalendar, type NikoCalendarMember, TopIcon } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import NotificationBell from "../components/NotificationBell";
 import { STANDARD_SPRING } from "../constants/springs";
@@ -112,32 +112,7 @@ function withTeamParam(href: string, teamId: string | null): string {
 
 
 
-function TopIcon({ type }: { type: "bell" | "settings" | "profile" }) {
-  if (type === "bell") {
-    return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M12 4.5a4 4 0 0 0-4 4v2.3c0 .7-.2 1.3-.6 1.8L6 14.5h12l-1.4-1.9a3 3 0 0 1-.6-1.8V8.5a4 4 0 0 0-4-4Z" />
-        <path d="M9.5 17.5a2.5 2.5 0 0 0 5 0" />
-      </svg>
-    );
-  }
 
-  if (type === "settings") {
-    return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.5-2.4 1a8 8 0 0 0-1.8-1L14.5 3h-5L9.3 6a8 8 0 0 0-1.8 1l-2.4-1-2 3.5 2 1.6A7 7 0 0 0 5 12c0 .34.03.67.1 1l-2 1.6 2 3.5 2.4-1a8 8 0 0 0 1.8 1l.2 3h5l.2-3a8 8 0 0 0 1.8-1l2.4 1 2-3.5-2-1.6c.07-.33.1-.66.1-1Z" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <circle cx="12" cy="8" r="3.2" />
-      <path d="M5.5 20a6.5 6.5 0 0 1 13 0" />
-    </svg>
-  );
-}
 
 function SearchIcon() {
   return (
@@ -438,9 +413,9 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
           <div className="flex">
             <NotificationBell />
           </div>
-          <button className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
+          <Link href="/settings" className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
             <TopIcon type="settings" />
-          </button>
+          </Link>
           <Link href={withTeamParam("/personal", teamId)} className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
             <TopIcon type="profile" />
           </Link>

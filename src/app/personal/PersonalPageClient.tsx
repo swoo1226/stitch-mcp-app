@@ -10,7 +10,7 @@ import NotificationBell from "../components/NotificationBell";
 import { getNavItems } from "../../lib/nav-items";
 import { getUserSession, type UserRole } from "../../lib/auth";
 import DynamicBackground from "../components/DynamicBackground";
-import { SectionLabel, ViewModeToggle, UserAvatar } from "../components/ui";
+import { SectionLabel, ViewModeToggle, UserAvatar, TopIcon } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { MoodTrendChart } from "../components/MoodTrendChart";
 import { supabase } from "../../lib/supabase";
@@ -265,6 +265,13 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
         <div className="flex items-center gap-2" style={{ color: "var(--header-action-color)" }}>
           <ThemeToggleButton />
           <NotificationBell />
+          <Link
+            href="/settings"
+            className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low"
+            aria-label="설정"
+          >
+            <TopIcon type="settings" />
+          </Link>
           <div className="hidden md:flex h-10 w-10 items-center justify-center rounded-full overflow-hidden bg-surface-high">
             <UserAvatar name={user?.name ?? "User"} avatarEmoji={user?.avatar_emoji} size={32} fallbackTextClassName="text-sm font-black" />
           </div>
@@ -308,12 +315,12 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
               <nav className="flex-1 flex flex-col px-4 py-4 gap-1">
                 <HeaderNav items={navItems} teamId={userId === DEMO_USER_ID ? "demo" : null} mobile onNavigate={() => setMobileNavOpen(false)} />
                 <Link
-                  href="/settings/notifications"
+                  href="/settings"
                   onClick={() => setMobileNavOpen(false)}
                   className="rounded-[1.5rem] px-5 py-4 text-base font-semibold tracking-tight transition-all duration-200"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  알림 설정
+                  설정
                 </Link>
               </nav>
             </motion.div>
