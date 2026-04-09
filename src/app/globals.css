@@ -300,3 +300,14 @@ h1, h2, h3, h4, .headline {
     animation: dot-pulse 2.4s ease-in-out infinite;
   }
 }
+
+/* PWA Utilities */
+.not-pwa .pwa-only {
+  display: none !important;
+}
+
+@layer utilities {
+  .pwa-only {
+    display: flex;
+  }
+}

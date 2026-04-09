@@ -18,12 +18,21 @@ export default function SplashScreen() {
       window.matchMedia("(display-mode: standalone)").matches ||
       ("standalone" in window.navigator && (window.navigator as { standalone?: boolean }).standalone === true);
 
-    if (!isStandalone) return;
+    if (!isStandalone) {
+      // PWA가 아니면 정적 스플래시도 즉시 제거 (가드 스크립트 보조)
+      const staticSplash = document.getElementById("pwa-splash-static");
+      if (staticSplash) staticSplash.remove();
+      return;
+    }
 
     setVisible(true);
+    
+    // 클라이언트 버전이 떴으므로 정적 버전은 제거 (교체)
+    const staticSplash = document.getElementById("pwa-splash-static");
+    if (staticSplash) staticSplash.remove();
 
-    // 최소 표시 시간 800ms + 페이지 load 이벤트 중 더 늦은 것
-    const minDelay = new Promise<void>((resolve) => setTimeout(resolve, 800));
+    // 최소 표시 시간 500ms (정적 단계 포함하여 고려) + 페이지 load 이벤트
+    const minDelay = new Promise<void>((resolve) => setTimeout(resolve, 500));
     const pageReady = new Promise<void>((resolve) => {
       if (document.readyState === "complete") resolve();
       else window.addEventListener("load", () => resolve(), { once: true });
