@@ -209,6 +209,7 @@ html[data-theme="dark"] {
 html {
   overflow-y: scroll;
   scrollbar-gutter: stable;
+  min-width: 360px;
 }
 
 @layer base {
@@ -226,6 +227,7 @@ body {
   background-color: var(--surface);
   color: var(--on-surface);
   overflow-x: hidden;
+  min-width: 360px;
   transition: background-color 0.25s ease, color 0.25s ease;
   letter-spacing: 0.1px;
 }

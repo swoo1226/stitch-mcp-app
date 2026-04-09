@@ -830,7 +830,17 @@ export function WeatherCell({ status, score, message, isToday = false }: Weather
     );
   }
 
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   const Icon = WEATHER_ICON_MAP[status];
+  const iconSize = isMobile ? 28 : 34;
+
   return (
     <div className="flex h-full items-center justify-center">
       <div
@@ -841,7 +851,7 @@ export function WeatherCell({ status, score, message, isToday = false }: Weather
         onMouseLeave={() => setShowTooltip(false)}
         onClick={(e) => { e.stopPropagation(); if (showTooltip) { setShowTooltip(false); } else { openTooltip(); } }}
       >
-        <Icon size={34} />
+        <Icon size={iconSize} />
         {/* 점 자리를 항상 확보 — 없으면 투명으로 정렬 유지 */}
         <div
           className={`h-1.5 w-1.5 rounded-full flex-shrink-0${isToday ? "" : message ? " dot-pulse" : ""}`}
@@ -876,10 +886,10 @@ interface NikoGridHeaderProps {
 export function NikoGridHeader({ days, todayIso, colTemplate, className = "" }: NikoGridHeaderProps) {
   return (
     <div
-      className={`mb-3 grid px-2 py-2 border-b border-[var(--border-subtle)] ${className}`}
+      className={`mb-3 grid px-2 py-2 border-b border-[var(--border-subtle)] bg-[var(--surface-lowest)] sticky top-0 z-20 ${className}`}
       style={{ gridTemplateColumns: colTemplate }}
     >
-      <div className="sticky left-0 z-10 bg-[var(--surface-lowest)] transition-colors duration-200 pl-11">
+      <div className="sticky left-0 z-10 bg-[var(--surface-lowest)] transition-colors duration-200 pl-4 md:pl-11">
         <SectionLabel color="primary" className="opacity-70">팀원</SectionLabel>
       </div>
       {days.map(({ label, date }, i) => {
@@ -891,7 +901,7 @@ export function NikoGridHeader({ days, todayIso, colTemplate, className = "" }: 
         return (
           <div key={i} className="flex flex-col items-center justify-center">
             <SectionLabel color={isToday ? "primary" : "muted"} className={`text-[0.62rem] tracking-widest ${isToday ? "font-black opacity-100" : ""}`}>{label}</SectionLabel>
-            <div className={`text-[0.8rem] font-bold ${isToday ? "opacity-100 text-primary" : "opacity-40"}`}>{mo}. {dy}.</div>
+            <div className={`text-[0.8rem] font-bold ${isToday ? "opacity-100 text-primary" : "opacity-40"}`}>{mo}. {dy}</div>
           </div>
         );
       })}
@@ -978,18 +988,23 @@ function NikoSummaryRow({
       }}
     >
       <div
-        className="sticky left-0 z-10 flex h-[60px] items-center gap-2 pr-2"
+        className="sticky left-0 z-10 flex h-[60px] items-center gap-2 pr-2 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1)]"
         style={{ background: rowBackground }}
       >
         <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-black"
+          className="flex h-8 w-8 md:h-9 md:w-9 shrink-0 items-center justify-center rounded-full text-[10px] md:text-[11px] font-black"
           style={{ background: badgeBackground, color: accentColor }}
         >
-          AVG
+          {label.slice(0, 1) === "팀" ? "AVG" : label.slice(0, 1)}
         </div>
-        <div className="min-w-0">
-          <span className="block truncate text-[0.95rem] font-extrabold tracking-tight" style={{ color: accentColor }}>{label}</span>
-          <span className="block text-[11px] font-medium" style={{ color: "var(--text-soft)" }}>
+        <div className="min-w-0 flex-1">
+          <span 
+            className="block truncate text-[0.8rem] md:text-[0.95rem] font-extrabold tracking-tight leading-tight" 
+            style={{ color: accentColor }}
+          >
+            {label}
+          </span>
+          <span className="block text-[10px] md:text-[11px] font-medium leading-tight" style={{ color: "var(--text-soft)" }}>
             {subtitle}
           </span>
         </div>
@@ -1097,13 +1112,13 @@ export function NikoMemberRow({
       }}
     >
       {/* Sticky Column with Opaque Base to hide scrolling content underneath */}
-      <div className="sticky left-0 z-10 flex h-[60px] items-center gap-2 pr-2 bg-[var(--surface-lowest)] isolate">
+      <div className="sticky left-0 z-10 flex h-[60px] items-center gap-2 pr-2 bg-[var(--surface-lowest)] isolate shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1)]">
         <div
           className="absolute inset-0 z-[-1]"
           style={{ backgroundColor: "var(--row-bg, transparent)" }}
         />
         <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base"
+          className="flex h-8 w-8 md:h-9 md:w-9 shrink-0 items-center justify-center rounded-full text-base"
           style={{ background: "color-mix(in srgb, var(--on-surface) 8%, transparent)" }}
         >
           {(() => {
@@ -1274,8 +1289,8 @@ export function NikoCalendar({
 
   return (
     <div>
-      <div className="overflow-x-auto">
-        <div style={{ minWidth: "600px" }}>
+      <div className="overflow-x-auto scrollbar-hide">
+        <div className="min-w-[400px] md:min-w-[600px]">
           <NikoGridHeader
             days={headerDays}
             todayIso={todayIso}

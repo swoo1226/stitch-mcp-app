@@ -94,8 +94,12 @@ export function MoodTrendChart({ scores, height = 44, className = "" }: MoodTren
           />
           {height >= 60 && (
             <span
-              className="absolute left-0 bottom-1 text-[8px] font-black tracking-tighter opacity-25"
-              style={{ color }}
+              className="absolute left-1 bottom-1 text-[9px] font-black tracking-tighter"
+              style={{ 
+                color, 
+                opacity: 0.7,
+                textShadow: "0 1px 2px rgba(0,0,0,0.1)"
+              }}
             >
               {label}
             </span>

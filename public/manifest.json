@@ -5,7 +5,7 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a1628",
-  "theme_color": "#1a8a8c",
+  "theme_color": "#0369a1",
   "orientation": "portrait",
   "icons": [
     {
@@ -21,6 +21,9 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["productivity", "health"],
+  "categories": [
+    "productivity",
+    "health"
+  ],
   "lang": "ko"
 }

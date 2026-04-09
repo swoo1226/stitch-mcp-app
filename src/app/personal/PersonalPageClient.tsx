@@ -129,11 +129,11 @@ function TrendIcon() {
   );
 }
 
-function withDemoTeamParam(href: string, isDemo: boolean): string {
-  if (!isDemo) return href;
+function withTeamParam(href: string, teamId: string | null): string {
+  if (!teamId) return href;
   const [path, existing] = href.split("?");
   const params = new URLSearchParams(existing ?? "");
-  params.set("team", "demo");
+  params.set("team", teamId);
   return `${path}?${params.toString()}`;
 }
 

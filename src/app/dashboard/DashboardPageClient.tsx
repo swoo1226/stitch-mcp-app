@@ -102,8 +102,8 @@ function utcToKstDate(utcStr: string): string {
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI"];
 
-function withDemoTeamParam(href: string, teamId: string): string {
-  if (teamId !== DEMO_TEAM_ID) return href;
+function withTeamParam(href: string, teamId: string | null): string {
+  if (!teamId) return href;
   const [path, existing] = href.split("?");
   const params = new URLSearchParams(existing ?? "");
   params.set("team", teamId);
@@ -441,7 +441,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
           <button className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
             <TopIcon type="settings" />
           </button>
-          <Link href={withDemoTeamParam("/personal", teamId)} className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
+          <Link href={withTeamParam("/personal", teamId)} className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
             <TopIcon type="profile" />
           </Link>
           {/* 햄버거 버튼 (모바일) */}
@@ -704,7 +704,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
               </div>
 
               <Link
-                href={withDemoTeamParam("/niko", teamId)}
+                href={withTeamParam("/niko", teamId)}
                 className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition-colors hover:opacity-80"
                 style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
               >

@@ -24,8 +24,8 @@ import { supabase } from "../../lib/supabase";
 import { scoreToStatus, type WeatherStatus } from "../../lib/mood";
 import { DEMO_TEAM_ID, DEMO_PARTS, getDemoMembers, getDemoMonthLogs, getDemoSnapshotDate } from "../../lib/demo-data";
 
-function withDemoTeamParam(href: string, teamId: string): string {
-  if (teamId !== DEMO_TEAM_ID) return href;
+function withTeamParam(href: string, teamId: string | null): string {
+  if (!teamId) return href;
   const [path, existing] = href.split("?");
   const params = new URLSearchParams(existing ?? "");
   params.set("team", teamId);
@@ -177,6 +177,18 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
   const [viewMode, setViewMode] = useState<"icon" | "chart">("icon");
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [managedTeamId, setManagedTeamId] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const colTemplate = isMobile 
+    ? "90px repeat(5, minmax(54px, 1fr))" 
+    : "120px repeat(5, minmax(80px, 1fr))";
 
   const today = teamId === DEMO_TEAM_ID ? getDemoSnapshotDate() : new Date();
   const baseMonday = getWeekStart(today);
@@ -327,7 +339,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
           <button className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
             <TopIcon type="settings" />
           </button>
-          <Link href={withDemoTeamParam("/personal", teamId)} className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
+          <Link href={withTeamParam("/personal", teamId)} className="hidden md:flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-surface-low">
             <TopIcon type="profile" />
           </Link>
           {/* 햄버거 버튼 (모바일) */}
@@ -391,7 +403,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
         )}
       </AnimatePresence>
 
-      <div className="pt-20 px-4 md:px-8 max-w-[1440px] mx-auto pb-12">
+      <div className="pt-20 px-2 md:px-8 max-w-[1440px] mx-auto pb-12">
         <motion.main
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -401,14 +413,14 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
         >
           {/* 히어로 */}
           <section
-            className="mb-5 rounded-[1.9rem] px-4 py-5 md:rounded-[2.25rem] md:px-7 md:py-8"
+            className="mb-4 rounded-[1.6rem] px-4 py-4 md:rounded-[2.25rem] md:px-7 md:py-8"
             style={{
               background: "linear-gradient(90deg, color-mix(in srgb, var(--surface-container-low) 92%, transparent) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 50%, color-mix(in srgb, var(--surface-container-low) 92%, transparent) 100%)",
             }}
           >
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div className="max-w-2xl">
-                <h1 className="mb-2 flex items-center gap-3 text-[2rem] font-black tracking-tight text-primary md:text-[3.1rem]">
+              <div className="max-w-2xl px-1">
+                <h1 className="mb-1 flex items-center gap-2 text-[1.6rem] font-black tracking-tight text-primary md:text-[3.1rem]">
                   Niko-Niko 캘린더
                   {teamId === DEMO_TEAM_ID && (
                     <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-black uppercase tracking-wider text-primary">
@@ -465,7 +477,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
 
           {/* 캘린더 */}
           <section
-            className="mb-5 rounded-[2rem] px-3 py-4 md:rounded-[2.5rem] md:px-6 md:py-6"
+            className="mb-4 rounded-[1.8rem] px-2 py-3 md:rounded-[2.5rem] md:px-6 md:py-6"
             style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
           >
             <div className="mb-5 flex items-center justify-between">
@@ -520,7 +532,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
                 weekDays={weekDays}
                 todayIso={todayIso}
                 loading={loading}
-                colTemplate={COL_TEMPLATE}
+                colTemplate={colTemplate}
                 viewMode={viewMode}
                 summaryLabel={selectedPart ? `파트 평균` : "팀 평균"}
                 comparisonLabel="팀 평균"
