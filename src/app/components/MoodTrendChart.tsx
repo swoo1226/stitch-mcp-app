@@ -75,7 +75,7 @@ export function MoodTrendChart({ scores, height = 44, className = "" }: MoodTren
   }
 
   return (
-    <div className={`relative w-full ${className} pr-8`} style={{ height: `${height}px` }}>
+    <div className={`relative w-full ${className} pr-12`} style={{ height: `${height}px` }}>
       {/* 배경 섹션 가이드 */}
       <div className="absolute inset-x-0 top-0 bottom-0 pointer-events-none rounded-[1rem] overflow-hidden opacity-[0.03]">
         <div className="h-1/5 w-full bg-[#1e9de0]" />
@@ -85,11 +85,11 @@ export function MoodTrendChart({ scores, height = 44, className = "" }: MoodTren
         <div className="h-1/5 w-full bg-[#2d3a52]" />
       </div>
 
-      {/* 가이드라인 - 라벨 공간(pr-8)을 제외하고 그려짐 */}
+      {/* 가이드라인 - 라벨 공간(pr-12)을 제외하고 그려짐 */}
       {LEVEL_CONFIG.map(({ level, color }) => (
         <div 
           key={level} 
-          className="absolute left-0 right-8 pointer-events-none border-t border-dashed" 
+          className="absolute left-0 right-12 pointer-events-none border-t border-dashed" 
           style={{ 
             bottom: `${level}%`,
             borderColor: `color-mix(in srgb, ${color} 15%, transparent)`
@@ -97,17 +97,17 @@ export function MoodTrendChart({ scores, height = 44, className = "" }: MoodTren
         />
       ))}
 
-      {/* 우측 라벨 Gutter - 각 밴드의 중앙에 위치시켜 경계 이탈 방지 */}
+      {/* 우측 라벨 Gutter - 너비를 12(48px)로 확장하고 줄바꿈 방지 */}
       {height >= 40 && (
-        <div className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none">
+        <div className="absolute right-0 top-0 bottom-0 w-12 pointer-events-none">
           {LEVEL_CONFIG.map(({ level, label, color }) => (
             <span
               key={level}
-              className="absolute right-0 text-[10px] font-black tracking-tighter"
+              className="absolute right-0 text-[10px] font-black tracking-tighter whitespace-nowrap"
               style={{ 
-                color, 
-                opacity: 0.9,
-                /* level이 밴드 하단이므로, 밴드 중앙인 level + 10% 위치로 지정 */
+                /* 테마 텍스트 색상을 섞어 명도 대비 확보 (다크모드에선 밝아짐) */
+                color: `color-mix(in srgb, ${color}, var(--on-surface) 45%)`,
+                opacity: 1,
                 bottom: `${level + 10}%`,
                 transform: "translateY(50%)" 
               }}
