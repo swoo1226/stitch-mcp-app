@@ -22,6 +22,7 @@ export default function SplashScreen() {
       // PWA가 아니면 정적 스플래시도 즉시 제거 (가드 스크립트 보조)
       const staticSplash = document.getElementById("pwa-splash-static");
       if (staticSplash) staticSplash.remove();
+      setVisible(false);
       return;
     }
 
