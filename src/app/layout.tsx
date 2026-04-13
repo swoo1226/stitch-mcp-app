@@ -48,10 +48,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'})})}` }} />
         <ThemeProvider>
           {/* 정적 스플래시 구조 (SSR 단계에서 즉시 노출) */}
-          <div id="pwa-splash-static" className="pwa-only h-screen w-screen fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-surface-lowest">
-            <div className="flex flex-col items-center animate-in fade-in slide-in-from-bottom-2 duration-700">
-              <div className="text-5xl font-extrabold tracking-tight text-primary">Clima</div>
-              <div className="mt-2 text-base text-on-surface-variant font-medium">팀의 날씨를 읽다</div>
+          <div id="pwa-splash-static" className="pwa-only h-screen w-screen fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-surface" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+            <div className="flex flex-col items-center">
+              <div style={{ fontSize: '3rem', fontWeight: 800, fontFamily: "'Plus Jakarta Sans', sans-serif", color: 'var(--primary)', letterSpacing: '-0.02em', lineHeight: 1 }}>Clima</div>
+              <div className="mt-2 text-base text-on-surface-variant font-medium" style={{ fontFamily: "'Manrope', sans-serif" }}>팀의 날씨를 읽다</div>
             </div>
             <div className="mt-10 flex gap-2">
               <div className="h-1.5 w-1.5 rounded-full bg-primary opacity-60 animate-bounce" style={{ animationDelay: "0ms" }}></div>

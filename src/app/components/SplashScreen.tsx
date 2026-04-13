@@ -57,7 +57,7 @@ export default function SplashScreen() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        background: "var(--hero-gradient)",
+        background: "var(--surface)",
         opacity: fading ? 0 : 1,
         transition: "opacity 0.4s ease",
         paddingTop: "env(safe-area-inset-top)",
