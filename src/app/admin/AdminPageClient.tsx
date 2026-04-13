@@ -2781,20 +2781,30 @@ export default function AdminPageClient({
                 </div>
 
                 {/* 현황 요약 */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-[1.5rem] p-4 flex flex-col gap-1" style={{ background: "var(--surface-overlay)" }}>
-                    <p className="text-[10px] font-black tracking-widest uppercase opacity-40">오늘의 점수</p>
-                    <p className="text-lg font-black" style={{ color: "var(--primary)" }}>
-                      {detailMember.mood_logs?.[0] ? `${detailMember.mood_logs[0].score}pt` : "—"}
-                    </p>
-                  </div>
-                  <div className="rounded-[1.5rem] p-4 flex flex-col gap-1" style={{ background: "var(--surface-overlay)" }}>
-                    <p className="text-[10px] font-black tracking-widest uppercase opacity-40">오늘 날씨</p>
-                    <p className="text-lg font-black" style={{ color: "var(--primary)" }}>
-                      {detailMember.mood_logs?.[0] ? statusToKo(scoreToStatus(detailMember.mood_logs[0].score)) : "—"}
-                    </p>
-                  </div>
-                </div>
+                {(() => {
+                  const raw = detailMember.mood_logs?.[0];
+                  const isToday = raw?.logged_at
+                    ? new Date(raw.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === todayKST
+                    : false;
+                  const latest = isToday ? raw : null;
+
+                  return (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-[1.5rem] p-4 flex flex-col gap-1" style={{ background: "var(--surface-overlay)" }}>
+                        <p className="text-[10px] font-black tracking-widest uppercase opacity-40">오늘의 점수</p>
+                        <p className="text-lg font-black" style={{ color: "var(--primary)" }}>
+                          {latest ? `${latest.score}pt` : "—"}
+                        </p>
+                      </div>
+                      <div className="rounded-[1.5rem] p-4 flex flex-col gap-1" style={{ background: "var(--surface-overlay)" }}>
+                        <p className="text-[10px] font-black tracking-widest uppercase opacity-40">오늘 날씨</p>
+                        <p className="text-lg font-black" style={{ color: "var(--primary)" }}>
+                          {latest ? statusToKo(scoreToStatus(latest.score)) : "—"}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Jira 섹션 */}
                 <div className="flex flex-col gap-3 rounded-[2rem] p-5" style={{ background: "var(--surface-overlay)" }}>
@@ -2831,7 +2841,20 @@ export default function AdminPageClient({
                   {/* 기분 기록하기 */}
                   <button
                     type="button"
-                    onClick={() => { setMoodTarget(detailMember.id); setMoodScore(detailMember.mood_logs?.[0]?.score ?? 50); setMoodMessage(detailMember.mood_logs?.[0]?.message ?? ""); setDetailMember(null); }}
+                    onClick={() => {
+                      const raw = detailMember.mood_logs?.[0];
+                      const isToday = raw?.logged_at
+                        ? new Date(raw.logged_at).toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }) === todayKST
+                        : false;
+                      const latest = isToday ? raw : null;
+
+                      setMoodTarget(detailMember.id);
+                      setMoodScore(latest?.score ?? 50);
+                      setMoodMessage(latest?.message ?? "");
+                      setMoodError(null);
+                      setMoodDuplicate(false);
+                      setDetailMember(null);
+                    }}
                     className="flex w-14 h-14 items-center justify-center rounded-full shrink-0 transition-all active:scale-90"
                     style={{ background: "var(--button-primary-gradient)", color: "var(--on-primary)", boxShadow: "var(--button-primary-shadow)" }}
                   >
