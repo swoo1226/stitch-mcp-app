@@ -57,7 +57,18 @@ export default function AuthGuard({
     };
   }, [pathname, router, searchParams, requiredRole, fallback]);
 
-  if (!checked) return null;
+  // SSR 단계이거나 아직 권한 확인 중일 때: 
+  // null을 반환하면 SSR이 완전히 블로킹되므로 사용자의 요청대로
+  // '기본 틀은 SSR로 제공하고 하이드레이션' 하기 위해 children을 그대로 반환합니다.
+  // 서버 미들웨어에서 최소한의 로그인 검사가 완료된 상태이며, RLS로 보안이 유지됩니다.
+  // 시각적인 깜박임을 줄이고 상호작용만 잠시 막습니다.
+  if (!checked) {
+    return (
+      <div className="animate-pulse pointer-events-none origin-top transition-opacity duration-300" style={{ opacity: 0.8 }}>
+        {children}
+      </div>
+    );
+  }
 
   return <>{children}</>;
 }
