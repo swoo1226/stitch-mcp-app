@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
  * - 워드마크 fade-in + 점 3개 bounce 애니메이션
  */
 export default function SplashScreen() {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
   const [fading, setFading] = useState(false);
 
   useEffect(() => {
@@ -65,12 +65,7 @@ export default function SplashScreen() {
       }}
     >
       {/* 워드마크 */}
-      <div
-        style={{
-          animation: "splashFadeIn 0.6s ease forwards",
-          textAlign: "center",
-        }}
-      >
+      <div style={{ textAlign: "center" }}>
         <div
           style={{
             fontSize: "3rem",
@@ -102,7 +97,6 @@ export default function SplashScreen() {
           display: "flex",
           gap: "0.5rem",
           marginTop: "2.5rem",
-          animation: "splashFadeIn 0.6s ease 0.3s both",
         }}
       >
         {[0, 1, 2].map((i) => (
@@ -121,10 +115,6 @@ export default function SplashScreen() {
       </div>
 
       <style>{`
-        @keyframes splashFadeIn {
-          from { opacity: 0; transform: translateY(8px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
         @keyframes splashBounce {
           0%, 100% { transform: translateY(0); }
           50%       { transform: translateY(-6px); }
