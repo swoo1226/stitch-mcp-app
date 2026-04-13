@@ -916,7 +916,7 @@ export function NikoGridHeader({ days, todayIso, colTemplate, className = "" }: 
       className={`mb-3 grid px-2 py-2 border-b border-[var(--border-subtle)] bg-[var(--surface-lowest)] sticky top-0 z-20 ${className}`}
       style={{ gridTemplateColumns: colTemplate }}
     >
-      <div className="sticky left-0 z-10 bg-[var(--surface-lowest)] transition-colors duration-200 pl-4 md:pl-11">
+      <div className="sticky left-0 z-30 bg-[var(--surface-lowest)] transition-colors duration-200 pl-4 md:pl-11">
         <SectionLabel color="primary" className="opacity-70">팀원</SectionLabel>
       </div>
       {days.map(({ label, date }, i) => {
@@ -1008,14 +1008,14 @@ function NikoSummaryRow({
 
   return (
     <div
-      className="grid items-stretch rounded-[1.4rem] px-2 border border-[color:var(--border-subtle)]"
+      className="grid items-stretch rounded-[1.4rem] px-2 border border-[color:var(--border-subtle)] min-h-[76px]"
       style={{
         gridTemplateColumns: colTemplate,
         background: rowBackground,
       }}
     >
       <div
-        className="sticky left-0 z-10 flex h-[60px] items-center gap-2 pr-2 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1)]"
+        className="sticky left-0 z-10 flex h-full min-h-[76px] items-center gap-2 pr-2 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1)]"
         style={{ background: rowBackground }}
       >
         <div
@@ -1085,7 +1085,7 @@ function NikoSummaryRow({
           );
         })
       ) : (
-        <div className="col-span-5 h-[60px] flex items-center pr-4">
+        <div className="col-span-5 flex h-full min-h-[76px] items-center pr-4">
           <MoodTrendChart
             scores={week.map((w) => w.score)}
             height={60}
@@ -1132,14 +1132,14 @@ export function NikoMemberRow({
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ "--row-bg": "color-mix(in srgb, var(--primary) 8%, transparent)" } as any}
       transition={STANDARD_SPRING}
-      className="grid items-stretch px-2 border-b border-[var(--border-subtle)] last:border-0"
+      className="grid items-stretch px-2 border-b border-[var(--border-subtle)] last:border-0 min-h-[72px]"
       style={{
         gridTemplateColumns: colTemplate,
         backgroundColor: "var(--row-bg, transparent)"
       }}
     >
       {/* Sticky Column with Opaque Base to hide scrolling content underneath */}
-      <div className="sticky left-0 z-10 flex h-[60px] items-center gap-2 pr-2 bg-[var(--surface-lowest)] isolate shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1)]">
+      <div className="sticky left-0 z-10 flex h-full min-h-[72px] items-center gap-2 pr-2 bg-[var(--surface-lowest)] isolate shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1)]">
         <div
           className="absolute inset-0 z-[-1]"
           style={{ backgroundColor: "var(--row-bg, transparent)" }}
@@ -1182,7 +1182,7 @@ export function NikoMemberRow({
           />
         ))
       ) : (
-        <div className="col-span-5 h-[60px] flex items-center pr-4">
+        <div className="col-span-5 flex h-full min-h-[72px] items-center pr-4">
           <MoodTrendChart
             scores={week.map(w => w.score)}
             height={60}
@@ -1315,9 +1315,12 @@ export function NikoCalendar({
     : null;
 
   return (
-    <div>
-      <div className="overflow-x-auto scrollbar-hide">
-        <div className="min-w-[400px] md:min-w-[600px]">
+    <div className="relative rounded-[1.5rem] border border-[var(--border-subtle)] bg-[var(--surface-lowest)] overflow-hidden">
+      <div 
+        className="overflow-auto scrollbar-hide max-h-[60vh] md:max-h-[800px] overscroll-contain"
+        style={{ touchAction: "pan-x pan-y", WebkitOverflowScrolling: "touch" }}
+      >
+        <div className="min-w-[480px] md:min-w-[700px]">
           <NikoGridHeader
             days={headerDays}
             todayIso={todayIso}

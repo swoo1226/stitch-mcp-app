@@ -187,7 +187,7 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
   }, []);
 
   const colTemplate = isMobile 
-    ? "90px repeat(5, minmax(54px, 1fr))" 
+    ? "104px repeat(5, minmax(64px, 1fr))" 
     : "120px repeat(5, minmax(80px, 1fr))";
 
   const today = teamId === DEMO_TEAM_ID ? getDemoSnapshotDate() : new Date();
