@@ -18,14 +18,15 @@ interface WeatherMetaphor {
   score: number;
   label: string;
   ko: string;
+  range?: string;
 }
 
 const WEATHER_METAPHORS: WeatherMetaphor[] = [
-  { score: 10, label: "Stormy", ko: "뇌우" },
-  { score: 30, label: "Rainy", ko: "비" },
-  { score: 50, label: "Cloudy", ko: "흐림" },
-  { score: 70, label: "PartlyCloudy", ko: "구름조금" },
-  { score: 90, label: "Sunny", ko: "맑음" },
+  { score: 10, label: "Stormy", ko: "뇌우", range: "0~20pt" },
+  { score: 30, label: "Rainy", ko: "비", range: "21~40pt" },
+  { score: 50, label: "Cloudy", ko: "흐림", range: "41~60pt" },
+  { score: 70, label: "PartlyCloudy", ko: "구름조금", range: "61~80pt" },
+  { score: 90, label: "Sunny", ko: "맑음", range: "81~100pt" },
 ];
 
 const currentMetaphorFromScore = (score: number): WeatherMetaphor =>
@@ -254,6 +255,7 @@ function ClimaInputInner() {
                         key={m.label}
                         Icon={WEATHER_ICON_MAP[m.label]}
                         label={m.ko}
+                        subLabel={m.range}
                         isSelected={currentMetaphor.label === m.label}
                         onClick={() => setScore(m.score)}
                       />
@@ -266,6 +268,7 @@ function ClimaInputInner() {
                         <WeatherTile
                           Icon={WEATHER_ICON_MAP[m.label]}
                           label={m.ko}
+                          subLabel={m.range}
                           isSelected={currentMetaphor.label === m.label}
                           onClick={() => setScore(m.score)}
                         />

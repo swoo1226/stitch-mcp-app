@@ -381,7 +381,7 @@ export function TabToggle<T extends string>({
 
   return (
     <div
-      className="flex items-center rounded-full p-1"
+      className="inline-flex items-center rounded-full p-1 w-fit"
       style={{ background: "color-mix(in srgb, var(--surface-container-high) 72%, transparent)" }}
     >
       {allTabs.map(({ value, label }) => {
@@ -559,45 +559,61 @@ export function MarkdownRenderer({ content, className = "", color = "var(--on-su
 interface WeatherTileProps {
   Icon: React.FC<{ size?: number }>;
   label: string;
+  subLabel?: string;
   isSelected: boolean;
   onClick: () => void;
 }
 
-export function WeatherTile({ Icon, label, isSelected, onClick }: WeatherTileProps) {
+export function WeatherTile({ Icon, label, subLabel, isSelected, onClick }: WeatherTileProps) {
   return (
     <motion.button
       onClick={onClick}
       whileHover={{ y: -4 }}
       whileTap={{ scale: 0.92 }}
       transition={RESPONSIVE_SPRING}
-      className="flex flex-col items-center rounded-[1.5rem] transition-colors relative w-full"
+      className="flex flex-col items-center justify-center rounded-[1.5rem] transition-colors relative w-full"
       style={{
         background: isSelected
           ? "var(--button-primary-gradient)"
           : "var(--surface-container)",
         boxShadow: isSelected ? "var(--button-primary-shadow)" : "none",
-        paddingTop: "1.5rem",
+        paddingTop: "1.25rem",
         paddingBottom: "1rem",
         paddingLeft: "0.5rem",
         paddingRight: "0.5rem",
-        gap: "0.75rem",
+        gap: "0.5rem",
       }}
     >
       <div style={{ opacity: isSelected ? 1 : 0.75 }}>
         <Icon size={44} />
       </div>
-      <span
-        style={{
-          color: isSelected ? "white" : "var(--on-surface)",
-          opacity: isSelected ? 1 : 0.5,
-          fontSize: "12px",
-          fontWeight: 900,
-          letterSpacing: "0.05em",
-          lineHeight: 1,
-        }}
-      >
-        {label}
-      </span>
+      <div className="flex flex-col items-center gap-1 mt-1">
+        <span
+          style={{
+            color: isSelected ? "white" : "var(--on-surface)",
+            opacity: isSelected ? 1 : 0.5,
+            fontSize: "12px",
+            fontWeight: 900,
+            letterSpacing: "0.05em",
+            lineHeight: 1,
+          }}
+        >
+          {label}
+        </span>
+        {subLabel && (
+          <span
+            style={{
+              color: isSelected ? "white" : "var(--on-surface)",
+              opacity: isSelected ? 0.7 : 0.4,
+              fontSize: "9px",
+              fontWeight: 800,
+              lineHeight: 1,
+            }}
+          >
+            {subLabel}
+          </span>
+        )}
+      </div>
     </motion.button>
   );
 }
