@@ -221,8 +221,11 @@ function ClimaInputInner() {
             })()}
           </AnimatePresence>
 
-          <div className="text-center">
-            <h1 className="text-3xl md:text-6xl font-black mb-2 md:mb-4 tracking-tight">{currentMetaphor.ko}</h1>
+          <div className="text-center flex flex-col items-center">
+            <h1 className="text-3xl md:text-6xl font-black mb-2 md:mb-3 tracking-tight">{currentMetaphor.ko}</h1>
+            <span className="text-xs md:text-sm font-bold opacity-40 mb-4 tracking-wider px-3 py-1 rounded-full bg-surface-container-high/50 shadow-ambient">
+              {currentMetaphor.range}
+            </span>
             <p className="text-base md:text-xl opacity-50 font-bold tracking-tight">오늘 나의 날씨는 어때요?</p>
           </div>
 
