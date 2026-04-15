@@ -1,5 +1,6 @@
 import PersonalPageClient from "./PersonalPageClient";
 import AuthGuard from "../components/AuthGuard";
+import PullToRefresh from "../components/PullToRefresh";
 import { getRequiredSearchParam } from "../lib/requiredSearchParam";
 import { DEMO_USER_ID } from "../../lib/demo-data";
 import { resolveUserId } from "../../lib/resolve-session";
@@ -19,14 +20,17 @@ export default async function PersonalPage({
   }
 
   const isDemo = userId === DEMO_USER_ID;
+  const content = <PersonalPageClient userId={userId} />;
 
   if (isDemo) {
-    return <PersonalPageClient userId={userId} />;
+    return <PullToRefresh>{content}</PullToRefresh>;
   }
 
   return (
     <AuthGuard>
-      <PersonalPageClient userId={userId} />
+      <PullToRefresh>
+        {content}
+      </PullToRefresh>
     </AuthGuard>
   );
 }

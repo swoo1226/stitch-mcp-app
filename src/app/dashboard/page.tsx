@@ -1,5 +1,6 @@
 import DashboardPageClient from "./DashboardPageClient";
 import AuthGuard from "../components/AuthGuard";
+import PullToRefresh from "../components/PullToRefresh";
 import { getRequiredSearchParam } from "../lib/requiredSearchParam";
 import { DEMO_TEAM_ID } from "../../lib/demo-data";
 import { resolveTeamId } from "../../lib/resolve-session";
@@ -21,15 +22,19 @@ export default async function DashboardPage({
 
   const isDemo = teamId === DEMO_TEAM_ID;
 
+  const content = <DashboardPageClient teamId={teamId} />;
+
   // demo 모드는 인증 없이 접근 가능
   if (isDemo) {
-    return <DashboardPageClient teamId={teamId} />;
+    return <PullToRefresh>{content}</PullToRefresh>;
   }
 
   // 실제 팀: 로그인 필요 (역할 무관)
   return (
     <AuthGuard>
-      <DashboardPageClient teamId={teamId} />
+      <PullToRefresh>
+        {content}
+      </PullToRefresh>
     </AuthGuard>
   );
 }
