@@ -33,7 +33,8 @@ export default function LoginPageClient({ redirectTo }: { redirectTo: string }) 
     const session = await getUserSession();
     if (!session) return "/";
     if (session.role === "member") return "/personal";
-    return "/dashboard";
+    // 어드민 계정(super_admin, team_admin)은 어드민 페이지로 우선 안내
+    return "/admin";
   }
 
   async function signIn() {
