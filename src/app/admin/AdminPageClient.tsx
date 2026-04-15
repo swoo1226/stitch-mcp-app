@@ -207,12 +207,19 @@ interface Team {
 export default function AdminPageClient({
   role,
   initialTab = "members",
+  initialData,
 }: {
   role?: string;
   initialTab?: "members" | "teams";
+  initialData?: {
+    members: Member[];
+    teams: Team[];
+    parts: Part[];
+    session: AdminSession | null;
+  };
 }) {
-  const [authed, setAuthed] = useState(false);
-  const [adminSession, setAdminSession] = useState<AdminSession | null>(null);
+  const [authed, setAuthed] = useState(!!initialData?.session);
+  const [adminSession, setAdminSession] = useState<AdminSession | null>(initialData?.session ?? null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [emailInput, setEmailInput] = useState("");
   const [pwInput, setPwInput] = useState("");
@@ -317,10 +324,10 @@ export default function AdminPageClient({
   }, [activeThoughtId]);
 
   // ── 팀원 관리 상태
-  const [members, setMembers] = useState<Member[]>([]);
-  const [parts, setParts] = useState<Part[]>([]);
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [members, setMembers] = useState<Member[]>(initialData?.members ?? []);
+  const [parts, setParts] = useState<Part[]>(initialData?.parts ?? []);
+  const [teams, setTeams] = useState<Team[]>(initialData?.teams ?? []);
+  const [loading, setLoading] = useState(!initialData);
   const [jiraSnapshots, setJiraSnapshots] = useState<Record<string, JiraTicketSnapshot>>({});
   const [jiraLoading, setJiraLoading] = useState(false);
   const [jiraError, setJiraError] = useState<string | null>(null);
