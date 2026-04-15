@@ -1024,10 +1024,11 @@ function NikoSummaryRow({
 
   return (
     <div
-      className="grid items-stretch rounded-[1.4rem] px-2 border border-[color:var(--border-subtle)] min-h-[76px]"
+      className="grid items-stretch px-2 border border-[color:var(--border-subtle)] min-h-[76px] overflow-hidden"
       style={{
         gridTemplateColumns: colTemplate,
         background: rowBackground,
+        borderRadius: "1.25rem", // 전체 컨테이너에 맞춰 래핑
       }}
     >
       <div
@@ -1330,11 +1331,38 @@ export function NikoCalendar({
     })
     : null;
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const touchStart = useRef({ x: 0, y: 0, locked: "" });
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStart.current = { x: e.touches[0].pageX, y: e.touches[0].pageY, locked: "" };
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStart.current.locked) return;
+    const dx = Math.abs(e.touches[0].pageX - touchStart.current.x);
+    const dy = Math.abs(e.touches[0].pageY - touchStart.current.y);
+
+    if (dx > 10 || dy > 10) {
+      touchStart.current.locked = dx > dy ? "x" : "y";
+    }
+  };
+
   return (
-    <div className="relative rounded-[1.5rem] border border-[var(--border-subtle)] bg-[var(--surface-lowest)] overflow-hidden">
+    <div className="relative rounded-[1.5rem] border border-[var(--border-subtle)] bg-[var(--surface-lowest)] overflow-hidden shadow-sm">
+      {/* 모바일 가로 스크롤 인디케이터 (오른쪽 그라데이션) - 스크롤 영역 밖에 위치하여 고정됨 */}
+      <div className="pointer-events-none absolute right-0 top-0 bottom-0 z-20 w-8 md:hidden" 
+           style={{ background: "linear-gradient(to left, var(--surface-lowest) 0%, transparent 100%)", opacity: 0.6 }} />
+
       <div 
+        ref={scrollRef}
         className="overflow-auto scrollbar-hide max-h-[60vh] md:max-h-[800px] overscroll-contain"
-        style={{ touchAction: "pan-x pan-y", WebkitOverflowScrolling: "touch" }}
+        style={{ 
+          touchAction: "pan-x pan-y", 
+          WebkitOverflowScrolling: "touch"
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
       >
         <div className="min-w-[480px] md:min-w-[700px]">
           <NikoGridHeader
