@@ -1269,7 +1269,7 @@ export default function AdminPageClient({
                             onClick={() => setDetailMember(m)}
                             className="relative flex flex-col gap-3 rounded-[1.75rem] p-4 shrink-0 active:scale-[0.98] transition-all"
                             style={{
-                              width: 160,
+                              width: 140,
                               scrollSnapAlign: "start",
                               background: "var(--surface-overlay)",
                               backdropFilter: "var(--glass-blur-low)",
@@ -1322,7 +1322,7 @@ export default function AdminPageClient({
                             if (activeThoughtId === m.id) closeThought();
                           }}
                           style={{
-                            width: 300,
+                            width: 280,
                             maxWidth: "calc(100vw - 3rem)",
                             scrollSnapAlign: "start",
                             background: "var(--surface-overlay)",
