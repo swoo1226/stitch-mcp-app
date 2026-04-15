@@ -143,9 +143,15 @@ export default function PullToRefresh({ children, onRefresh, disabled = false }:
               style={{ 
                 border: "2px solid var(--primary)",
                 opacity: 0.2,
-                scale: isRefreshing ? [1, 1.2, 1] : 1,
+                scale: 1,
               }}
-              animate={isRefreshing ? { scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] } : {}}
+              animate={isRefreshing ? { 
+                scale: [1, 1.3, 1], 
+                opacity: [0.2, 0.4, 0.2] 
+              } : { 
+                scale: 1,
+                opacity: 0.2
+              }}
               transition={{ repeat: Infinity, duration: 2 }}
             />
             
