@@ -9,7 +9,7 @@ export default async function LoginPage({
   const redirectParam = params.redirect;
   const redirectTo = typeof redirectParam === "string" && redirectParam.length > 0
     ? redirectParam
-    : "/dashboard";
+    : "";
 
   return <LoginPageClient redirectTo={redirectTo} />;
 }

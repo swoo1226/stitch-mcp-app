@@ -27,14 +27,25 @@ export default function LoginPageClient({ redirectTo }: { redirectTo: string }) 
   }, [redirectTo, router]);
 
   async function getRedirectTarget(): Promise<string> {
-    // redirect 파라미터가 기본값(/login)이 아닌 경우 그대로 사용
-    if (redirectTo && redirectTo !== "/login") return redirectTo;
-    // 역할에 따라 기본 랜딩 결정
+    // 1. 명시적인 리다이렉트 경로가 있는 경우 해당 경로 우선 (기본값이 아닐 때만)
+    if (redirectTo && redirectTo !== "/login" && redirectTo !== "/dashboard" && redirectTo !== "") {
+      return redirectTo;
+    }
+
+    // 2. 역할에 따라 기본 랜딩 결정
     const session = await getUserSession();
     if (!session) return "/";
+
+    // 어드민 계정(super_admin, team_admin)은 어드민 멤버 관리 페이지로 우선 안내
+    if (session.role === "super_admin" || session.role === "team_admin") {
+      return "/admin/members";
+    }
+
+    // 일반 멤버
     if (session.role === "member") return "/personal";
-    // 어드민 계정(super_admin, team_admin)은 어드민 페이지로 우선 안내
-    return "/admin";
+
+    // 그 외 기본값
+    return "/dashboard";
   }
 
   async function signIn() {
