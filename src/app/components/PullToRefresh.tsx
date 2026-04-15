@@ -110,52 +110,92 @@ export default function PullToRefresh({ children, onRefresh, disabled = false }:
       onTouchEnd={handleTouchEnd}
       style={{ overflowAnchor: "none" }}
     >
-      {/* 로딩 인디케이터: 헤더 아래에 떠 있는 느낌의 Glassmorphism 칩 */}
-      <div className="pointer-events-none absolute top-0 left-0 right-0 z-[60] flex justify-center">
+      {/* 
+        Atmospheric Pull-to-Refresh UI 
+        배경 박스 없이 하늘(Atrium)에서 직접 빛이 내려오는 듯한 "Solar Halo" 효과
+      */}
+      <div className="pointer-events-none absolute top-0 left-0 right-0 z-[40] flex justify-center overflow-hidden h-40">
+        {/* 후광(Halo) 효과: 당길수록 밝아지고 커짐 */}
         <motion.div 
-          className="flex h-11 px-4 items-center justify-center rounded-full shadow-lg"
+          className="absolute top-[-100px] w-[300px] h-[300px] rounded-full"
+          style={{ 
+            y: springY,
+            scale: loaderScale,
+            opacity: useTransform(y, [0, threshold], [0, 0.4]),
+            background: "radial-gradient(circle, var(--primary) 0%, transparent 70%)",
+            filter: "blur(40px)",
+          }}
+        />
+
+        {/* 메인 태양 심볼 인디케이터 */}
+        <motion.div 
+          className="relative flex flex-col items-center justify-center pt-8"
           style={{ 
             y: springY,
             opacity: loaderOpacity, 
             scale: loaderScale,
-            background: "rgba(255, 255, 255, 0.45)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(255, 255, 255, 0.4)",
-            marginTop: "1.5rem", // 헤더(h-16) 아래에 위치하도록 조정
-            boxShadow: "0 8px 32px -4px rgba(3, 105, 161, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.4)"
           }}
         >
-          {/* 회전 로더 영역 */}
-          <div className="flex items-center gap-2.5">
+          {/* 빛나는 링 */}
+          <div className="relative flex items-center justify-center">
+            <motion.div 
+              className="absolute inset-[-12px] rounded-full"
+              style={{ 
+                border: "2px solid var(--primary)",
+                opacity: 0.2,
+                scale: isRefreshing ? [1, 1.2, 1] : 1,
+              }}
+              animate={isRefreshing ? { scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] } : {}}
+              transition={{ repeat: Infinity, duration: 2 }}
+            />
+            
             <motion.div
               style={{ rotate: isRefreshing ? undefined : loaderRotate }}
               animate={isRefreshing ? { rotate: 360 } : {}}
-              transition={isRefreshing ? { repeat: Infinity, duration: 1, ease: "linear" } : { duration: 0.1 }}
-              className="flex items-center justify-center"
+              transition={isRefreshing ? { repeat: Infinity, duration: 1.5, ease: "linear" } : { duration: 0.1 }}
+              className="flex items-center justify-center text-primary"
             >
-              <svg viewBox="0 0 24 24" className="h-5 w-5">
-                <motion.circle 
-                  cx="12" cy="12" r="9" 
-                  fill="none" 
-                  stroke="var(--primary)" 
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  style={{ 
-                    pathLength: isRefreshing ? 0.3 : pullProgress * 0.85,
-                    opacity: 0.8
-                  }}
-                />
+              <svg viewBox="0 0 24 24" className="h-8 w-8 drop-shadow-[0_0_8px_rgba(3,105,161,0.3)]">
+                {/* ☀️ 태양 중심 */}
+                <circle cx="12" cy="12" r="4" fill="currentColor" />
+                {/* 태양 광선들: 당기는 정도에 따라 다르게 보임 */}
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <motion.line
+                    key={i}
+                    x1="12" y1="5" x2="12" y2="2"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    style={{ 
+                      transformOrigin: "12px 12px",
+                      rotate: i * 45,
+                      opacity: useTransform(y, [20 + i * 5, threshold], [0, 0.8]),
+                    }}
+                  />
+                ))}
               </svg>
             </motion.div>
-            <span className="text-[11px] font-black uppercase tracking-widest text-primary opacity-80">
-              {isRefreshing ? "Updating..." : pullProgress >= 0.95 ? "Release" : "Pull"}
-            </span>
           </div>
+          
+          {/* 아주 미세한 상태 인디케이터 점 */}
+          <motion.div 
+            className="mt-4 flex gap-1.5"
+            style={{ opacity: useTransform(y, [threshold - 10, threshold], [0, 1]) }}
+          >
+            {[0, 1, 2].map(i => (
+              <motion.div 
+                key={i}
+                className="w-1.5 h-1.5 rounded-full bg-primary"
+                animate={isRefreshing ? { opacity: [0.3, 1, 0.3], scale: [0.8, 1.1, 0.8] } : {}}
+                transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.2 }}
+                style={{ opacity: 0.4 }}
+              />
+            ))}
+          </motion.div>
         </motion.div>
       </div>
 
-      {/* 컨텐츠 레이어: 헤더를 가리지 않도록 전체 컨텐츠만 아래로 밀림 */}
+      {/* 실질적인 컨텐츠 층 */}
       <motion.div 
         style={{ y: springY }}
         className="will-change-transform"
