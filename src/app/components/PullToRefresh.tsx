@@ -115,21 +115,26 @@ export default function PullToRefresh({ children, onRefresh, disabled = false }:
         헤더(z-50) 아래(z-40)에서 조용히 나타나는 효과
       */}
       <div 
-        className="pointer-events-none fixed top-0 left-0 right-0 z-[45] flex justify-center overflow-hidden"
-        style={{ height: "200px" }} // 충분한 공간 확보
+        className="pointer-events-none fixed top-0 left-0 right-0 z-[45] flex justify-center"
+        style={{ 
+          height: "300px", 
+          // 하단 경계선을 부드럽게 지우기 위한 마스크
+          WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 60%, transparent 100%)",
+          maskImage: "linear-gradient(to bottom, black 0%, black 60%, transparent 100%)"
+        }}
       >
         {/* 후광(Halo) 효과: 당길수록 헤더 아래에서 빛이 스며 나옴 */}
         <motion.div 
           className="absolute rounded-full"
           style={{ 
-            top: "20px", // 헤더 근처에서 시작
-            width: "400px", 
-            height: "200px",
-            y: useTransform(springY, [0, threshold], [-50, 20]),
-            scale: useTransform(springY, [0, threshold], [0.8, 1.2]),
-            opacity: useTransform(springY, [0, threshold], [0, 0.45]),
-            background: "radial-gradient(ellipse at center, var(--primary) 0%, transparent 70%)",
-            filter: "blur(50px)",
+            top: "-20px",
+            width: "500px", 
+            height: "250px",
+            y: useTransform(springY, [0, threshold], [-60, 20]),
+            scale: useTransform(springY, [0, threshold], [0.8, 1.3]),
+            opacity: useTransform(springY, [0, threshold], [0, 0.5]),
+            background: "radial-gradient(ellipse at center, var(--primary) 0%, transparent 75%)",
+            filter: "blur(60px)",
           }}
         />
 
@@ -149,40 +154,40 @@ export default function PullToRefresh({ children, onRefresh, disabled = false }:
               className="absolute inset-[-10px] rounded-full"
               style={{ 
                 border: "2px solid var(--primary)",
-                opacity: 0.15,
+                opacity: 0.1,
                 scale: 1,
               }}
               animate={isRefreshing ? { 
                 scale: [1, 1.25, 1], 
-                opacity: [0.15, 0.35, 0.15] 
+                opacity: [0.1, 0.3, 0.1] 
               } : { 
                 scale: 1,
-                opacity: 0.15
+                opacity: 0.1
               }}
-              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+              transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
             />
             
             <motion.div
               style={{ rotate: isRefreshing ? undefined : loaderRotate }}
               animate={isRefreshing ? { rotate: 360 } : {}}
-              transition={isRefreshing ? { repeat: Infinity, duration: 1.8, ease: "linear" } : { duration: 0.1 }}
+              transition={isRefreshing ? { repeat: Infinity, duration: 2, ease: "linear" } : { duration: 0.1 }}
               className="flex items-center justify-center text-primary"
             >
-              <svg viewBox="0 0 24 24" className="h-7 w-7 drop-shadow-[0_0_10px_rgba(3,105,161,0.4)]">
+              <svg viewBox="0 0 24 24" className="h-7 w-7 drop-shadow-[0_0_12px_rgba(3,105,161,0.5)]">
                 {/* ☀️ 태양 중심 */}
-                <circle cx="12" cy="12" r="3.5" fill="currentColor" />
+                <circle cx="12" cy="12" r="3.2" fill="currentColor" />
                 {/* 태양 광선들: 쫀득한 엇박자 투명도 변화 */}
                 {Array.from({ length: 8 }).map((_, i) => (
                   <motion.line
                     key={i}
-                    x1="12" y1="6" x2="12" y2="3"
+                    x1="12" y1="6" x2="12" y2="3.5"
                     stroke="currentColor"
                     strokeWidth="2.2"
                     strokeLinecap="round"
                     style={{ 
                       transformOrigin: "12px 12px",
                       rotate: i * 45,
-                      opacity: useTransform(springY, [15 + i * 6, threshold], [0, 0.9]),
+                      opacity: useTransform(springY, [15 + i * 6, threshold], [0, 1]),
                     }}
                   />
                 ))}
@@ -192,9 +197,9 @@ export default function PullToRefresh({ children, onRefresh, disabled = false }:
           
           {/* 미세한 맥박 인디케이터 */}
           <motion.div 
-            className="mt-3 flex gap-1"
+            className="mt-3.5 flex gap-1.5"
             style={{ 
-              opacity: useTransform(springY, [threshold - 15, threshold], [0, 0.8]),
+              opacity: useTransform(springY, [threshold - 15, threshold], [0, 0.85]),
               scale: useTransform(springY, [threshold - 15, threshold], [0.8, 1])
             }}
           >
@@ -202,8 +207,8 @@ export default function PullToRefresh({ children, onRefresh, disabled = false }:
               <motion.div 
                 key={i}
                 className="w-1 h-1 rounded-full bg-primary"
-                animate={isRefreshing ? { opacity: [0.2, 0.8, 0.2], scale: [0.9, 1.2, 0.9] } : {}}
-                transition={{ repeat: Infinity, duration: 1, delay: i * 0.2 }}
+                animate={isRefreshing ? { opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] } : {}}
+                transition={{ repeat: Infinity, duration: 1.2, delay: i * 0.2 }}
                 style={{ opacity: 0.3 }}
               />
             ))}
