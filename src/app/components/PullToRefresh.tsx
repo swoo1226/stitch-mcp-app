@@ -108,55 +108,58 @@ export default function PullToRefresh({ children, onRefresh, disabled = false }:
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      style={{ overflowAnchor: "none" }}
     >
-      {/* 로딩 인디케이터 컨테이너 */}
-      <motion.div 
-        className="pointer-events-none absolute top-0 left-0 right-0 z-[100] flex justify-center pt-4"
-        style={{ y: springY }}
-      >
+      {/* 로딩 인디케이터: 헤더 아래에 떠 있는 느낌의 Glassmorphism 칩 */}
+      <div className="pointer-events-none absolute top-0 left-0 right-0 z-[60] flex justify-center">
         <motion.div 
-          className="flex h-10 w-10 items-center justify-center rounded-full shadow-lg"
+          className="flex h-11 px-4 items-center justify-center rounded-full shadow-lg"
           style={{ 
+            y: springY,
             opacity: loaderOpacity, 
             scale: loaderScale,
-            rotate: isRefreshing ? undefined : loaderRotate,
-            background: "var(--glass-bg-high)",
-            backdropFilter: "var(--glass-blur-low)",
-            border: "1px solid color-mix(in srgb, var(--primary) 15%, transparent)"
+            background: "rgba(255, 255, 255, 0.45)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            border: "1px solid rgba(255, 255, 255, 0.4)",
+            marginTop: "1.5rem", // 헤더(h-16) 아래에 위치하도록 조정
+            boxShadow: "0 8px 32px -4px rgba(3, 105, 161, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.4)"
           }}
-          animate={isRefreshing ? { rotate: 360 } : {}}
-          transition={isRefreshing ? { repeat: Infinity, duration: 1, ease: "linear" } : { duration: 0.1 }}
         >
-          {/* 안쪽 아이콘/링 */}
-          <svg viewBox="0 0 24 24" className="h-6 w-6">
-            <motion.circle 
-              cx="12" cy="12" r="9" 
-              fill="none" 
-              stroke="var(--primary)" 
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              style={{ 
-                pathLength: isRefreshing ? 0.3 : pullProgress * 0.8,
-                opacity: 0.8
-              }}
-            />
-            {!isRefreshing && pullProgress >= 0.9 && (
-              <motion.path 
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                d="M12 8v4l3 3" 
-                stroke="var(--primary)" 
-                strokeWidth="2.5" 
-                strokeLinecap="round" 
-                fill="none"
-              />
-            )}
-          </svg>
+          {/* 회전 로더 영역 */}
+          <div className="flex items-center gap-2.5">
+            <motion.div
+              style={{ rotate: isRefreshing ? undefined : loaderRotate }}
+              animate={isRefreshing ? { rotate: 360 } : {}}
+              transition={isRefreshing ? { repeat: Infinity, duration: 1, ease: "linear" } : { duration: 0.1 }}
+              className="flex items-center justify-center"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5">
+                <motion.circle 
+                  cx="12" cy="12" r="9" 
+                  fill="none" 
+                  stroke="var(--primary)" 
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  style={{ 
+                    pathLength: isRefreshing ? 0.3 : pullProgress * 0.85,
+                    opacity: 0.8
+                  }}
+                />
+              </svg>
+            </motion.div>
+            <span className="text-[11px] font-black uppercase tracking-widest text-primary opacity-80">
+              {isRefreshing ? "Updating..." : pullProgress >= 0.95 ? "Release" : "Pull"}
+            </span>
+          </div>
         </motion.div>
-      </motion.div>
+      </div>
 
-      {/* 컨텐츠 영역: 당겨지는 효과를 위해 y축 이동 적용 */}
-      <motion.div style={{ y: springY }}>
+      {/* 컨텐츠 레이어: 헤더를 가리지 않도록 전체 컨텐츠만 아래로 밀림 */}
+      <motion.div 
+        style={{ y: springY }}
+        className="will-change-transform"
+      >
         {children}
       </motion.div>
     </div>
