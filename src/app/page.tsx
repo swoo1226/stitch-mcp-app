@@ -1,8 +1,4 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase";
-import { getUserSession, type UserSession } from "../lib/auth";
+import { getUserSession } from "../lib/auth";
 
 // Components
 import LandingHeader from "./components/landing/LandingHeader";
@@ -13,18 +9,8 @@ import LandingInsightsPreview from "./components/landing/LandingInsightsPreview"
 import LandingCTABanner from "./components/landing/LandingCTABanner";
 import LandingFooter from "./components/landing/LandingFooter";
 
-export default function LandingPage() {
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [userSession, setUserSession] = useState<UserSession | null>(null);
-
-  useEffect(() => {
-    getUserSession().then(setUserSession);
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      getUserSession().then(setUserSession);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
+export default async function LandingPage() {
+  const userSession = await getUserSession();
   const isAdmin = userSession?.role === "super_admin" || userSession?.role === "team_admin";
 
   return (
@@ -35,8 +21,6 @@ export default function LandingPage() {
       <LandingHeader 
         isAdmin={isAdmin} 
         userSession={userSession} 
-        mobileNavOpen={mobileNavOpen} 
-        setMobileNavOpen={setMobileNavOpen} 
       />
 
       <main>

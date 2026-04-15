@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import ClimaLogo from "../WetherLogo";
@@ -7,19 +8,14 @@ import ThemeToggleButton from "../ThemeToggleButton";
 import { NAV_ITEMS } from "../../constants/landing";
 import { STANDARD_SPRING } from "../../constants/springs";
 
-interface LandingHeaderProps {
-  isAdmin: boolean;
-  userSession: any;
-  mobileNavOpen: boolean;
-  setMobileNavOpen: (open: boolean) => void;
-}
-
 export default function LandingHeader({
   isAdmin,
   userSession,
-  mobileNavOpen,
-  setMobileNavOpen,
-}: LandingHeaderProps) {
+}: {
+  isAdmin: boolean;
+  userSession: any;
+}) {
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   return (
     <>
       <header
