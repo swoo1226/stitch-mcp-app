@@ -647,20 +647,20 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                     return (
                       <div 
                         key={i} 
-                        className="relative aspect-square flex flex-col items-center justify-center rounded-2xl border transition-all"
+                        className="relative aspect-square flex flex-col items-center justify-center rounded-2xl border transition-all pt-2"
                         style={{ 
                           background: isToday ? "color-mix(in srgb, var(--primary) 5%, var(--surface-low))" : "var(--surface-lowest)",
                           borderColor: isToday ? "var(--primary)" : "var(--border-subtle)",
                         }}
                       >
-                        <span className="absolute top-2 left-2 text-[9px] font-black opacity-20">{day.getDate()}</span>
+                        <span className="absolute top-1.5 left-2 text-[9px] font-black opacity-20">{day.getDate()}</span>
                         {Icon ? (
-                          <Icon size={24} />
+                          <Icon size={32} />
                         ) : (
-                          <div className="h-1.5 w-1.5 rounded-full bg-surface-high opacity-20" />
+                          <div className="h-2 w-2 rounded-full bg-surface-high opacity-20" />
                         )}
                         {log && (
-                          <span className="mt-1 text-[8px] font-black opacity-40">{log.score}</span>
+                          <span className="mt-1 text-[10px] font-black opacity-40">{log.score}</span>
                         )}
                       </div>
                     );
