@@ -10,6 +10,7 @@ import { getNavItems } from "../../../lib/nav-items";
 import { getUserSession, type UserRole } from "../../../lib/auth";
 import { displayName as getDisplayName } from "../../../lib/user";
 import ThemeToggleButton from "../../components/ThemeToggleButton";
+import { MoodTrendChart } from "../../components/MoodTrendChart";
 import {
   SectionLabel,
   WeatherLegend,
@@ -212,6 +213,38 @@ export default function MonthlyReportClient({ teamId }: { teamId: string }) {
     return Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
   }, [calendarMembers]);
 
+  const stats = useMemo(() => {
+    const dayAvgs = averageRow.map(r => r.score).filter((s): s is number => s !== null);
+    if (dayAvgs.length === 0) return null;
+
+    const highest = Math.max(...dayAvgs);
+    const lowest = Math.min(...dayAvgs);
+    const highestDayIdx = averageRow.findIndex(r => r.score === highest);
+    
+    // 기분 분포
+    const counts = { Sunny: 0, PartlyCloudy: 0, Cloudy: 0, Rainy: 0, Stormy: 0 };
+    let total = 0;
+    calendarMembers.forEach(m => m.week.forEach(w => {
+      if (w.status) {
+        counts[w.status]++;
+        total++;
+      }
+    }));
+
+    const distribution = Object.entries(counts).map(([status, count]) => ({
+      status: status as WeatherStatus,
+      pct: total > 0 ? Math.round((count / total) * 100) : 0
+    })).sort((a, b) => b.pct - a.pct);
+
+    // 안정성 (표준편차 대략적 계산)
+    const avg = dayAvgs.reduce((a, b) => a + b, 0) / dayAvgs.length;
+    const variance = dayAvgs.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / dayAvgs.length;
+    const stdDev = Math.sqrt(variance);
+    const stability = stdDev < 10 ? "매우 높음" : stdDev < 20 ? "높음" : "변동성 있음";
+
+    return { highest, lowest, highestDay: monthDays[highestDayIdx], distribution, stability };
+  }, [averageRow, calendarMembers, monthDays]);
+
   return (
     <div className="min-h-screen" style={{ background: "var(--hero-gradient)" }}>
       <motion.header
@@ -297,13 +330,9 @@ export default function MonthlyReportClient({ teamId }: { teamId: string }) {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div>
                 <h1 className="text-3xl md:text-5xl font-black tracking-tight text-primary mb-2">월간 리포트</h1>
-                <p className="text-lg font-bold opacity-70" style={{ color: "var(--text-soft)" }}>{monthLabel} · 팀 전체 현황</p>
+                <p className="text-lg font-bold opacity-70" style={{ color: "var(--text-soft)" }}>{monthLabel} · 팀 인사이트</p>
               </div>
               <div className="flex items-center gap-4">
-                <div className="flex flex-col items-end">
-                  <span className="text-sm font-bold opacity-60">월 평균 점수</span>
-                  <span className="text-3xl font-black text-primary">{totalAvg ? `${totalAvg}pt` : "—"}</span>
-                </div>
                 <PrimaryTabToggle
                   tabs={[
                     { value: "0", label: "이번 달" },
@@ -314,6 +343,66 @@ export default function MonthlyReportClient({ teamId }: { teamId: string }) {
                 />
               </div>
             </div>
+
+            {stats && (
+              <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-[1.5rem] bg-surface-low p-5">
+                  <SectionLabel color="muted">월간 평균</SectionLabel>
+                  <div className="mt-1 text-3xl font-black text-primary">{totalAvg}pt</div>
+                  <p className="mt-2 text-xs font-semibold opacity-60">지난달 대비 {totalAvg && totalAvg > 60 ? "안정적" : "주의 요망"}</p>
+                </div>
+                <div className="rounded-[1.5rem] bg-surface-low p-5">
+                  <SectionLabel color="muted">최고의 날</SectionLabel>
+                  <div className="mt-1 text-3xl font-black text-primary">{stats.highest}pt</div>
+                  <p className="mt-2 text-xs font-semibold opacity-60">{stats.highestDay.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })}</p>
+                </div>
+                <div className="rounded-[1.5rem] bg-surface-low p-5">
+                  <SectionLabel color="muted">에너지 안정성</SectionLabel>
+                  <div className="mt-1 text-3xl font-black text-tertiary">{stats.stability}</div>
+                  <p className="mt-2 text-xs font-semibold opacity-60">일자별 점수 변동폭 기준</p>
+                </div>
+                <div className="rounded-[1.5rem] bg-surface-low p-5">
+                  <SectionLabel color="muted">주요 날씨</SectionLabel>
+                  <div className="mt-1 text-3xl font-black text-secondary">{stats.distribution[0]?.pct}%</div>
+                  <p className="mt-2 text-xs font-semibold opacity-60">{stats.distribution[0]?.status === "Sunny" ? "맑음" : stats.distribution[0]?.status}이 가장 많았어요</p>
+                </div>
+              </div>
+            )}
+          </section>
+
+          <section className="mb-8 grid gap-6 lg:grid-cols-3">
+             <div className="lg:col-span-2 rounded-[2rem] bg-[var(--panel-strong)] p-6 shadow-sm">
+                <div className="mb-4 flex items-center justify-between">
+                  <SectionLabel color="primary">팀 에너지 트렌드</SectionLabel>
+                  <span className="text-xs font-bold opacity-40">일자별 팀 평균 점수</span>
+                </div>
+                <div className="h-40 w-full">
+                  <MoodTrendChart 
+                    scores={averageRow.map(r => r.score)} 
+                    height={160} 
+                    className="w-full"
+                  />
+                </div>
+             </div>
+             <div className="rounded-[2rem] bg-[var(--panel-strong)] p-6 shadow-sm">
+                <SectionLabel color="primary" className="mb-4">날씨 분포</SectionLabel>
+                <div className="space-y-3">
+                  {stats?.distribution.map(({ status, pct }) => (
+                    <div key={status} className="flex items-center gap-3">
+                      <div className="w-16 text-xs font-bold opacity-60">{status === "Sunny" ? "맑음" : status}</div>
+                      <div className="flex-1 h-2 bg-surface-low rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${pct}%` }}
+                          transition={{ duration: 1, ease: "easeOut" }}
+                          className="h-full bg-primary"
+                        />
+                      </div>
+                      <div className="w-10 text-right text-xs font-black">{pct}%</div>
+                    </div>
+                  ))}
+                </div>
+             </div>
           </section>
 
           <section className="rounded-[2rem] bg-[var(--surface-lowest)] border border-[var(--border-subtle)] overflow-hidden shadow-xl">
