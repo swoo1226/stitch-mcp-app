@@ -101,12 +101,13 @@ export default function MonthlyReportClient({ teamId }: { teamId: string }) {
   const [managedTeamId, setManagedTeamId] = useState<string | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const today = teamId === DEMO_TEAM_ID ? getDemoSnapshotDate() : new Date();
-  const targetDate = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
-  const monthDays = getMonthDays(targetDate.getFullYear(), targetDate.getMonth());
-  const monthStart = monthDays[0];
-  const monthEnd = monthDays[monthDays.length - 1];
-  const todayIso = isoDate(today);
+  const today = useMemo(() => teamId === DEMO_TEAM_ID ? getDemoSnapshotDate() : new Date(), [teamId]);
+  const targetDate = useMemo(() => new Date(today.getFullYear(), today.getMonth() + monthOffset, 1), [today, monthOffset]);
+  const monthDays = useMemo(() => getMonthDays(targetDate.getFullYear(), targetDate.getMonth()), [targetDate]);
+  
+  const monthStartIso = useMemo(() => monthDays.length > 0 ? isoDate(monthDays[0]) : "", [monthDays]);
+  const monthEndIso = useMemo(() => monthDays.length > 0 ? isoDate(monthDays[monthDays.length - 1]) : "", [monthDays]);
+  const todayIso = useMemo(() => isoDate(today), [today]);
 
   const colTemplate = `140px repeat(${monthDays.length}, minmax(70px, 1fr))`;
 
@@ -132,8 +133,6 @@ export default function MonthlyReportClient({ teamId }: { teamId: string }) {
 
     async function fetchData() {
       setLoading(true);
-      const startIso = isoDate(monthStart);
-      const endIso = isoDate(monthEnd);
 
       const { data: users, error: usersError } = await supabase
         .from("users")
@@ -150,8 +149,8 @@ export default function MonthlyReportClient({ teamId }: { teamId: string }) {
         .from("mood_logs")
         .select("user_id, score, message, logged_at")
         .in("user_id", userIds)
-        .gte("logged_at", kstDayStart(startIso))
-        .lte("logged_at", kstDayEnd(endIso))
+        .gte("logged_at", kstDayStart(monthStartIso))
+        .lte("logged_at", kstDayEnd(monthEndIso))
         .order("logged_at", { ascending: true });
 
       const logRows: MoodLogRow[] = (logs as MoodLogRow[]) ?? [];
@@ -169,7 +168,7 @@ export default function MonthlyReportClient({ teamId }: { teamId: string }) {
     }
 
     fetchData();
-  }, [monthOffset, teamId, monthStart, monthEnd]);
+  }, [monthOffset, teamId, monthStartIso, monthEndIso]);
 
   const monthLabel = `${targetDate.getFullYear()}년 ${targetDate.getMonth() + 1}월`;
 
