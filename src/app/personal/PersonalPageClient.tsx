@@ -33,7 +33,7 @@ interface UserData {
   mood_logs: MoodLog[];
 }
 
-const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI"];
+const DAY_LABELS = ["월", "화", "수", "목", "금"];
 
 
 function getTodayKst(referenceDate: Date): string {
@@ -698,7 +698,23 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                        
                        {/* 요일별 패턴 추가 */}
                        <div className="pt-2 border-t border-border-subtle/30 mt-4">
-                         <p className="text-[10px] font-bold opacity-50 uppercase tracking-wider mb-2">요일별 패턴</p>
+                         <div className="flex items-center gap-1.5 mb-2 group relative">
+                           <p className="text-[10px] font-bold opacity-50 uppercase tracking-wider">요일별 패턴</p>
+                           <div className="cursor-help opacity-30 hover:opacity-100 transition-opacity">
+                             <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5">
+                               <circle cx="12" cy="12" r="10" />
+                               <path d="M12 16v-4M12 8h.01" />
+                             </svg>
+                           </div>
+                           
+                           {/* 툴팁 레이어 */}
+                           <div className="absolute bottom-full left-0 mb-2 w-48 p-3 rounded-2xl bg-surface-overlay border border-border-subtle shadow-ambient opacity-0 pointer-events-none group-hover:opacity-100 transition-all z-30 scale-95 group-hover:scale-100 origin-bottom-left">
+                             <p className="text-[10px] font-black text-primary mb-1">패턴 분석 규칙</p>
+                             <p className="text-[9px] leading-relaxed text-on-surface opacity-70">
+                               선택한 월의 데이터를 요일별로 그룹화하여 **평균 점수**가 가장 높은 날과 낮은 날을 선정합니다. (최소 1회 이상의 기록 필요)
+                             </p>
+                           </div>
+                         </div>
                          <div className="grid grid-cols-2 gap-2">
                            <div className="rounded-2xl bg-surface-lowest/50 p-3">
                              <p className="text-[9px] font-bold opacity-40">가장 맑은 요일</p>
