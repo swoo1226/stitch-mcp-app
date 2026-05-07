@@ -118,9 +118,9 @@ export function MoodTrendChart({ scores, height = 44, className = "" }: MoodTren
         </div>
       )}
 
-      {/* 곡선 SVG */}
+      {/* 곡선 SVG - 라벨 공간(pr-12) 제외 */}
       <svg
-        className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
+        className="absolute left-0 right-12 top-0 bottom-0 w-auto h-full pointer-events-none overflow-visible"
         viewBox={`0 0 ${W} ${height}`}
         preserveAspectRatio="none"
       >
@@ -140,105 +140,107 @@ export function MoodTrendChart({ scores, height = 44, className = "" }: MoodTren
         ))}
       </svg>
 
-      {/* 캡슐 레이어 */}
-      {scores.map((score, i) => {
-        const hasScore = score !== null;
-        const prev = scores[i - 1];
-        const isDropping = checkWarning(scores, i) !== null;
+      {/* 캡슐 레이어 - 라벨 공간(pr-12) 제외 */}
+      <div className="absolute left-0 right-12 top-0 bottom-0 pointer-events-none">
+        {scores.map((score, i) => {
+          const hasScore = score !== null;
+          const prev = scores[i - 1];
+          const isDropping = checkWarning(scores, i) !== null;
 
-        const xPct = pillCenterX(i, n) * 100;
-        const bottomPx = hasScore
-          ? (() => {
-              const pad = height * 0.06;
-              const usable = height - pad * 2;
-              return Math.max(0, Math.min(height - PILL_H, pad + (score! / 100) * usable - PILL_H / 2));
-            })()
-          : (height - PILL_H) / 2;
+          const xPct = pillCenterX(i, n) * 100;
+          const bottomPx = hasScore
+            ? (() => {
+                const pad = height * 0.06;
+                const usable = height - pad * 2;
+                return Math.max(0, Math.min(height - PILL_H, pad + (score! / 100) * usable - PILL_H / 2));
+              })()
+            : (height - PILL_H) / 2;
 
-        const status = hasScore ? scoreToStatus(score!) : null;
-        const { fill, glow } = status
-          ? getWeatherColor(status)
-          : { fill: "color-mix(in srgb, var(--on-surface) 15%, transparent)", glow: "transparent" };
+          const status = hasScore ? scoreToStatus(score!) : null;
+          const { fill, glow } = status
+            ? getWeatherColor(status)
+            : { fill: "color-mix(in srgb, var(--on-surface) 15%, transparent)", glow: "transparent" };
 
-        return (
-          <div
-            key={i}
-            className="absolute group"
-            style={{ left: `${xPct}%`, transform: "translateX(-50%)", width: PILL_W + 16, height: `${height}px` }}
-          >
-            {/* 세로 트랙 */}
+          return (
             <div
-              className="absolute left-1/2 -translate-x-1/2 w-px"
-              style={{
-                top: 0,
-                height: `${height}px`,
-                background: "color-mix(in srgb, var(--on-surface) 5%, transparent)",
-              }}
-            />
-
-            {/* 캡슐 */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: hasScore ? 1 : 0.2, scale: 1, bottom: bottomPx }}
-              transition={{ ...RESPONSIVE_SPRING, delay: 0.08 + i * 0.06 }}
-              className="absolute left-1/2 -translate-x-1/2"
-              style={{
-                width: PILL_W,
-                height: PILL_H,
-                borderRadius: 999,
-                background: fill,
-                boxShadow: isDropping
-                  ? `0 0 12px 4px rgba(239,68,68,0.35), 0 2px 6px ${glow}`
-                  : `0 2px 8px ${glow}`,
-              }}
+              key={i}
+              className="absolute group pointer-events-auto"
+              style={{ left: `${xPct}%`, transform: "translateX(-50%)", width: PILL_W + 16, height: `${height}px` }}
             >
-              <div className="absolute top-0 left-0 w-full h-1/2 rounded-t-full bg-gradient-to-b from-white/25 to-transparent" />
-              {isDropping && (
-                <motion.div
-                  className="absolute inset-0 rounded-full pointer-events-none"
-                  style={{
-                    borderRadius: 999,
-                    boxShadow: "0 0 16px 6px rgba(239,68,68,0.6), 0 0 32px 12px rgba(239,68,68,0.25)",
-                  }}
-                  animate={{ opacity: [0.1, 1, 0.1] }}
-                  transition={{
-                    duration: 3.2,
-                    repeat: Infinity,
-                    ease: [0.45, 0, 0.55, 1],
-                    times: [0, 0.4, 1],
-                    repeatType: "loop",
-                  }}
-                />
-              )}
-            </motion.div>
-
-            {/* hover 툴팁 */}
-            {hasScore && (
+              {/* 세로 트랙 */}
               <div
-                className="absolute left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none"
+                className="absolute left-1/2 -translate-x-1/2 w-px"
                 style={{
-                  bottom: bottomPx + PILL_H + 5,
-                  background: "var(--surface-elevated)",
-                  borderRadius: 6,
-                  padding: "2px 6px",
-                  fontSize: 10,
-                  fontWeight: 900,
-                  color: "var(--on-surface)",
-                  whiteSpace: "nowrap",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                  top: 0,
+                  height: `${height}px`,
+                  background: "color-mix(in srgb, var(--on-surface) 5%, transparent)",
+                }}
+              />
+
+              {/* 캡슐 */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: hasScore ? 1 : 0.2, scale: 1, bottom: bottomPx }}
+                transition={{ ...RESPONSIVE_SPRING, delay: 0.08 + i * 0.06 }}
+                className="absolute left-1/2 -translate-x-1/2"
+                style={{
+                  width: PILL_W,
+                  height: PILL_H,
+                  borderRadius: 999,
+                  background: fill,
+                  boxShadow: isDropping
+                    ? `0 0 12px 4px rgba(239,68,68,0.35), 0 2px 6px ${glow}`
+                    : `0 2px 8px ${glow}`,
                 }}
               >
-                {score}pt
-                {prev !== null && prev !== undefined && score! !== prev && (
-                  <span style={{ color: score! > prev ? "#1e9de0" : "#EF4444", marginLeft: 4 }}>
-                    {score! > prev ? "↑" : "↓"}{Math.abs(score! - prev)}
-                  </span>
+                <div className="absolute top-0 left-0 w-full h-1/2 rounded-t-full bg-gradient-to-b from-white/25 to-transparent" />
+                {isDropping && (
+                  <motion.div
+                    className="absolute inset-0 rounded-full pointer-events-none"
+                    style={{
+                      borderRadius: 999,
+                      boxShadow: "0 0 16px 6px rgba(239,68,68,0.6), 0 0 32px 12px rgba(239,68,68,0.25)",
+                    }}
+                    animate={{ opacity: [0.1, 1, 0.1] }}
+                    transition={{
+                      duration: 3.2,
+                      repeat: Infinity,
+                      ease: [0.45, 0, 0.55, 1],
+                      times: [0, 0.4, 1],
+                      repeatType: "loop",
+                    }}
+                  />
                 )}
-              </div>
-            )}
-          </div>
-        );
-      })}
+              </motion.div>
+
+              {/* hover 툴팁 */}
+              {hasScore && (
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none"
+                  style={{
+                    bottom: bottomPx + PILL_H + 5,
+                    background: "var(--surface-elevated)",
+                    borderRadius: 6,
+                    padding: "2px 6px",
+                    fontSize: 10,
+                    fontWeight: 900,
+                    color: "var(--on-surface)",
+                    whiteSpace: "nowrap",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                  }}
+                >
+                  {score}pt
+                  {prev !== null && prev !== undefined && score! !== prev && (
+                    <span style={{ color: score! > prev ? "#1e9de0" : "#EF4444", marginLeft: 4 }}>
+                      {score! > prev ? "↑" : "↓"}{Math.abs(score! - prev)}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
