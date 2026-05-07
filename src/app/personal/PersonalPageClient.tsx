@@ -269,11 +269,13 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
     const stdDev = Math.sqrt(variance);
     const stability = stdDev < 10 ? "매우 높음" : stdDev < 20 ? "높음" : "변동성 있음";
 
-    // 요일별 분석
+    // 요일별 분석 (KST 기준)
     const dayStats: Record<number, number[]> = { 1: [], 2: [], 3: [], 4: [], 5: [] };
     monthLogs.forEach(l => {
       const d = new Date(l.logged_at);
-      const dow = d.getDay();
+      // KST 변환
+      const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+      const dow = kst.getUTCDay();
       if (dow >= 1 && dow <= 5) {
         dayStats[dow].push(l.score);
       }
@@ -290,6 +292,14 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
 
     return { avg, topStatus, stability, bestDay, toughestDay };
   }, [user, monthDays]);
+
+  const monthGridItems = useMemo(() => {
+    if (monthDays.length === 0) return [];
+    const firstDay = monthDays[0];
+    const firstDow = firstDay.getDay(); // 1=Mon, 2=Tue...
+    const placeholders = firstDow > 1 ? Array.from({ length: firstDow - 1 }) : [];
+    return [...placeholders, ...monthDays];
+  }, [monthDays]);
 
   const StatusIcon = todayStatus ? WEATHER_ICON_MAP[todayStatus] : null;
 
@@ -634,10 +644,13 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                 
                 {/* 월간 그리드 (5열 요일 기준) */}
                 <div className="grid grid-cols-5 gap-2">
-                  {DAY_LABELS.map(day => (
+                   {DAY_LABELS.map(day => (
                     <div key={day} className="text-center text-[10px] font-black opacity-30 pb-2">{day}</div>
                   ))}
-                  {monthDays.map((day, i) => {
+                  {monthGridItems.map((item, i) => {
+                    if (!item) return <div key={`empty-${i}`} className="aspect-square opacity-0" />;
+                    
+                    const day = item as Date;
                     const iso = isoDate(day);
                     const log = user?.mood_logs.find(l => isoDate(new Date(l.logged_at)) === iso);
                     const status = log ? scoreToStatus(log.score) : null;
