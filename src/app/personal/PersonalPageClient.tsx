@@ -811,7 +811,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                              <div className="absolute bottom-full left-0 mb-2 w-48 p-3 rounded-2xl bg-surface-overlay border border-border-subtle shadow-ambient opacity-0 pointer-events-none group-hover:opacity-100 transition-all z-30 scale-95 group-hover:scale-100 origin-bottom-left">
                                <p className="text-[10px] font-black text-primary mb-1">패턴 분석 규칙</p>
                                <p className="text-[9px] leading-relaxed text-on-surface opacity-70">
-                                 요일별 평균 점수와 변동폭을 분석하여 기분 패턴을 추출합니다.
+                                 선택한 월의 데이터를 요일별로 그룹화하여 <strong className="text-primary">평균 점수</strong>가 가장 높은 날과 낮은 날을 선정합니다. (최소 1회 이상의 기록 필요)
                                </p>
                              </div>
                            </div>
