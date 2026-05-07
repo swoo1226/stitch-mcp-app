@@ -730,80 +730,149 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                          <p className="text-lg font-black text-tertiary">{personalStats.stability}</p>
                        </div>
                        
-                       {/* 요일별 패턴 추가 */}
-                       <div className="pt-2 border-t border-border-subtle/30 mt-4">
-                         <div className="flex items-center gap-1.5 mb-2 group relative">
-                           <p className="text-[10px] font-bold opacity-50 uppercase tracking-wider">요일별 패턴</p>
-                           <div className="cursor-help opacity-30 hover:opacity-100 transition-opacity">
-                             <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5">
-                               <circle cx="12" cy="12" r="10" />
-                               <path d="M12 16v-4M12 8h.01" />
-                             </svg>
-                           </div>
-                           
-                           {/* 툴팁 레이어 */}
-                           <div className="absolute bottom-full left-0 mb-2 w-48 p-3 rounded-2xl bg-surface-overlay border border-border-subtle shadow-ambient opacity-0 pointer-events-none group-hover:opacity-100 transition-all z-30 scale-95 group-hover:scale-100 origin-bottom-left">
-                             <p className="text-[10px] font-black text-primary mb-1">패턴 분석 규칙</p>
-                             <p className="text-[9px] leading-relaxed text-on-surface opacity-70">
-                               선택한 월의 데이터를 요일별로 그룹화하여 **평균 점수**가 가장 높은 날과 낮은 날을 선정합니다. (최소 1회 이상의 기록 필요)
-                             </p>
-                           </div>
-                         </div>
-                         <div className="grid grid-cols-2 gap-2">
-                           <div className="rounded-2xl bg-surface-lowest/50 p-3">
-                             <p className="text-[9px] font-bold opacity-40">가장 맑은 요일</p>
-                             <p className="text-sm font-black text-primary">
-                               {personalStats.bestDay ? `${DAY_LABELS[personalStats.bestDay.dow - 1]} (${personalStats.bestDay.avg}pt)` : "—"}
-                             </p>
-                           </div>
-                           <div className="rounded-2xl bg-surface-lowest/50 p-3">
-                             <p className="text-[9px] font-bold opacity-40">가장 흐린 요일</p>
-                             <p className="text-sm font-black text-tertiary">
-                               {personalStats.toughestDay ? `${DAY_LABELS[personalStats.toughestDay.dow - 1]} (${personalStats.toughestDay.avg}pt)` : "—"}
-                             </p>
-                           </div>
-                           {personalStats.mostVolatileDay && (
-                             <div className="rounded-2xl bg-surface-lowest/50 p-3 col-span-2">
-                               <p className="text-[9px] font-bold opacity-40">기복이 심한 요일</p>
-                               <p className="text-sm font-black text-secondary">
-                                 {DAY_LABELS[personalStats.mostVolatileDay.dow - 1]}요일 (변동폭 {Math.round(personalStats.mostVolatileDay.stdDev)}pt)
+              <div className="space-y-4">
+                <div 
+                  className="rounded-[2.5rem] p-6 relative overflow-hidden"
+                  style={{ background: "var(--surface-container-low)", boxShadow: "var(--glass-shadow)" }}
+                >
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-6">
+                      <SectionLabel color="primary">이달의 리포트</SectionLabel>
+                      {personalStats && (
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black tracking-tight ${
+                            personalStats.momentum === "rising" ? "bg-primary/10 text-primary" : 
+                            personalStats.momentum === "falling" ? "bg-tertiary/10 text-tertiary" : 
+                            "bg-surface-high text-on-surface/60"
+                          }`}
+                        >
+                          {personalStats.momentum === "rising" ? "📈 상승세" : personalStats.momentum === "falling" ? "📉 하락세" : "➡️ 안정적"}
+                        </motion.div>
+                      )}
+                    </div>
+
+                    {personalStats ? (
+                      <div className="space-y-6">
+                        <div className="flex items-end gap-2">
+                          <div className="flex-1">
+                            <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest mb-1">평균 점수</p>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-4xl font-black text-primary tracking-tighter">{personalStats.avg}</span>
+                              <span className="text-sm font-bold opacity-30">pt</span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest mb-1">기분 안정성</p>
+                            <p className="text-sm font-black text-secondary tracking-tight">{personalStats.stability}</p>
+                          </div>
+                        </div>
+
+                        <div className="p-4 rounded-3xl bg-surface-lowest/50 border border-white/5 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                                {(() => {
+                                  const Icon = WEATHER_ICON_MAP[personalStats.topStatus];
+                                  return <Icon size={20} />;
+                                })()}
+                              </div>
+                              <div>
+                                <p className="text-[9px] font-bold opacity-40">최다 기분</p>
+                                <p className="text-xs font-black">{WEATHER_LABELS[personalStats.topStatus]}</p>
+                              </div>
+                            </div>
+                            <div className="h-8 w-[1px] bg-border-subtle/20" />
+                            <div className="flex items-center gap-2">
+                              <div className="h-8 w-8 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
+                                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                  <path d="M12 8v4l3 3" strokeLinecap="round" />
+                                  <circle cx="12" cy="12" r="9" />
+                                </svg>
+                              </div>
+                              <div>
+                                <p className="text-[9px] font-bold opacity-40">가장 맑은 날</p>
+                                <p className="text-xs font-black">{DAY_LABELS[personalStats.bestDay?.dow! - 1] || "—"}요일</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                           <div className="flex items-center gap-1.5 group relative">
+                             <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest">요일별 패턴</p>
+                             <div className="cursor-help opacity-30 hover:opacity-100 transition-opacity">
+                               <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                 <circle cx="12" cy="12" r="10" />
+                                 <path d="M12 16v-4M12 8h.01" />
+                               </svg>
+                             </div>
+                             <div className="absolute bottom-full left-0 mb-2 w-48 p-3 rounded-2xl bg-surface-overlay border border-border-subtle shadow-ambient opacity-0 pointer-events-none group-hover:opacity-100 transition-all z-30 scale-95 group-hover:scale-100 origin-bottom-left">
+                               <p className="text-[10px] font-black text-primary mb-1">패턴 분석 규칙</p>
+                               <p className="text-[9px] leading-relaxed text-on-surface opacity-70">
+                                 요일별 평균 점수와 변동폭을 분석하여 기분 패턴을 추출합니다.
                                </p>
                              </div>
-                           )}
-                         </div>
-                       </div>
-
-                       <div className="pt-2">
-                         <div className="rounded-2xl bg-surface-lowest p-3 text-[11px] font-medium leading-relaxed" style={{ color: "var(--text-soft)" }}>
-                           <div className="flex items-center gap-2 mb-2">
-                             <span className="px-2 py-0.5 rounded-full bg-surface-high text-[9px] font-bold uppercase tracking-wider">추세</span>
-                             <span className="font-black text-[12px]">
-                               {personalStats.momentum === "rising" ? "📈 상승 중" : personalStats.momentum === "falling" ? "📉 하락 중" : "➡️ 안정적"}
-                             </span>
                            </div>
-                           {personalStats.bestDay && personalStats.toughestDay && personalStats.bestDay.dow !== personalStats.toughestDay.dow ? (
-                             <>
-                               이번 달은 주로 <strong>{DAY_LABELS[personalStats.bestDay.dow - 1]}요일</strong>에 에너지가 좋았고, 
-                               <strong>{DAY_LABELS[personalStats.toughestDay.dow - 1]}요일</strong>은 조금 힘든 경향이 있었네요.
-                               {personalStats.mostVolatileDay && (
-                                 <p className="mt-1">
-                                   특히 <strong>{DAY_LABELS[personalStats.mostVolatileDay.dow - 1]}요일</strong>은 기분 변화가 큰 편이니 조금 더 여유를 가져보세요.
-                                 </p>
-                               )}
-                             </>
-                           ) : (
-                             personalStats.avg >= 70 
-                               ? "이번 달은 전반적으로 맑음이었네요! 긍정적인 에너지를 잘 유지하고 있어요." 
-                               : personalStats.avg >= 50 
-                               ? "구름이 조금 낀 달이었지만, 안정적으로 잘 버텨내고 있어요. 자신을 더 칭찬해 주세요." 
-                               : "조금 힘든 시기였을 수 있어요. 다음 달은 더 맑아질 수 있도록 휴식 시간을 가져보세요."
-                           )}
-                         </div>
-                       </div>
-                     </div>
-                   ) : (
-                     <div className="mt-10 text-center text-sm font-bold opacity-30">데이터가 부족합니다.</div>
-                   )}
+
+                           <div className="grid grid-cols-2 gap-2">
+                              <div className="p-3 rounded-2xl bg-surface-lowest/40 border border-border-subtle/20 hover:border-primary/30 transition-colors group">
+                                <p className="text-[9px] font-bold opacity-40 mb-1">기복 심한 요일</p>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-black">{personalStats.mostVolatileDay ? `${DAY_LABELS[personalStats.mostVolatileDay.dow - 1]}요일` : "—"}</span>
+                                  {personalStats.mostVolatileDay && (
+                                    <span className="text-[9px] font-bold text-tertiary bg-tertiary/10 px-1.5 py-0.5 rounded-md">±{Math.round(personalStats.mostVolatileDay.stdDev)}</span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="p-3 rounded-2xl bg-surface-lowest/40 border border-border-subtle/20 hover:border-tertiary/30 transition-colors group">
+                                <p className="text-[9px] font-bold opacity-40 mb-1">가장 흐린 요일</p>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-black">{personalStats.toughestDay ? `${DAY_LABELS[personalStats.toughestDay.dow - 1]}요일` : "—"}</span>
+                                  {personalStats.toughestDay && (
+                                    <span className="text-[9px] font-bold opacity-30">{personalStats.toughestDay.avg}pt</span>
+                                  )}
+                                </div>
+                              </div>
+                           </div>
+                        </div>
+
+                        <div className="pt-2">
+                          <div className="rounded-[1.5rem] bg-surface-high/30 p-4 relative">
+                            <div className="absolute top-0 left-4 -translate-y-1/2 px-2 py-0.5 rounded-full bg-primary text-[8px] font-black text-white uppercase tracking-wider shadow-sm">Analysis</div>
+                            <div className="text-[11px] font-medium leading-relaxed tracking-tight" style={{ color: "var(--text-soft)" }}>
+                              {personalStats.bestDay && personalStats.toughestDay && (
+                                <>
+                                  이번 달은 주로 <strong>{DAY_LABELS[personalStats.bestDay.dow - 1]}요일</strong>에 에너지가 좋았고, 
+                                  <strong>{DAY_LABELS[personalStats.toughestDay.dow - 1]}요일</strong>은 조금 힘든 경향이 있었네요.
+                                  {personalStats.mostVolatileDay && (
+                                    <p className="mt-2 text-on-surface/70">
+                                      특히 <strong>{DAY_LABELS[personalStats.mostVolatileDay.dow - 1]}요일</strong>은 기분 변화가 큰 편이니 집중이 필요한 작업은 다른 요일로 분산해 보는 건 어떨까요?
+                                    </p>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="py-20 flex flex-col items-center justify-center gap-3 opacity-20">
+                        <div className="h-12 w-12 rounded-full border-2 border-dashed border-current flex items-center justify-center">
+                           <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
+                             <path d="M12 8v4l3 3" strokeLinecap="round" />
+                             <circle cx="12" cy="12" r="9" />
+                           </svg>
+                        </div>
+                        <p className="text-sm font-bold">데이터 분석 중...</p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* 장식용 배경 요소 */}
+                  <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+                  <div className="absolute -left-12 -bottom-12 h-40 w-40 rounded-full bg-secondary/5 blur-3xl pointer-events-none" />
                 </div>
               </div>
             </div>
