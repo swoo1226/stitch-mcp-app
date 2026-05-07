@@ -10,7 +10,7 @@ import NotificationBell from "../components/NotificationBell";
 import { getNavItems } from "../../lib/nav-items";
 import { getUserSession, type UserRole } from "../../lib/auth";
 import DynamicBackground from "../components/DynamicBackground";
-import { SectionLabel, ViewModeToggle, UserAvatar, TopIcon } from "../components/ui";
+import { SectionLabel, ViewModeToggle, UserAvatar, TopIcon, PrimaryTabToggle } from "../components/ui";
 import { WEATHER_ICON_MAP } from "../components/WeatherIcons";
 import { MoodTrendChart } from "../components/MoodTrendChart";
 import { supabase } from "../../lib/supabase";
@@ -56,6 +56,27 @@ function getWeekDays(referenceDate: Date): Date[] {
     return d;
   });
 }
+
+function getMonthDays(year: number, month: number): Date[] {
+  const date = new Date(year, month, 1);
+  const days: Date[] = [];
+  while (date.getMonth() === month) {
+    const day = d.getDay();
+    if (day !== 0 && day !== 6) {
+      days.push(new Date(date));
+    }
+    date.setDate(date.getDate() + 1);
+  }
+  return days;
+}
+
+const WEATHER_LABELS: Record<string, string> = {
+  Sunny: "맑음",
+  PartlyCloudy: "구름조금",
+  Cloudy: "흐림",
+  Rainy: "비",
+  Stormy: "뇌우",
+};
 
 function isoDate(d: Date): string {
   return d.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
@@ -144,6 +165,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [managedTeamId, setManagedTeamId] = useState<string | null>(null);
+  const [monthOffset, setMonthOffset] = useState(0);
 
   useEffect(() => {
     getUserSession().then((s) => {
@@ -216,6 +238,50 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
   const deltaVsLastWeek = todayScore !== null && prevWeekSameDay !== null
     ? todayScore - prevWeekSameDay
     : null;
+
+  const monthDays = useMemo(() => {
+    const target = new Date(currentDate.getFullYear(), currentDate.getMonth() + monthOffset, 1);
+    const year = target.getFullYear();
+    const month = target.getMonth();
+    const date = new Date(year, month, 1);
+    const days: Date[] = [];
+    while (date.getMonth() === month) {
+      const dow = date.getDay();
+      if (dow !== 0 && dow !== 6) {
+        days.push(new Date(date));
+      }
+      date.setDate(date.getDate() + 1);
+    }
+    return days;
+  }, [currentDate, monthOffset]);
+
+  const monthLabel = useMemo(() => {
+    const target = new Date(currentDate.getFullYear(), currentDate.getMonth() + monthOffset, 1);
+    return `${target.getFullYear()}년 ${target.getMonth() + 1}월`;
+  }, [currentDate, monthOffset]);
+
+  const personalStats = useMemo(() => {
+    if (!user) return null;
+    const currentMonthDays = monthDays.map(d => isoDate(d));
+    const monthLogs = user.mood_logs.filter(l => currentMonthDays.includes(isoDate(new Date(l.logged_at))));
+    if (monthLogs.length === 0) return null;
+
+    const scores = monthLogs.map(l => l.score);
+    const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+    
+    const counts: Record<string, number> = {};
+    monthLogs.forEach(l => {
+      const status = scoreToStatus(l.score);
+      counts[status] = (counts[status] || 0) + 1;
+    });
+    const topStatus = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] as WeatherStatus;
+
+    const variance = scores.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / scores.length;
+    const stdDev = Math.sqrt(variance);
+    const stability = stdDev < 10 ? "매우 높음" : stdDev < 20 ? "높음" : "변동성 있음";
+
+    return { avg, topStatus, stability };
+  }, [user, monthDays]);
 
   const StatusIcon = todayStatus ? WEATHER_ICON_MAP[todayStatus] : null;
 
@@ -517,50 +583,125 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
             </AnimatePresence>
           </section>
 
-          {/* 최근 2주 추이 */}
+          {/* 월간 기분 분석 */}
           <section
-            className="rounded-[2rem] px-3 py-4 md:rounded-[2.5rem] md:px-6 md:py-6"
+            className="rounded-[2rem] px-3 py-6 md:rounded-[2.5rem] md:px-6 md:py-8"
             style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
           >
-            <div className="mb-5 flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-low text-primary">
-                <TrendIcon />
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-low text-primary">
+                  <TrendIcon />
+                </div>
+                <div>
+                  <p className="text-base font-black tracking-tight text-primary md:text-[1.1rem]">
+                    월간 기분 분석
+                  </p>
+                  <p className="text-xs font-semibold" style={{ color: "var(--text-soft)" }}>
+                    {monthLabel} · 개인 맞춤 분석
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-base font-black tracking-tight text-primary md:text-[1.1rem]">
-                  최근 2주 추이
-                </p>
-                <p className="text-xs font-semibold" style={{ color: "var(--text-soft)" }}>
-                  일별 점수 변화
-                </p>
-              </div>
+              <PrimaryTabToggle
+                tabs={[
+                  { value: "0", label: "이번 달" },
+                  { value: "-1", label: "지난 달" },
+                ]}
+                active={monthOffset.toString()}
+                onChange={(v) => setMonthOffset(parseInt(v))}
+              />
             </div>
 
-            <MoodTrendChart
-              scores={recentTrendData.map((d) => d.score)}
-              height={100}
-              className="w-full"
-            />
-
-            {/* 날짜 레이블 */}
-            <div className="mt-3 flex justify-between px-1">
-              {recentTrendData.map((item, i) => {
-                const isToday = i === recentTrendData.length - 1;
-                return (
-                  <div
-                    key={i}
-                    className="flex flex-col items-center text-[9px] font-bold"
-                    style={{ color: isToday ? "var(--primary)" : "var(--text-soft)", opacity: isToday ? 1 : 0.5 }}
-                  >
-                    {i % 3 === 0 || isToday ? (
-                      <>
-                        <span>{item.date.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}</span>
-                        <span className="opacity-60">{item.date.toLocaleDateString("ko-KR", { weekday: "short" })}</span>
-                      </>
-                    ) : ""}
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <div className="mb-4 flex items-center justify-between px-1">
+                  <span className="text-xs font-bold opacity-40">기분 캘린더</span>
+                  <div className="flex gap-4">
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-2 w-2 rounded-full bg-primary" />
+                      <span className="text-[10px] font-bold opacity-60">체크인 완료</span>
+                    </div>
                   </div>
-                );
-              })}
+                </div>
+                
+                {/* 월간 그리드 (5열 요일 기준) */}
+                <div className="grid grid-cols-5 gap-2">
+                  {DAY_LABELS.map(day => (
+                    <div key={day} className="text-center text-[10px] font-black opacity-30 pb-2">{day}</div>
+                  ))}
+                  {monthDays.map((day, i) => {
+                    const iso = isoDate(day);
+                    const log = user?.mood_logs.find(l => isoDate(new Date(l.logged_at)) === iso);
+                    const status = log ? scoreToStatus(log.score) : null;
+                    const Icon = status ? WEATHER_ICON_MAP[status] : null;
+                    const isToday = iso === todayKst;
+                    
+                    return (
+                      <div 
+                        key={i} 
+                        className="relative aspect-square flex flex-col items-center justify-center rounded-2xl border transition-all"
+                        style={{ 
+                          background: isToday ? "color-mix(in srgb, var(--primary) 5%, var(--surface-low))" : "var(--surface-lowest)",
+                          borderColor: isToday ? "var(--primary)" : "var(--border-subtle)",
+                        }}
+                      >
+                        <span className="absolute top-2 left-2 text-[9px] font-black opacity-20">{day.getDate()}</span>
+                        {Icon ? (
+                          <Icon size={24} />
+                        ) : (
+                          <div className="h-1.5 w-1.5 rounded-full bg-surface-high opacity-20" />
+                        )}
+                        {log && (
+                          <span className="mt-1 text-[8px] font-black opacity-40">{log.score}</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="rounded-3xl bg-surface-low p-5">
+                   <SectionLabel color="primary">이달의 리포트</SectionLabel>
+                   {personalStats ? (
+                     <div className="mt-4 space-y-5">
+                       <div>
+                         <p className="text-[10px] font-bold opacity-50 uppercase tracking-wider">평균 점수</p>
+                         <p className="text-2xl font-black text-primary">{personalStats.avg}pt</p>
+                       </div>
+                       <div>
+                         <p className="text-[10px] font-bold opacity-50 uppercase tracking-wider">가장 많은 기분</p>
+                         <div className="mt-1 flex items-center gap-2">
+                           {personalStats.topStatus && (
+                             <>
+                               {(() => {
+                                 const Icon = WEATHER_ICON_MAP[personalStats.topStatus];
+                                 return <Icon size={20} />;
+                               })()}
+                               <span className="text-lg font-black text-secondary">{WEATHER_LABELS[personalStats.topStatus]}</span>
+                             </>
+                           )}
+                         </div>
+                       </div>
+                       <div>
+                         <p className="text-[10px] font-bold opacity-50 uppercase tracking-wider">기분 안정성</p>
+                         <p className="text-lg font-black text-tertiary">{personalStats.stability}</p>
+                       </div>
+                       <div className="pt-2">
+                         <div className="rounded-2xl bg-surface-lowest p-3 text-[11px] font-medium leading-relaxed" style={{ color: "var(--text-soft)" }}>
+                           {personalStats.avg >= 70 
+                             ? "이번 달은 전반적으로 맑음이었네요! 긍정적인 에너지를 잘 유지하고 있어요." 
+                             : personalStats.avg >= 50 
+                             ? "구름이 조금 낀 달이었지만, 안정적으로 잘 버텨내고 있어요. 자신을 더 칭찬해 주세요." 
+                             : "조금 힘든 시기였을 수 있어요. 다음 달은 더 맑아질 수 있도록 휴식 시간을 가져보세요."}
+                         </div>
+                       </div>
+                     </div>
+                   ) : (
+                     <div className="mt-10 text-center text-sm font-bold opacity-30">데이터가 부족합니다.</div>
+                   )}
+                </div>
+              </div>
             </div>
           </section>
         </motion.main>
