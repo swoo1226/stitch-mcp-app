@@ -844,7 +844,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                             <div className="text-[11px] font-medium leading-relaxed tracking-tight" style={{ color: "var(--text-soft)" }}>
                               {personalStats.bestDay && personalStats.toughestDay && (
                                 <>
-                                  이번 달은 주로 <strong>{DAY_LABELS[personalStats.bestDay.dow - 1]}요일</strong>에 에너지가 좋았고, 
+                                  <strong>{new Date(currentDate.getFullYear(), currentDate.getMonth() + monthOffset).getMonth() + 1}월</strong>은 주로 <strong>{DAY_LABELS[personalStats.bestDay.dow - 1]}요일</strong>에 에너지가 좋았고, 
                                   <strong>{DAY_LABELS[personalStats.toughestDay.dow - 1]}요일</strong>은 조금 힘든 경향이 있었네요.
                                   {personalStats.mostVolatileDay && (
                                     <p className="mt-2 text-on-surface/70">
