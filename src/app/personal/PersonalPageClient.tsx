@@ -61,8 +61,8 @@ function getMonthDays(year: number, month: number): Date[] {
   const date = new Date(year, month, 1);
   const days: Date[] = [];
   while (date.getMonth() === month) {
-    const day = d.getDay();
-    if (day !== 0 && day !== 6) {
+    const dow = date.getDay();
+    if (dow !== 0 && dow !== 6) {
       days.push(new Date(date));
     }
     date.setDate(date.getDate() + 1);
@@ -186,7 +186,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
         .select("id, name, nickname, avatar_emoji, mood_logs (score, message, logged_at)")
         .eq("id", userId)
         .order("logged_at", { referencedTable: "mood_logs", ascending: false })
-        .limit(30, { referencedTable: "mood_logs" })
+        .limit(100, { referencedTable: "mood_logs" })
         .single();
       if (data) setUser(data as UserData);
       setLoading(false);
@@ -241,18 +241,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
 
   const monthDays = useMemo(() => {
     const target = new Date(currentDate.getFullYear(), currentDate.getMonth() + monthOffset, 1);
-    const year = target.getFullYear();
-    const month = target.getMonth();
-    const date = new Date(year, month, 1);
-    const days: Date[] = [];
-    while (date.getMonth() === month) {
-      const dow = date.getDay();
-      if (dow !== 0 && dow !== 6) {
-        days.push(new Date(date));
-      }
-      date.setDate(date.getDate() + 1);
-    }
-    return days;
+    return getMonthDays(target.getFullYear(), target.getMonth());
   }, [currentDate, monthOffset]);
 
   const monthLabel = useMemo(() => {
