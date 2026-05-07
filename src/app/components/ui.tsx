@@ -984,7 +984,7 @@ interface NikoSummaryRowProps {
   tone?: "primary" | "muted";
 }
 
-function NikoSummaryRow({
+export function NikoSummaryRow({
   week,
   comparisonWeek,
   todayIndex,
