@@ -463,6 +463,16 @@ export default function NikoPageClient({ teamId }: { teamId: string }) {
                     ))}
                   </div>
                 )}
+                <Link
+                  href={withTeamParam("/team/monthly", teamId)}
+                  className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-black transition-all hover:opacity-80"
+                  style={{ background: "color-mix(in srgb, var(--secondary) 12%, var(--surface-low))", color: "var(--secondary)", boxShadow: "var(--button-subtle-shadow)" }}
+                >
+                  월간 리포트
+                  <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M2 13h12M2 8h12M2 3h12" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Link>
                 <PrimaryTabToggle
                   tabs={[
                     { value: "this", label: "이번 주" },

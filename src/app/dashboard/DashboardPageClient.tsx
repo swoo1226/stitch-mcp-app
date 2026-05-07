@@ -678,16 +678,28 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                 </div>
               </div>
 
-              <Link
-                href={withTeamParam("/niko", teamId)}
-                className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition-colors hover:opacity-80"
-                style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
-              >
-                전체 보기
-                <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M6 3l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={withTeamParam("/team/monthly", teamId)}
+                  className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition-colors hover:opacity-80"
+                  style={{ background: "color-mix(in srgb, var(--secondary) 10%, var(--surface-low))", color: "var(--secondary)" }}
+                >
+                  월간 리포트
+                  <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M2 13h12M2 8h12M2 3h12" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Link>
+                <Link
+                  href={withTeamParam("/niko", teamId)}
+                  className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition-colors hover:opacity-80"
+                  style={{ background: "var(--highlight-soft)", color: "var(--primary)" }}
+                >
+                  전체 보기
+                  <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M6 3l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Link>
+              </div>
             </div>
 
             <section>
