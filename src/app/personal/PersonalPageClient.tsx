@@ -290,7 +290,28 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
     const bestDay = [...dayAvgs].sort((a, b) => (b.avg ?? 0) - (a.avg ?? 0))[0];
     const toughestDay = [...dayAvgs].sort((a, b) => (a.avg ?? 0) - (b.avg ?? 0))[0];
 
-    return { avg, topStatus, stability, bestDay, toughestDay };
+    // 요일별 변동성 계산 (가장 기복이 심한 요일)
+    const dayVolatilities = Object.entries(dayStats).map(([dow, scs]) => {
+      if (scs.length < 2) return { dow: parseInt(dow), stdDev: 0 };
+      const dAvg = scs.reduce((a, b) => a + b, 0) / scs.length;
+      const dVar = scs.reduce((a, b) => a + Math.pow(b - dAvg, 2), 0) / scs.length;
+      return { dow: parseInt(dow), stdDev: Math.sqrt(dVar) };
+    }).filter(d => d.stdDev > 0);
+    const mostVolatileDay = [...dayVolatilities].sort((a, b) => b.stdDev - a.stdDev)[0];
+
+    // 월간 모멘텀 (전반부 vs 후반부 비교)
+    const midIdx = Math.floor(monthLogs.length / 2);
+    const firstHalf = monthLogs.slice(0, midIdx).map(l => l.score);
+    const secondHalf = monthLogs.slice(midIdx).map(l => l.score);
+    let momentum = "stable";
+    if (firstHalf.length > 0 && secondHalf.length > 0) {
+      const fAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+      const sAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+      if (sAvg - fAvg > 10) momentum = "rising";
+      else if (fAvg - sAvg > 10) momentum = "falling";
+    }
+
+    return { avg, topStatus, stability, bestDay, toughestDay, mostVolatileDay, momentum };
   }, [user, monthDays]);
 
   const monthGridItems = useMemo(() => {
@@ -741,15 +762,34 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                                {personalStats.toughestDay ? `${DAY_LABELS[personalStats.toughestDay.dow - 1]} (${personalStats.toughestDay.avg}pt)` : "—"}
                              </p>
                            </div>
+                           {personalStats.mostVolatileDay && (
+                             <div className="rounded-2xl bg-surface-lowest/50 p-3 col-span-2">
+                               <p className="text-[9px] font-bold opacity-40">기복이 심한 요일</p>
+                               <p className="text-sm font-black text-secondary">
+                                 {DAY_LABELS[personalStats.mostVolatileDay.dow - 1]}요일 (변동폭 {Math.round(personalStats.mostVolatileDay.stdDev)}pt)
+                               </p>
+                             </div>
+                           )}
                          </div>
                        </div>
 
                        <div className="pt-2">
                          <div className="rounded-2xl bg-surface-lowest p-3 text-[11px] font-medium leading-relaxed" style={{ color: "var(--text-soft)" }}>
+                           <div className="flex items-center gap-2 mb-2">
+                             <span className="px-2 py-0.5 rounded-full bg-surface-high text-[9px] font-bold uppercase tracking-wider">추세</span>
+                             <span className="font-black text-[12px]">
+                               {personalStats.momentum === "rising" ? "📈 상승 중" : personalStats.momentum === "falling" ? "📉 하락 중" : "➡️ 안정적"}
+                             </span>
+                           </div>
                            {personalStats.bestDay && personalStats.toughestDay && personalStats.bestDay.dow !== personalStats.toughestDay.dow ? (
                              <>
                                이번 달은 주로 <strong>{DAY_LABELS[personalStats.bestDay.dow - 1]}요일</strong>에 에너지가 좋았고, 
                                <strong>{DAY_LABELS[personalStats.toughestDay.dow - 1]}요일</strong>은 조금 힘든 경향이 있었네요.
+                               {personalStats.mostVolatileDay && (
+                                 <p className="mt-1">
+                                   특히 <strong>{DAY_LABELS[personalStats.mostVolatileDay.dow - 1]}요일</strong>은 기분 변화가 큰 편이니 조금 더 여유를 가져보세요.
+                                 </p>
+                               )}
                              </>
                            ) : (
                              personalStats.avg >= 70 
