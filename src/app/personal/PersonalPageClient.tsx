@@ -269,7 +269,26 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
     const stdDev = Math.sqrt(variance);
     const stability = stdDev < 10 ? "매우 높음" : stdDev < 20 ? "높음" : "변동성 있음";
 
-    return { avg, topStatus, stability };
+    // 요일별 분석
+    const dayStats: Record<number, number[]> = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+    monthLogs.forEach(l => {
+      const d = new Date(l.logged_at);
+      const dow = d.getDay();
+      if (dow >= 1 && dow <= 5) {
+        dayStats[dow].push(l.score);
+      }
+    });
+
+    const dayAvgs = Object.entries(dayStats).map(([dow, scs]) => ({
+      dow: parseInt(dow),
+      avg: scs.length > 0 ? Math.round(scs.reduce((a, b) => a + b, 0) / scs.length) : null,
+      count: scs.length
+    })).filter(d => d.avg !== null);
+
+    const bestDay = [...dayAvgs].sort((a, b) => (b.avg ?? 0) - (a.avg ?? 0))[0];
+    const toughestDay = [...dayAvgs].sort((a, b) => (a.avg ?? 0) - (b.avg ?? 0))[0];
+
+    return { avg, topStatus, stability, bestDay, toughestDay };
   }, [user, monthDays]);
 
   const StatusIcon = todayStatus ? WEATHER_ICON_MAP[todayStatus] : null;
@@ -676,13 +695,40 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                          <p className="text-[10px] font-bold opacity-50 uppercase tracking-wider">기분 안정성</p>
                          <p className="text-lg font-black text-tertiary">{personalStats.stability}</p>
                        </div>
+                       
+                       {/* 요일별 패턴 추가 */}
+                       <div className="pt-2 border-t border-border-subtle/30 mt-4">
+                         <p className="text-[10px] font-bold opacity-50 uppercase tracking-wider mb-2">요일별 패턴</p>
+                         <div className="grid grid-cols-2 gap-2">
+                           <div className="rounded-2xl bg-surface-lowest/50 p-3">
+                             <p className="text-[9px] font-bold opacity-40">가장 맑은 요일</p>
+                             <p className="text-sm font-black text-primary">
+                               {personalStats.bestDay ? `${DAY_LABELS[personalStats.bestDay.dow - 1]} (${personalStats.bestDay.avg}pt)` : "—"}
+                             </p>
+                           </div>
+                           <div className="rounded-2xl bg-surface-lowest/50 p-3">
+                             <p className="text-[9px] font-bold opacity-40">가장 흐린 요일</p>
+                             <p className="text-sm font-black text-tertiary">
+                               {personalStats.toughestDay ? `${DAY_LABELS[personalStats.toughestDay.dow - 1]} (${personalStats.toughestDay.avg}pt)` : "—"}
+                             </p>
+                           </div>
+                         </div>
+                       </div>
+
                        <div className="pt-2">
                          <div className="rounded-2xl bg-surface-lowest p-3 text-[11px] font-medium leading-relaxed" style={{ color: "var(--text-soft)" }}>
-                           {personalStats.avg >= 70 
-                             ? "이번 달은 전반적으로 맑음이었네요! 긍정적인 에너지를 잘 유지하고 있어요." 
-                             : personalStats.avg >= 50 
-                             ? "구름이 조금 낀 달이었지만, 안정적으로 잘 버텨내고 있어요. 자신을 더 칭찬해 주세요." 
-                             : "조금 힘든 시기였을 수 있어요. 다음 달은 더 맑아질 수 있도록 휴식 시간을 가져보세요."}
+                           {personalStats.bestDay && personalStats.toughestDay && personalStats.bestDay.dow !== personalStats.toughestDay.dow ? (
+                             <>
+                               이번 달은 주로 <strong>{DAY_LABELS[personalStats.bestDay.dow - 1]}요일</strong>에 에너지가 좋았고, 
+                               <strong>{DAY_LABELS[personalStats.toughestDay.dow - 1]}요일</strong>은 조금 힘든 경향이 있었네요.
+                             </>
+                           ) : (
+                             personalStats.avg >= 70 
+                               ? "이번 달은 전반적으로 맑음이었네요! 긍정적인 에너지를 잘 유지하고 있어요." 
+                               : personalStats.avg >= 50 
+                               ? "구름이 조금 낀 달이었지만, 안정적으로 잘 버텨내고 있어요. 자신을 더 칭찬해 주세요." 
+                               : "조금 힘든 시기였을 수 있어요. 다음 달은 더 맑아질 수 있도록 휴식 시간을 가져보세요."
+                           )}
                          </div>
                        </div>
                      </div>
