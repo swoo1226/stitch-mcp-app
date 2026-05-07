@@ -489,13 +489,11 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
           style={{ background: "var(--panel-tint)" }}
         >
           <section
-            className="mb-5 rounded-[1.9rem] px-4 py-5 md:rounded-[2.25rem] md:px-7 md:py-8"
-            style={{
-              background:
-                "linear-gradient(90deg, color-mix(in srgb, var(--surface-container-low) 92%, transparent) 0%, color-mix(in srgb, var(--surface) 96%, transparent) 50%, color-mix(in srgb, var(--surface-container-low) 92%, transparent) 100%)",
-            }}
+            className="mb-6 relative rounded-[1.9rem] px-4 py-5 md:rounded-[2.25rem] md:px-7 md:py-8 clay-card overflow-hidden shadow-level-2"
+            style={{ background: "var(--surface-lowest)" }}
           >
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="glossy-overlay opacity-30 pointer-events-none" />
+            <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-2xl">
                 <h1 className="mb-2 flex items-center gap-3 text-[2rem] font-black tracking-tight text-primary md:text-[3.1rem]">
                   팀 날씨
@@ -618,49 +616,63 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
             )}
           </AnimatePresence>
 
-          <section className="mb-6 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-[1.5rem] px-4 py-4" style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}>
-              <SectionLabel color="muted">{todayAverageLabel}</SectionLabel>
-              <div className="mt-1 text-xl font-black text-primary">
-                {averageScore !== null ? `${averageScore}pt` : "—"}
+          <section className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <motion.div whileHover={{ scale: 1.03, y: -4 }} className="relative rounded-[1.5rem] px-5 py-5 clay-card overflow-hidden shadow-level-1" style={{ background: "var(--surface-lowest)" }}>
+              <div className="glossy-overlay opacity-20 pointer-events-none" />
+              <div className="relative z-10">
+                <SectionLabel color="muted">{todayAverageLabel}</SectionLabel>
+                <div className="mt-1 text-xl font-black text-primary">
+                  {averageScore !== null ? `${averageScore}pt` : "—"}
+                </div>
               </div>
-            </div>
-            <div className="rounded-[1.5rem] px-4 py-4" style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}>
-              <SectionLabel color="muted">{weekAverageLabel}</SectionLabel>
-              <div className="mt-1 text-xl font-black text-primary">
-                {selectedWeekAverage !== null ? `${selectedWeekAverage}pt` : "—"}
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.03, y: -4 }} className="relative rounded-[1.5rem] px-5 py-5 clay-card overflow-hidden shadow-level-1" style={{ background: "var(--surface-lowest)" }}>
+              <div className="glossy-overlay opacity-20 pointer-events-none" />
+              <div className="relative z-10">
+                <SectionLabel color="muted">{weekAverageLabel}</SectionLabel>
+                <div className="mt-1 text-xl font-black text-primary">
+                  {selectedWeekAverage !== null ? `${selectedWeekAverage}pt` : "—"}
+                </div>
               </div>
-            </div>
-            <div className="rounded-[1.5rem] px-4 py-4" style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}>
-              <SectionLabel color="muted">{selectedMonthLabel}</SectionLabel>
-              <div className="mt-1 text-xl font-black text-primary">
-                {monthAverage !== null ? `${monthAverage}pt` : "—"}
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.03, y: -4 }} className="relative rounded-[1.5rem] px-5 py-5 clay-card overflow-hidden shadow-level-1" style={{ background: "var(--surface-lowest)" }}>
+              <div className="glossy-overlay opacity-20 pointer-events-none" />
+              <div className="relative z-10">
+                <SectionLabel color="muted">{selectedMonthLabel}</SectionLabel>
+                <div className="mt-1 text-xl font-black text-primary">
+                  {monthAverage !== null ? `${monthAverage}pt` : "—"}
+                </div>
               </div>
-            </div>
-            <div className="rounded-[1.5rem] px-4 py-4" style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}>
-              <SectionLabel color="muted">지난 주 대비</SectionLabel>
-              <div
-                className="mt-1 text-xl font-black"
-                style={{
-                  color: weeklyDelta === null
-                    ? "var(--on-surface)"
-                    : weeklyDelta > 0
-                      ? "var(--primary)"
-                      : weeklyDelta < 0
-                        ? "var(--tertiary)"
-                        : "var(--on-surface)"
-                }}
-              >
-                {weeklyDelta === null ? "—" : `${weeklyDelta > 0 ? "+" : ""}${weeklyDelta}pt`}
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.03, y: -4 }} className="relative rounded-[1.5rem] px-5 py-5 clay-card overflow-hidden shadow-level-1" style={{ background: "var(--surface-lowest)" }}>
+              <div className="glossy-overlay opacity-20 pointer-events-none" />
+              <div className="relative z-10">
+                <SectionLabel color="muted">지난 주 대비</SectionLabel>
+                <div
+                  className="mt-1 text-xl font-black"
+                  style={{
+                    color: weeklyDelta === null
+                      ? "var(--on-surface)"
+                      : weeklyDelta > 0
+                        ? "var(--primary)"
+                        : weeklyDelta < 0
+                          ? "var(--tertiary)"
+                          : "var(--on-surface)"
+                  }}
+                >
+                  {weeklyDelta === null ? "—" : `${weeklyDelta > 0 ? "+" : ""}${weeklyDelta}pt`}
+                </div>
               </div>
-            </div>
+            </motion.div>
           </section>
 
           <section
-            className="mb-6 rounded-[2rem] px-3 py-4 md:rounded-[2.5rem] md:px-6 md:py-6"
-            style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
+            className="mb-6 relative rounded-[2rem] px-4 py-5 md:rounded-[2.5rem] md:px-7 md:py-7 clay-card overflow-hidden shadow-level-2"
+            style={{ background: "var(--surface-lowest)" }}
           >
-            <div className="mb-5 flex items-center justify-between">
+            <div className="glossy-overlay opacity-20 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="mb-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-low text-primary">
                   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -717,17 +729,19 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                 viewMode="icon"
                 summaryLabel="팀 평균"
               />
-            </section>
+              </section>
+            </div>
           </section>
-
-          <section className="mb-6 grid gap-5 xl:grid-cols-2">
+<section className="mb-6 grid gap-5 xl:grid-cols-2">
             <article
-              className="rounded-[2rem] px-5 py-6 md:rounded-[2.3rem] md:px-7 md:py-7"
-              style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
+              className="relative rounded-[2rem] px-5 py-6 md:rounded-[2.3rem] md:px-7 md:py-7 clay-card overflow-hidden shadow-level-2"
+              style={{ background: "var(--surface-lowest)" }}
             >
-              <div className="mb-7 text-center">
-                <SectionLabel color="muted">팀 평균</SectionLabel>
-              </div>
+              <div className="glossy-overlay opacity-20 pointer-events-none" />
+              <div className="relative z-10">
+                <div className="mb-7 text-center">
+                  <SectionLabel color="muted">팀 평균</SectionLabel>
+                </div>
               <div className="mb-6 flex justify-center">
                 <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-surface-low">
                   {AverageIcon
@@ -758,14 +772,17 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                   }
                 </div>
               </div>
+              </div>
             </article>
 
             <article
-              className="rounded-[2rem] px-5 py-6 md:rounded-[2.3rem] md:px-7 md:py-7"
-              style={{ background: "var(--panel-strong)", boxShadow: "var(--glass-shadow)" }}
+              className="relative rounded-[2rem] px-5 py-6 md:rounded-[2.3rem] md:px-7 md:py-7 clay-card overflow-hidden shadow-level-2"
+              style={{ background: "var(--surface-lowest)" }}
             >
-              <div className="mb-7 text-center">
-                <SectionLabel color="muted">가장 많은 날씨</SectionLabel>
+              <div className="glossy-overlay opacity-20 pointer-events-none" />
+              <div className="relative z-10">
+                <div className="mb-7 text-center">
+                  <SectionLabel color="muted">가장 많은 날씨</SectionLabel>
               </div>
               <div className="mb-6 flex justify-center">
                 <div className="flex h-28 w-28 items-center justify-center rounded-full bg-surface-low">
@@ -780,6 +797,7 @@ export default function DashboardPageClient({ teamId }: { teamId: string }) {
                   {mostFrequentPct > 0
                     ? `이번 주 체크인의 ${mostFrequentPct}%를 차지해요.`
                     : "아직 이번 주 체크인 데이터가 없어요."}
+                </div>
                 </div>
               </div>
             </article>

@@ -184,18 +184,23 @@ function ClimaInputInner() {
       <AtmosphericEffects score={score} />
 
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="relative z-10 glass px-6 md:px-10 w-full max-w-lg mx-auto flex flex-col min-h-[100dvh]"
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={RESPONSIVE_SPRING}
+        className="relative z-10 px-6 md:px-10 py-4 w-full max-w-lg mx-auto flex flex-col min-h-[100dvh] md:min-h-0 md:h-auto md:my-10 md:rounded-[3rem] clay-card overflow-hidden shadow-level-4"
+        style={{ background: "var(--surface-lowest)" }}
       >
-        {/* 헤더 */}
-        <header className="flex justify-between items-center w-full shrink-0 px-3 md:px-4 pt-4 pb-2">
-          <Link href="/"><ClimaLogo /></Link>
-          <ClimaButton variant="icon" href="/">✕</ClimaButton>
-        </header>
+        <div className="glossy-overlay opacity-30 pointer-events-none" />
+        
+        <div className="relative z-10 flex flex-col flex-1 h-full">
+          {/* 헤더 */}
+          <header className="flex justify-between items-center w-full shrink-0 px-3 md:px-4 pt-4 pb-2">
+            <Link href="/"><ClimaLogo /></Link>
+            <ClimaButton variant="icon" href="/">✕</ClimaButton>
+          </header>
 
-        {/* 중앙 콘텐츠 */}
-        <main className="flex-1 flex flex-col items-center justify-center w-full gap-7 md:gap-12 pb-10">
+          {/* 중앙 콘텐츠 */}
+          <main className="flex-1 flex flex-col items-center justify-center w-full gap-7 md:gap-12 pb-10">
 
           {/* 날씨 아이콘 */}
           <AnimatePresence mode="wait">
@@ -206,14 +211,19 @@ function ClimaInputInner() {
                   key={currentMetaphor.label}
                   initial={{ scale: 0.8, opacity: 0, filter: "blur(20px)" }}
                   animate={{
-                    scale: isDragging ? 1.1 : 1,
+                    scale: isDragging ? 1.15 : 1,
                     opacity: 1,
-                    filter: isDragging ? "blur(4px)" : "blur(0px)",
-                    rotate: isDragging ? (score - 50) / 4 : 0
+                    filter: isDragging ? "blur(2px)" : "blur(0px)",
+                    rotateX: isDragging ? 15 : 0,
+                    rotateY: isDragging ? (score - 50) / 3 : 0,
+                    y: isDragging ? -10 : 0,
+                    z: 50
                   }}
+                  whileHover={{ scale: 1.05, rotateX: 10, rotateY: -10 }}
                   exit={{ scale: 0.9, opacity: 0, filter: "blur(20px)" }}
                   transition={RESPONSIVE_SPRING}
-                  className="select-none pointer-events-none drop-shadow-xl will-change-transform"
+                  className="select-none pointer-events-none will-change-transform drop-shadow-[0_20px_30px_rgba(0,0,0,0.25)]"
+                  style={{ perspective: "1000px", transformStyle: "preserve-3d" }}
                 >
                   <Icon size={104} />
                 </motion.div>
@@ -436,6 +446,7 @@ function ClimaInputInner() {
             </AnimatePresence>
           </motion.div>
         </main>
+        </div>
       </motion.div>
 
       {/* 축하 모달 */}

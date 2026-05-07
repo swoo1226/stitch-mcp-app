@@ -34,18 +34,20 @@ export function GlassCard({ children, className = "", style, intensity = "medium
   };
 
   return (
-    <div
-      className={`rounded-[2rem] ${className}`}
+    <motion.div
+      whileHover={{ y: -10, scale: 1.02, rotateX: 2, rotateY: 2, transition: { duration: 0.3 } }}
+      className={`rounded-[3rem] relative overflow-hidden clay-card ${className}`}
       style={{
         background: bgMap[intensity],
         backdropFilter: blurMap[intensity],
         WebkitBackdropFilter: blurMap[intensity],
-        boxShadow: "var(--glass-shadow)",
+        perspective: "1200px",
         ...style,
       }}
     >
-      {children}
-    </div>
+      <div className="glossy-overlay" />
+      <div className="relative z-10">{children}</div>
+    </motion.div>
   );
 }
 
@@ -126,19 +128,20 @@ export function SanctuaryCard({
   style,
   ...props
 }: SanctuaryCardProps) {
+  const MotionComponent = motion(Component as any);
   return (
-    <Component
-      className={`relative rounded-[3.5rem] p-8 transition-all ${className}`}
+    <MotionComponent
+      whileHover={{ y: -12, scale: 1.02, rotateX: 2, rotateY: -2 }}
+      className={`relative rounded-[3.5rem] p-8 clay-card overflow-hidden group ${className}`}
       style={{
         backgroundColor: "var(--surface-lowest)",
-        boxShadow: "var(--shadow-ambient)",
-        border: "none",
         ...style,
       }}
       {...props}
     >
-      {children}
-    </Component>
+      <div className="glossy-overlay opacity-50 group-hover:opacity-100 transition-opacity" />
+      <div className="relative z-10">{children}</div>
+    </MotionComponent>
   );
 }
 
@@ -186,12 +189,15 @@ const LABEL_COLOR_MAP = {
 
 export function SectionLabel({ children, color = "primary", className = "" }: SectionLabelProps) {
   return (
-    <p
-      className={`text-xs font-extrabold uppercase tracking-[0.18em] ${className}`}
-      style={{ color: LABEL_COLOR_MAP[color], opacity: color === "muted" ? 0.45 : 0.7 }}
-    >
-      {children}
-    </p>
+    <div className="flex items-center gap-2">
+      <div className="h-1 w-1 rounded-full bg-current opacity-40" style={{ color: LABEL_COLOR_MAP[color] }} />
+      <p
+        className={`text-[10px] font-black uppercase tracking-[0.2em] ${className}`}
+        style={{ color: LABEL_COLOR_MAP[color], opacity: color === "muted" ? 0.45 : 0.8 }}
+      >
+        {children}
+      </p>
+    </div>
   );
 }
 
@@ -255,19 +261,25 @@ const BAR_BG = {
   error: "var(--error)",
 };
 
-export function ProgressBar({ value, variant = "gradient", height = 8, className = "", animate = true }: ProgressBarProps) {
+export function ProgressBar({ value, variant = "gradient", height = 10, className = "", animate = true }: ProgressBarProps) {
   return (
     <div
-      className={`w-full rounded-full overflow-hidden ${className}`}
-      style={{ height, background: "var(--track-bg)" }}
+      className={`w-full rounded-full overflow-hidden shadow-inner-soft ${className}`}
+      style={{ height, background: "var(--track-bg)", border: "1px solid rgba(0,0,0,0.02)" }}
     >
       <motion.div
         initial={animate ? { width: 0 } : { width: `${value}%` }}
         animate={{ width: `${value}%` }}
-        transition={animate ? { duration: 0.9, ease: "easeOut", delay: 0.2 } : undefined}
-        className="h-full rounded-full"
-        style={{ background: BAR_BG[variant] }}
-      />
+        transition={animate ? { duration: 1.2, ease: [0.34, 1.56, 0.64, 1], delay: 0.2 } : undefined}
+        className="h-full rounded-full relative"
+        style={{ 
+          background: BAR_BG[variant],
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)"
+        }}
+      >
+        {/* Shine effect on progress bar */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent opacity-50" />
+      </motion.div>
     </div>
   );
 }
@@ -381,8 +393,8 @@ export function TabToggle<T extends string>({
 
   return (
     <div
-      className="inline-flex items-center rounded-full p-1 w-fit"
-      style={{ background: "color-mix(in srgb, var(--surface-container-high) 72%, transparent)" }}
+      className="inline-flex items-center rounded-full p-1.5 w-fit shadow-inner-soft"
+      style={{ background: "color-mix(in srgb, var(--surface-container-high) 40%, transparent)", border: "1px solid rgba(255, 255, 255, 0.05)" }}
     >
       {allTabs.map(({ value, label }) => {
         const isActive = active === value;
@@ -391,27 +403,27 @@ export function TabToggle<T extends string>({
             key={value ?? "__all__"}
             type="button"
             onClick={() => onChange(value as T | null)}
-            whileHover={{ scale: 1.02, y: -1 }}
-            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.05, y: -1 }}
+            whileTap={{ scale: 0.95 }}
             transition={RESPONSIVE_SPRING}
-            className="relative text-xs font-black tracking-tight rounded-[1.5rem] transition-colors"
+            className="relative text-[11px] font-black tracking-tight rounded-full transition-colors overflow-hidden"
             style={{
-              paddingLeft: "0.875rem",
-              paddingRight: "0.875rem",
-              paddingTop: "0.5rem",
-              paddingBottom: "0.5rem",
+              paddingLeft: "1.25rem",
+              paddingRight: "1.25rem",
+              paddingTop: "0.6rem",
+              paddingBottom: "0.6rem",
               color: isActive
-                ? isPrimary ? "var(--on-primary)" : "var(--primary)"
+                ? isPrimary ? "white" : "var(--primary)"
                 : "var(--text-soft)",
             }}
           >
             {isActive && (
               <motion.div
                 layoutId={id}
-                className="absolute inset-0 rounded-[1.5rem]"
+                className="absolute inset-0 rounded-full"
                 style={isPrimary
-                  ? { background: "var(--button-primary-gradient)" }
-                  : { background: "var(--surface-elevated)", boxShadow: "var(--button-subtle-shadow)" }
+                  ? { background: "var(--button-primary-gradient)", boxShadow: "0 4px 12px rgba(var(--primary-rgb), 0.3)" }
+                  : { background: "var(--surface-lowest)", boxShadow: "var(--shadow-level-2)" }
                 }
                 transition={RESPONSIVE_SPRING}
               />
@@ -568,31 +580,36 @@ export function WeatherTile({ Icon, label, subLabel, isSelected, onClick }: Weat
   return (
     <motion.button
       onClick={onClick}
-      whileHover={{ y: -4 }}
-      whileTap={{ scale: 0.92 }}
+      whileHover={{ y: -8, scale: 1.05, rotateX: 5, rotateY: -5, z: 20 }}
+      whileTap={{ scale: 0.95, y: 2 }}
       transition={RESPONSIVE_SPRING}
-      className="flex flex-col items-center justify-center rounded-[1.5rem] transition-colors relative w-full"
+      className={`flex flex-col items-center justify-center rounded-[2rem] transition-all relative w-full border border-transparent overflow-hidden ${isSelected ? "clay-card" : ""}`}
       style={{
         background: isSelected
           ? "var(--button-primary-gradient)"
-          : "var(--surface-container)",
-        boxShadow: isSelected ? "var(--button-primary-shadow)" : "none",
-        paddingTop: "1.25rem",
-        paddingBottom: "1rem",
+          : "var(--surface-lowest)",
+        boxShadow: isSelected ? "var(--shadow-3d-lift)" : "var(--shadow-level-2)",
+        borderColor: isSelected ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.05)",
+        paddingTop: "1.5rem",
+        paddingBottom: "1.25rem",
         paddingLeft: "0.5rem",
         paddingRight: "0.5rem",
-        gap: "0.5rem",
+        gap: "0.75rem",
+        perspective: "1000px",
+        transformStyle: "preserve-3d"
       }}
     >
-      <div style={{ opacity: isSelected ? 1 : 0.75 }}>
-        <Icon size={44} />
+      <div className={`glossy-overlay pointer-events-none ${isSelected ? "opacity-30" : "opacity-10"}`} />
+      
+      <div style={{ opacity: isSelected ? 1 : 0.8, transform: "translateZ(20px)" }} className={isSelected ? "drop-shadow-2xl" : ""}>
+        <Icon size={48} />
       </div>
-      <div className="flex flex-col items-center gap-1 mt-1">
+      <div className="flex flex-col items-center gap-1 mt-1 relative z-10" style={{ transform: "translateZ(10px)" }}>
         <span
           style={{
             color: isSelected ? "white" : "var(--on-surface)",
-            opacity: isSelected ? 1 : 0.5,
-            fontSize: "12px",
+            opacity: isSelected ? 1 : 0.6,
+            fontSize: "13px",
             fontWeight: 900,
             letterSpacing: "0.05em",
             lineHeight: 1,
@@ -604,8 +621,8 @@ export function WeatherTile({ Icon, label, subLabel, isSelected, onClick }: Weat
           <span
             style={{
               color: isSelected ? "white" : "var(--on-surface)",
-              opacity: isSelected ? 0.7 : 0.4,
-              fontSize: "9px",
+              opacity: isSelected ? 0.7 : 0.3,
+              fontSize: "10px",
               fontWeight: 800,
               lineHeight: 1,
             }}
@@ -614,6 +631,10 @@ export function WeatherTile({ Icon, label, subLabel, isSelected, onClick }: Weat
           </span>
         )}
       </div>
+      {/* Decorative inner glow for 3D effect */}
+      {isSelected && (
+        <div className="absolute inset-0 bg-white/10 pointer-events-none" style={{ maskImage: "linear-gradient(to bottom, white, transparent)" }} />
+      )}
     </motion.button>
   );
 }
@@ -631,7 +652,7 @@ interface FABProps {
 export function FAB({ children, onClick, href, className = "" }: FABProps) {
   const inner = (
     <motion.span
-      className={`${SANCTUARY_PRIMARY_BUTTON_CLASS} ${className}`}
+      className={`${SANCTUARY_PRIMARY_BUTTON_CLASS} ${className} relative overflow-hidden clay-card group`}
       style={{
         minHeight: "unset",
         paddingTop: "0.875rem",
@@ -642,12 +663,13 @@ export function FAB({ children, onClick, href, className = "" }: FABProps) {
         color: "var(--on-primary)",
         boxShadow: "var(--button-primary-shadow)",
       }}
-      whileHover={{ scale: 1.04, y: -3 }}
-      whileTap={{ scale: 0.97 }}
+      whileHover={{ scale: 1.04, y: -3, rotateX: 5, rotateY: 5 }}
+      whileTap={{ scale: 0.97, y: 2 }}
       transition={RESPONSIVE_SPRING}
       {...(onClick ? { onClick } : {})}
     >
-      {children}
+      <div className="glossy-overlay opacity-30 pointer-events-none rounded-[inherit] group-hover:opacity-50 transition-opacity" />
+      <span className="relative z-10">{children}</span>
     </motion.span>
   );
 
@@ -676,7 +698,7 @@ export function ClimaButton({
   ...props
 }: ClimaButtonProps) {
   if (variant === "icon") {
-    const iconClass = `bg-surface-high w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold shadow-ambient transition-transform active:scale-90 ${className}`;
+    const iconClass = `bg-surface-lowest w-12 h-12 rounded-[1.25rem] flex items-center justify-center text-sm font-bold shadow-level-2 border border-white/10 transition-transform active:scale-90 ${className}`;
     if (href) return <Link href={href} className={iconClass} {...(props as Record<string, unknown>)}>{children}</Link>;
     return <button onClick={onClick} className={iconClass} {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}>{children}</button>;
   }
@@ -690,25 +712,29 @@ export function ClimaButton({
 
   const variantStyle =
     variant === "secondary"
-      ? { boxShadow: "var(--shadow-level-1)" }
+      ? { boxShadow: "var(--shadow-level-1)", background: "var(--surface-lowest)", border: "1px solid var(--border-subtle)" }
       : variant === "tertiary"
-        ? { boxShadow: "var(--shadow-level-1)" }
+        ? { boxShadow: "var(--shadow-level-1)", background: "var(--tertiary-container)", color: "var(--tertiary)" }
         : {
           background: "var(--button-primary-gradient)",
           color: "var(--on-primary)",
           boxShadow: "var(--button-primary-shadow)",
+          border: "1px solid rgba(255,255,255,0.1)"
         };
 
   const inner = (
     <motion.span
-      className={`${base} ${className}`}
+      className={`${base} ${className} relative overflow-hidden group ${variant === "primary" ? "clay-card" : ""}`}
       style={{ ...variantStyle, ...style }}
-      whileHover={{ scale: 1.02, y: -2 }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={{ scale: 1.03, y: -3, rotateX: 3, rotateY: 3, boxShadow: "var(--shadow-3d-lift)" }}
+      whileTap={{ scale: 0.96, y: 1, boxShadow: "var(--shadow-inner-soft)" }}
       transition={RESPONSIVE_SPRING}
       {...(props as object)}
     >
-      {children}
+      {variant === "primary" && (
+        <div className="glossy-overlay opacity-30 pointer-events-none rounded-[inherit] group-hover:opacity-50 transition-opacity" />
+      )}
+      <span className="relative z-10 flex items-center gap-2">{children}</span>
     </motion.span>
   );
 
@@ -845,6 +871,15 @@ export function WeatherCell({ status, score, message, isToday = false }: Weather
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const cellRef = useRef<HTMLDivElement>(null);
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   // Dismiss on outside click (mobile tap-away)
   useEffect(() => {
     if (!showTooltip) return;
@@ -872,14 +907,6 @@ export function WeatherCell({ status, score, message, isToday = false }: Weather
       </div>
     );
   }
-
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
 
   const Icon = WEATHER_ICON_MAP[status];
   const iconSize = isMobile ? 28 : 34;

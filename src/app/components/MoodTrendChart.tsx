@@ -120,7 +120,7 @@ export function MoodTrendChart({ scores, height = 44, className = "" }: MoodTren
 
       {/* 곡선 SVG - 라벨 공간(pr-12) 제외 */}
       <svg
-        className="absolute left-0 right-12 top-0 bottom-0 w-auto h-full pointer-events-none overflow-visible"
+        className="absolute left-0 right-12 top-0 bottom-0 w-full h-full pointer-events-none overflow-visible"
         viewBox={`0 0 ${W} ${height}`}
         preserveAspectRatio="none"
       >

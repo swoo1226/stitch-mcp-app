@@ -48,20 +48,19 @@ export default function GlassModal({
         exit={{ scale: 0.92, opacity: 0, y: 16 }}
         transition={HEAVY_SPRING}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full flex flex-col items-center text-center"
+        className="relative w-full flex flex-col items-center text-center clay-card overflow-hidden shadow-level-4"
         style={{
           maxWidth,
-          borderRadius: "2.5rem",
+          borderRadius: "3rem",
           padding: "2.5rem 2rem",
-          background: "rgba(255,255,255,0.45)",
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
-          // DESIGN.md "Ghost Border Fallback": outline_variant at 15% opacity
-          border: "1px solid rgba(162,177,163,0.15)",
-          boxShadow: "0 30px 100px -20px rgba(37,50,40,0.12)",
+          background: "var(--surface-lowest)",
+          border: "1px solid rgba(255,255,255,0.15)",
         }}
       >
-        {children}
+        <div className="glossy-overlay opacity-50 pointer-events-none" />
+        <div className="relative z-10 w-full flex flex-col items-center">
+          {children}
+        </div>
       </motion.div>
     </motion.div>
   );

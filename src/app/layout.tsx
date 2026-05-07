@@ -61,7 +61,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
 
           <SplashScreen />
-          <main className="relative min-h-screen">
+          <main className="relative min-h-screen z-10">
+            {/* Spline-style 3D Background Atmosphere */}
+            <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+              <div className="mesh-blob w-[500px] h-[500px] bg-primary/10 -top-20 -left-20" style={{ animationDelay: '0s' }} />
+              <div className="mesh-blob w-[400px] h-[400px] bg-secondary/10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ animationDelay: '-5s' }} />
+              <div className="mesh-blob w-[600px] h-[600px] bg-tertiary/5 bottom-[-100px] right-[-100px]" style={{ animationDelay: '-10s' }} />
+            </div>
             {children}
           </main>
           <UpdateToast />
