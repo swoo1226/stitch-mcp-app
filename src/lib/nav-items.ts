@@ -29,6 +29,7 @@ export function getNavItems(role: UserRole | null, managedTeamId?: string | null
     { label: "개인 현황", href: "/personal" },
     { label: "팀", href: teamHref("/dashboard", teamId), matchPaths: ["/dashboard", "/team"] },
     { label: "Niko-Niko", href: teamHref("/niko", teamId), matchPaths: ["/niko"] },
+    { label: "월간 리포트", href: teamHref("/team/monthly", teamId), matchPaths: ["/team/monthly"] },
   ];
 
   if (role === "member" || role === "team_admin") {
