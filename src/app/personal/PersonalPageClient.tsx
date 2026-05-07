@@ -307,8 +307,16 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
     if (firstHalf.length > 0 && secondHalf.length > 0) {
       const fAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
       const sAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
-      if (sAvg - fAvg > 10) momentum = "rising";
-      else if (fAvg - sAvg > 10) momentum = "falling";
+      
+      const diff = sAvg - fAvg;
+      if (diff > 8) momentum = "rising";
+      else if (diff < -8) momentum = "falling";
+      else {
+        // 보합 상태 내 세분화
+        if (avg >= 75) momentum = "high-stable";
+        else if (avg <= 45) momentum = "low-stable";
+        else momentum = "stable";
+      }
     }
 
     return { avg, topStatus, stability, bestDay, toughestDay, mostVolatileDay, momentum };
@@ -703,34 +711,6 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
               </div>
 
               <div className="space-y-4">
-                <div className="rounded-3xl bg-surface-low p-5">
-                   <SectionLabel color="primary">이달의 리포트</SectionLabel>
-                   {personalStats ? (
-                     <div className="mt-4 space-y-5">
-                       <div>
-                         <p className="text-[10px] font-bold opacity-50 uppercase tracking-wider">평균 점수</p>
-                         <p className="text-2xl font-black text-primary">{personalStats.avg}pt</p>
-                       </div>
-                       <div>
-                         <p className="text-[10px] font-bold opacity-50 uppercase tracking-wider">가장 많은 기분</p>
-                         <div className="mt-1 flex items-center gap-2">
-                           {personalStats.topStatus && (
-                             <>
-                               {(() => {
-                                 const Icon = WEATHER_ICON_MAP[personalStats.topStatus];
-                                 return <Icon size={20} />;
-                               })()}
-                               <span className="text-lg font-black text-secondary">{WEATHER_LABELS[personalStats.topStatus]}</span>
-                             </>
-                           )}
-                         </div>
-                       </div>
-                       <div>
-                         <p className="text-[10px] font-bold opacity-50 uppercase tracking-wider">기분 안정성</p>
-                         <p className="text-lg font-black text-tertiary">{personalStats.stability}</p>
-                       </div>
-                       
-              <div className="space-y-4">
                 <div 
                   className="rounded-[2.5rem] p-6 relative overflow-hidden"
                   style={{ background: "var(--surface-container-low)", boxShadow: "var(--glass-shadow)" }}
@@ -745,10 +725,16 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                           className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black tracking-tight ${
                             personalStats.momentum === "rising" ? "bg-primary/10 text-primary" : 
                             personalStats.momentum === "falling" ? "bg-tertiary/10 text-tertiary" : 
+                            personalStats.momentum === "high-stable" ? "bg-secondary/10 text-secondary" :
+                            personalStats.momentum === "low-stable" ? "bg-amber-500/10 text-amber-500" :
                             "bg-surface-high text-on-surface/60"
                           }`}
                         >
-                          {personalStats.momentum === "rising" ? "📈 상승세" : personalStats.momentum === "falling" ? "📉 하락세" : "➡️ 안정적"}
+                          {personalStats.momentum === "rising" ? "📈 상승세" : 
+                           personalStats.momentum === "falling" ? "📉 하락세" : 
+                           personalStats.momentum === "high-stable" ? "✨ 고점 유지" :
+                           personalStats.momentum === "low-stable" ? "⚠️ 주의 단계" :
+                           "➡️ 안정적"}
                         </motion.div>
                       )}
                     </div>
