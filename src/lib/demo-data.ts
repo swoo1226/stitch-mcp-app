@@ -200,10 +200,11 @@ export function getDemoMembers(weekOffset = 0) {
 // 스냅샷 월 기준으로 항상 의미 있는 월 평균이 나오도록 이번 달 1~28일에 고정 점수를 심음
 type MoodLogRow = { user_id: string; score: number; message: string | null; logged_at: string };
 
-function fixedMonthLogs(memberId: string, scores: number[]): MoodLogRow[] {
-  const now = getDemoSnapshotDate();
-  const year = now.getFullYear();
-  const month = now.getMonth(); // 0-based
+function fixedMonthLogs(memberId: string, scores: number[], monthOffset: number = 0): MoodLogRow[] {
+  const base = getDemoSnapshotDate();
+  const target = new Date(base.getFullYear(), base.getMonth() + monthOffset, 1);
+  const year = target.getFullYear();
+  const month = target.getMonth(); // 0-based
   return scores.map((score, i) => {
     const day = i + 1;
     const date = new Date(Date.UTC(year, month, day, 1, 0, 0));
@@ -222,9 +223,9 @@ const DEMO_MONTH_SCORES: Record<string, number[]> = {
   d7: [79,77,81,80,76,78,82,75,79,77,80,78,76,81,79,77,83,75,80,78,76,82,79,77,80,78,75,81],
 };
 
-export function getDemoMonthLogs(): MoodLogRow[] {
+export function getDemoMonthLogs(monthOffset: number = 0): MoodLogRow[] {
   return Object.entries(DEMO_MONTH_SCORES).flatMap(([id, scores]) =>
-    fixedMonthLogs(id, scores)
+    fixedMonthLogs(id, scores, monthOffset)
   );
 }
 

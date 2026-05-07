@@ -69,6 +69,13 @@ function utcToKstDate(utcStr: string): string {
 }
 
 const DAY_LABELS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+const WEATHER_LABELS: Record<string, string> = {
+  Sunny: "맑음",
+  PartlyCloudy: "구름조금",
+  Cloudy: "흐림",
+  Rainy: "비",
+  Stormy: "뇌우",
+};
 
 // ─── 타입 ───────────────────────────────────────────────────────────────────
 interface MoodLogRow {
@@ -121,7 +128,7 @@ export default function MonthlyReportClient({ teamId }: { teamId: string }) {
 
   useEffect(() => {
     if (teamId === DEMO_TEAM_ID) {
-      const monthLogs = getDemoMonthLogs();
+      const monthLogs = getDemoMonthLogs(monthOffset);
       const demoMembers = getDemoMembers(0).map(({ avatar, ...member }) => ({
         ...member,
         avatarEmoji: avatar,
@@ -364,7 +371,7 @@ export default function MonthlyReportClient({ teamId }: { teamId: string }) {
                 <div className="rounded-[1.5rem] bg-surface-low p-5">
                   <SectionLabel color="muted">주요 날씨</SectionLabel>
                   <div className="mt-1 text-3xl font-black text-secondary">{stats.distribution[0]?.pct}%</div>
-                  <p className="mt-2 text-xs font-semibold opacity-60">{stats.distribution[0]?.status === "Sunny" ? "맑음" : stats.distribution[0]?.status}이 가장 많았어요</p>
+                  <p className="mt-2 text-xs font-semibold opacity-60">{WEATHER_LABELS[stats.distribution[0]?.status] || stats.distribution[0]?.status}이 가장 많았어요</p>
                 </div>
               </div>
             )}
@@ -389,7 +396,7 @@ export default function MonthlyReportClient({ teamId }: { teamId: string }) {
                 <div className="space-y-3">
                   {stats?.distribution.map(({ status, pct }) => (
                     <div key={status} className="flex items-center gap-3">
-                      <div className="w-16 text-xs font-bold opacity-60">{status === "Sunny" ? "맑음" : status}</div>
+                      <div className="w-16 text-xs font-bold opacity-60">{WEATHER_LABELS[status] || status}</div>
                       <div className="flex-1 h-2 bg-surface-low rounded-full overflow-hidden">
                         <motion.div 
                           initial={{ width: 0 }}
