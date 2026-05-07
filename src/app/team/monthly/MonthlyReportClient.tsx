@@ -140,39 +140,48 @@ export default function MonthlyReportClient({ teamId }: { teamId: string }) {
     }
 
     async function fetchData() {
-      setLoading(true);
+      try {
+        setLoading(true);
+        const { data: users, error: usersError } = await supabase
+          .from("users")
+          .select("id, name, nickname, avatar_emoji, part_id")
+          .eq("team_id", teamId);
 
-      const { data: users, error: usersError } = await supabase
-        .from("users")
-        .select("id, name, nickname, avatar_emoji, part_id")
-        .eq("team_id", teamId);
+        if (usersError || !users) {
+          console.error("Users fetch error:", usersError);
+          setLoading(false);
+          return;
+        }
 
-      if (usersError || !users) {
+        const userIds = users.map((u) => u.id);
+        const { data: logs, error: logsError } = await supabase
+          .from("mood_logs")
+          .select("user_id, score, message, logged_at")
+          .in("user_id", userIds)
+          .gte("logged_at", kstDayStart(monthStartIso))
+          .lte("logged_at", kstDayEnd(monthEndIso))
+          .order("logged_at", { ascending: true });
+
+        if (logsError) {
+          console.error("Logs fetch error:", logsError);
+        }
+
+        const logRows: MoodLogRow[] = (logs as MoodLogRow[]) ?? [];
+
+        const mapped: MemberRow[] = users.map((user) => ({
+          id: user.id,
+          name: getDisplayName(user),
+          avatarEmoji: user.avatar_emoji || "",
+          part_id: user.part_id ?? null,
+          logs: logRows.filter((l) => l.user_id === user.id),
+        }));
+
+        setMembers(mapped);
+      } catch (err) {
+        console.error("Fetch data failed:", err);
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const userIds = users.map((u) => u.id);
-      const { data: logs } = await supabase
-        .from("mood_logs")
-        .select("user_id, score, message, logged_at")
-        .in("user_id", userIds)
-        .gte("logged_at", kstDayStart(monthStartIso))
-        .lte("logged_at", kstDayEnd(monthEndIso))
-        .order("logged_at", { ascending: true });
-
-      const logRows: MoodLogRow[] = (logs as MoodLogRow[]) ?? [];
-
-      const mapped: MemberRow[] = users.map((user) => ({
-        id: user.id,
-        name: getDisplayName(user),
-        avatarEmoji: user.avatar_emoji || "",
-        part_id: user.part_id ?? null,
-        logs: logRows.filter((l) => l.user_id === user.id),
-      }));
-
-      setMembers(mapped);
-      setLoading(false);
     }
 
     fetchData();
