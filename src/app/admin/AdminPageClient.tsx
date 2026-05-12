@@ -1157,7 +1157,7 @@ export default function AdminPageClient({
             </section>
 
             {/* 2. 팀원 목록 */}
-            <GlassCard className="p-6 md:p-8" intensity="low">
+            <GlassCard className="p-6 md:p-8" intensity="low" stable>
               <div className="flex items-center justify-between mb-4">
                 <SectionHeader icon={<UsersIcon />} title="팀원 목록" />
                 {!loading && members.length > 0 && (
@@ -1328,6 +1328,7 @@ export default function AdminPageClient({
                           onMouseLeave={() => {
                             if (activeThoughtId === m.id) closeThought();
                           }}
+                          whileHover={{ y: 0, scale: 1 }}
                           style={{
                             width: 280,
                             maxWidth: "calc(100vw - 3rem)",
@@ -2364,7 +2365,7 @@ export default function AdminPageClient({
 
             {/* 팀별 링크 */}
             {teams.length > 0 && (
-              <GlassCard className="p-6 md:p-8" intensity="low">
+              <GlassCard className="p-6 md:p-8" intensity="low" stable>
                 <SectionHeader
                   icon={<LinkIcon />}
                   title="팀별 접속 링크"

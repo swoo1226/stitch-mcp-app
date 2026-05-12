@@ -19,9 +19,10 @@ interface GlassCardProps {
   className?: string;
   style?: React.CSSProperties;
   intensity?: "low" | "medium" | "high";
+  stable?: boolean;
 }
 
-export function GlassCard({ children, className = "", style, intensity = "medium" }: GlassCardProps) {
+export function GlassCard({ children, className = "", style, intensity = "medium", stable = false }: GlassCardProps) {
   const blurMap = {
     low: "var(--glass-blur-low)",
     medium: "var(--glass-blur-medium)",
@@ -35,7 +36,7 @@ export function GlassCard({ children, className = "", style, intensity = "medium
 
   return (
     <motion.div
-      whileHover={{ y: -8, scale: 1.01, transition: { duration: 0.3 } }}
+      whileHover={stable ? {} : { y: -8, scale: 1.01, transition: { duration: 0.3 } }}
       className={`rounded-[3rem] relative overflow-hidden clay-card ${className}`}
       style={{
         background: bgMap[intensity],
