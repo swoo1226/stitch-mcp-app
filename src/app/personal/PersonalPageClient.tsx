@@ -402,7 +402,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
           
           <div className="relative z-10 flex items-center gap-6 md:gap-10">
             <motion.div 
-              whileHover={{ rotateX: 10, rotateY: 10, scale: 1.1 }}
+              whileHover={{ rotateX: 4, rotateY: 4, scale: 1.05 }}
               transition={RESPONSIVE_SPRING}
             >
               <Link href="/" className="flex shrink-0 items-center"><ClimaLogo /></Link>
@@ -745,8 +745,8 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
                       return (
                         <motion.div 
                           key={i} 
-                          whileHover={{ scale: 1.08, y: -6, rotateX: 5, rotateY: 5, z: 50 }}
-                          transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                          whileHover={{ scale: 1.1, y: -4, z: 20 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 20 }}
                           className="relative aspect-square flex flex-col items-center justify-center rounded-[2rem] transition-all pt-2 group cursor-pointer clay-card"
                           style={{ 
                             background: isToday ? "rgba(var(--primary-rgb), 0.15)" : "var(--surface-lowest)",
@@ -774,7 +774,7 @@ export default function PersonalPageClient({ userId }: { userId: string }) {
 
                 <div className="space-y-8">
                   <motion.div 
-                    whileHover={{ y: -10, rotateY: -3, rotateX: 2 }}
+                    whileHover={{ y: -6, scale: 1.01 }}
                     className="rounded-[3rem] p-8 relative overflow-hidden group clay-card"
                     style={{ 
                       background: "var(--surface-container-low)", 

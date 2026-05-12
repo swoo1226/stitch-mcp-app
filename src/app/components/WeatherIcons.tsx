@@ -7,14 +7,15 @@ import { useId } from "react";
 
 interface IconProps {
   size?: number;
+  className?: string;
 }
 
 // ─── 맑음 (Sunny) ─────────────────────────────────────────────────────────────
-export function IconSunny({ size = 48 }: IconProps) {
+export function IconSunny({ size = 48, className = "" }: IconProps) {
   const uid = useId().replace(/:/g, '');
   const gradId = `sunGrad-${uid}`;
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" className={className}>
       {[0, 45, 90, 135, 180, 225, 270, 315].map((deg, i) => (
         <line
           key={i}
@@ -38,12 +39,12 @@ export function IconSunny({ size = 48 }: IconProps) {
 }
 
 // ─── 구름조금 (PartlyCloudy) ──────────────────────────────────────────────────
-export function IconPartlyCloudy({ size = 48 }: IconProps) {
+export function IconPartlyCloudy({ size = 48, className = "" }: IconProps) {
   const uid = useId().replace(/:/g, '');
   const sunGrad = `pcSunGrad-${uid}`;
   const cloudGrad = `pcCloudGrad-${uid}`;
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" className={className}>
       {/* 태양 (왼쪽 상단) */}
       {[0, 60, 120, 180, 240, 300].map((deg, i) => (
         <line
@@ -77,11 +78,11 @@ export function IconPartlyCloudy({ size = 48 }: IconProps) {
 }
 
 // ─── 흐림 (Cloudy) ────────────────────────────────────────────────────────────
-export function IconCloudy({ size = 48 }: IconProps) {
+export function IconCloudy({ size = 48, className = "" }: IconProps) {
   const uid = useId().replace(/:/g, '');
   const gradId = `cloudGrad-${uid}`;
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" className={className}>
       {/* 뒤쪽 구름 (더 밝음) */}
       <circle cx="30" cy="22" r="7" fill="#c8d9e8" />
       <circle cx="38" cy="25" r="5.5" fill="#c8d9e8" />
@@ -102,11 +103,11 @@ export function IconCloudy({ size = 48 }: IconProps) {
 }
 
 // ─── 비 (Rainy) ───────────────────────────────────────────────────────────────
-export function IconRainy({ size = 48 }: IconProps) {
+export function IconRainy({ size = 48, className = "" }: IconProps) {
   const uid = useId().replace(/:/g, '');
   const gradId = `rainCloud-${uid}`;
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" className={className}>
       {/* 구름 */}
       <circle cx="19" cy="18" r="7" fill={`url(#${gradId})`} />
       <circle cx="28" cy="19" r="6" fill={`url(#${gradId})`} />
@@ -127,11 +128,11 @@ export function IconRainy({ size = 48 }: IconProps) {
 }
 
 // ─── 뇌우 (Stormy) ────────────────────────────────────────────────────────────
-export function IconStormy({ size = 48 }: IconProps) {
+export function IconStormy({ size = 48, className = "" }: IconProps) {
   const uid = useId().replace(/:/g, '');
   const gradId = `stormCloud-${uid}`;
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" className={className}>
       {/* 어두운 구름 */}
       <circle cx="19" cy="17" r="7" fill={`url(#${gradId})`} />
       <circle cx="28" cy="18" r="6" fill={`url(#${gradId})`} />

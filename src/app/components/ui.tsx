@@ -35,13 +35,14 @@ export function GlassCard({ children, className = "", style, intensity = "medium
 
   return (
     <motion.div
-      whileHover={{ y: -10, scale: 1.02, rotateX: 2, rotateY: 2, transition: { duration: 0.3 } }}
+      whileHover={{ y: -8, scale: 1.01, transition: { duration: 0.3 } }}
       className={`rounded-[3rem] relative overflow-hidden clay-card ${className}`}
       style={{
         background: bgMap[intensity],
         backdropFilter: blurMap[intensity],
         WebkitBackdropFilter: blurMap[intensity],
         perspective: "1200px",
+        transformStyle: "preserve-3d",
         ...style,
       }}
     >
@@ -131,7 +132,7 @@ export function SanctuaryCard({
   const MotionComponent = motion(Component as any);
   return (
     <MotionComponent
-      whileHover={{ y: -12, scale: 1.02, rotateX: 2, rotateY: -2 }}
+      whileHover={{ y: -8, scale: 1.01 }}
       className={`relative rounded-[3.5rem] p-8 clay-card overflow-hidden group ${className}`}
       style={{
         backgroundColor: "var(--surface-lowest)",
@@ -580,8 +581,8 @@ export function WeatherTile({ Icon, label, subLabel, isSelected, onClick }: Weat
   return (
     <motion.button
       onClick={onClick}
-      whileHover={{ y: -8, scale: 1.05, rotateX: 5, rotateY: -5, z: 20 }}
-      whileTap={{ scale: 0.95, y: 2 }}
+      whileHover={{ y: -6, scale: 1.04, z: 10 }}
+      whileTap={{ scale: 0.96, y: 2 }}
       transition={RESPONSIVE_SPRING}
       className={`flex flex-col items-center justify-center rounded-[2rem] transition-all relative w-full border border-transparent overflow-hidden ${isSelected ? "clay-card" : ""}`}
       style={{
@@ -663,7 +664,7 @@ export function FAB({ children, onClick, href, className = "" }: FABProps) {
         color: "var(--on-primary)",
         boxShadow: "var(--button-primary-shadow)",
       }}
-      whileHover={{ scale: 1.04, y: -3, rotateX: 5, rotateY: 5 }}
+      whileHover={{ scale: 1.05, y: -2, rotateX: 2, rotateY: 2 }}
       whileTap={{ scale: 0.97, y: 2 }}
       transition={RESPONSIVE_SPRING}
       {...(onClick ? { onClick } : {})}
@@ -726,7 +727,7 @@ export function ClimaButton({
     <motion.span
       className={`${base} ${className} relative overflow-hidden group ${variant === "primary" ? "clay-card" : ""}`}
       style={{ ...variantStyle, ...style }}
-      whileHover={{ scale: 1.03, y: -3, rotateX: 3, rotateY: 3, boxShadow: "var(--shadow-3d-lift)" }}
+      whileHover={{ scale: 1.02, y: -2, rotateX: 1, rotateY: 1, boxShadow: "var(--shadow-3d-lift)" }}
       whileTap={{ scale: 0.96, y: 1, boxShadow: "var(--shadow-inner-soft)" }}
       transition={RESPONSIVE_SPRING}
       {...(props as object)}

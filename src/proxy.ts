@@ -16,7 +16,11 @@ const PUBLIC_PATHS = [
 
 const DEMO_ALLOWED_PATHS = ["/dashboard", "/niko", "/personal"];
 
-export async function middleware(req: NextRequest) {
+/**
+ * Next.js 16.2.1 Proxy (formerly Middleware)
+ * Handles session updates and authentication redirects.
+ */
+export async function proxy(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
 
   // cron API는 route handler 내부 secret 검사로 보호한다.
