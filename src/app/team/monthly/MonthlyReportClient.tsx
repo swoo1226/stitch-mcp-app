@@ -349,6 +349,39 @@ export default function MonthlyReportClient({ teamId }: { teamId: string }) {
                 <p className="text-lg font-bold opacity-70" style={{ color: "var(--text-soft)" }}>{monthLabel} · 팀 인사이트</p>
               </div>
               <div className="flex items-center gap-4">
+                {userRole === "super_admin" || userRole === "team_admin" ? (
+                  <button
+                    onClick={async () => {
+                      if (teamId === DEMO_TEAM_ID) {
+                        alert("데모 팀에서는 공유 기능을 사용할 수 없습니다.");
+                        return;
+                      }
+                      try {
+                        const targetMonthStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-01`;
+                        const { data, error } = await supabase
+                          .from('report_shares')
+                          .insert({ team_id: teamId, target_month: targetMonthStr })
+                          .select('id')
+                          .single();
+                        
+                        if (error) throw error;
+                        
+                        const shareUrl = `${window.location.origin}/public/report/${data.id}`;
+                        await navigator.clipboard.writeText(shareUrl);
+                        alert(`공유 링크가 복사되었습니다!\n${shareUrl}`);
+                      } catch (err) {
+                        console.error("공유 실패:", err);
+                        alert("링크 생성에 실패했습니다.");
+                      }
+                    }}
+                    className="flex h-10 items-center justify-center gap-2 rounded-full px-4 text-sm font-bold transition-all bg-primary text-on-primary hover:opacity-90"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    공유 링크
+                  </button>
+                ) : null}
                 <PrimaryTabToggle
                   tabs={[
                     { value: "0", label: "이번 달" },
