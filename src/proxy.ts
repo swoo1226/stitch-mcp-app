@@ -12,6 +12,7 @@ const PUBLIC_PATHS = [
   "/statistics",
   "/icon",
   "/icon.svg",
+  "/public",
 ];
 
 const DEMO_ALLOWED_PATHS = ["/dashboard", "/niko", "/personal"];
